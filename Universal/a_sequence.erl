@@ -15,6 +15,7 @@
 -export([make_dictionary/1]).
 -export([random/2,random/3]).
 -export([md/2]).
+-export([unique/1]).
 
 %% Module Include Start
 -include("../Handler/a.hrl").
@@ -120,3 +121,16 @@ md(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 md_hex(X) ->
 	element(X+1,{$0,$1,$2,$3,$4,$5,$6,$7,$8,$9,$a,$b,$c,$d,$e,$f}).
+
+%% @spec unique(Source) -> binary()
+%% where
+%%      Source = time | Object()
+%% @doc Return a binary within random unique sequence
+unique(time) ->
+	Time = a:bin(a_time:timestamp()),
+	Random_value = make_random(make_dictionary([alpha_lower]),64),
+	md(<<Time/binary,Random_value/binary>>,md4);
+unique(Object) ->
+	Object_sequence = md(Object,md5),
+	Random_value = make_random(make_dictionary([alpha_lower,numeric]),64),
+	md(<<Object_sequence/binary,Random_value/binary>>,md4).
