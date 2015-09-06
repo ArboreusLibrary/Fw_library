@@ -25,6 +25,12 @@
 	%% Module: a_sequence
 	{m001_001,"No requested type of dictionary"},
 	{m001_002,"Dictionary generating error"},
-	{m001_003,"Bad arguments, random number generation failed"}
+	{m001_003,"Bad arguments, random number generation failed"},
+
+	%% Module: a_header
+	{m002_001,"Bad arguments, Value() must be binary() | integer() | string()"},
+
+	%% Module: a_params
+	{m003_001,"Bad parameters type, must be defined in a_params module"}
 
 ]).

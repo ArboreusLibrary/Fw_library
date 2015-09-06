@@ -15,6 +15,7 @@
 -export([str/1]).
 -export([error/2]).
 -export([bin/1]).
+-export([read_file/1]).
 
 %% System include
 
@@ -47,3 +48,14 @@ error({_,{Module,Function,Arity}},Error_code) when is_atom(Error_code) ->
 			{error,{Module,Function,Arity,Reason}}
 	end;
 error(_,_) -> {error,{a,error,2,proplists:get_value(e000,?ERROR_CODES)}}.
+
+%% @spec read_file(Path) -> binary() | {error,Reason}
+%% where
+%%      Path = string()
+%% @doc Return the requested file in binary mode or {error,Reason}
+read_file(Path) when is_list(Path) == true ->
+	case file:read_file(Path) of
+		{ok,File} -> File;
+		{error,Reason} -> {error,Reason}
+	end;
+read_file(_) -> a:error(?FUNCTION_NAME(),a002).
