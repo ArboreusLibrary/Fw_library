@@ -31,6 +31,9 @@
 	{m002_001,"Bad arguments, Value() must be binary() | integer() | string()"},
 
 	%% Module: a_params
-	{m003_001,"Bad parameters type, must be defined in a_params module"}
+	{m003_001,"Bad parameters type, must be defined in a_params module"},
+
+	%% Module: a_list
+	{m004_001,"Wrong path"}
 
 ]).
