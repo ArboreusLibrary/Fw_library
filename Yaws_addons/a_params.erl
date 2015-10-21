@@ -37,6 +37,20 @@ check({atom,Parameter}) when is_list(Parameter) == true ->
 		nomatch -> nomatch;
 		{match,_} -> list_to_atom(Parameter)
 	end;
+check({boolean,Parameter}) when is_list(Parameter) ->
+	Pattern = "^true$|^false$|^yes$|^no$|^1$|^0$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			if
+				Parameter == "true" -> true;
+				Parameter == "false" -> false;
+				Parameter == "yes" -> yes;
+				Parameter == "no" -> no;
+				Parameter == "1" -> 1;
+				Parameter == "0" -> 0
+			end
+	end;
 check({e_mail,Parameter}) when is_list(Parameter) == true ->
 	Pattern = "^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$",
 	case re:run(Parameter,Pattern) of
