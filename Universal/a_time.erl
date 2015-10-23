@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.6.105").
+-vsn("0.0.7.144").
 
 %% Module API
 -export([current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1]).
@@ -22,65 +22,101 @@
 -include("../Handler/a.hrl").
 %% Module Include End
 
+
 %% ------------------------------------------------
 %% Current
 %% ------------------------------------------------
 
+%%-----------------------------------
 %% @spec current_date() -> tuple()
-%% @doc Return a Date() within a tuple() = {Year,Month,Day}, the part of erlang:localtime()
+%% @doc Return a Date() within a tuple() :: {Year,Month,Day}, the part of erlang:localtime()
+-spec current_date() -> tuple().
+
 current_date() -> {Date,_}=erlang:localtime(), Date.
 
-%% @spec current_year() -> integer()
-%% @doc Return a Year() = integer(), the part of erlang:localtime()
+%%-----------------------------------
+%% @spec current_year(Output_type) -> integer()
+%% @doc Return a Year :: integer(), the part of erlang:localtime()
+-spec current_year(Output_type) -> integer() | {error,_Error_notice} when
+	Output_type :: full | short .
+
 current_year(full) -> {Year,_,_} = current_date(), Year;
 current_year(short) -> current_year(full) - trunc(current_year(full)/100)*100;
 current_year(_) -> a:error(?FUNCTION_NAME(),a011).
 
+%%-----------------------------------
 %% @spec current_month() -> integer()
 %% @doc Return a Month() = integer(), the part of erlang:localtime()
+-spec current_month() -> integer().
+
 current_month() -> {_,Month,_} = current_date(), Month.
 
-%% @spec current_month() -> integer()
-%% @doc Return a Month() = integer(), the part of erlang:localtime()
+%%-----------------------------------
+%% @spec current_day() -> integer()
+%% @doc Return a Day :: integer(), the part of erlang:localtime()
+-spec current_day() -> integer().
+
 current_day() -> {_,_,Day} = current_date(), Day.
 
-%% @spec dow_current(View()::atom()) -> binaries().
+%%-----------------------------------
+%% @spec current_dow(View) -> byte()
 %% where
-%%      View() = full | alpha2 | alpha3.
+%%      View :: full | alpha2 | alpha3.
 %% @doc Return the current day of the week within binaries
-current_dow(View) -> dow(calendar:day_of_the_week(current_date()),View).
+-spec current_dow(View) -> byte() | {error,_Reason}
+	when View :: full | alpha2 | alpha3.
 
+current_dow(View) -> dow(calendar:day_of_the_week(current_date()),View);
+current_dow(_) -> a:error(?FUNCTION_NAME(),a012).
+
+%%-----------------------------------
 %% @spec current() -> tuple()
 %% @doc Return a Time() within a tuple() = {Hours,Minutes,Seconds}, the part of erlang:localtime()
+-spec current() -> tuple().
+
 current() -> {_,Time}=erlang:localtime(), Time.
 
+%%-----------------------------------
 %% @spec current(Format) -> binary()
 %% where
-%%      Format = rfc850 | rfc822 | ansi
+%%      Format :: rfc850 | rfc822 | ansi
 %% @doc Return a binary within the current time formated by the Format()::atom() from the list
+-spec current(Format) -> binary() | {error,_Reason}
+	when Format :: rfc850 | rfc822 | ansi.
+
 current(Format)
 	when
 		Format == rfc850; Format == rfc822; Format == ansi ->
 	format(Format,{date,erlang:localtime()});
 current(_) -> a:error(?FUNCTION_NAME(),a012).
 
+
 %% ------------------------------------------------
 %% Timestamp
 %% ------------------------------------------------
 
-%% @spec timestamp(Type()::atom()) -> integer()
+%%-----------------------------------
+%% @spec timestamp(Type::binaries) -> byte().
 %% @doc Return difned format value of current timestamp
+-spec timestamp(Type::binaries) -> byte() | {error,_Reason}.
+
 timestamp(binaries) -> integer_to_binary(timestamp());
 timestamp(_) -> a:error(?FUNCTION_NAME(),a012).
 
+%%-----------------------------------
 %% @spec timestamp() -> integer()
 %% @doc Return current timestamp as integer
+-spec timestamp() -> integer().
+
 timestamp() ->
 	{Mega,Sec,Micro}=os:timestamp(),
 	Mega*1000000000000+Sec*1000000+Micro.
 
+%%-----------------------------------
 %% @spec timestamp_to_tuple(Timestamp) -> tuple()
 %% @doc Return a tuple within converted Timestamp from integer
+-spec timestamp_to_tuple(Timestamp::integer()) -> tuple() | {error,_Reason}.
+
 timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 ->
 	Mega = Timestamp div 1000000000000,
 	Sec = Timestamp div 1000000 rem 1000000,
@@ -88,12 +124,20 @@ timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 
 	{Mega,Sec,Micro};
 timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
 
+
 %% ------------------------------------------------
 %% Day of the week
 %% ------------------------------------------------
 
-%% @spec dow(Day_number()::integer(),View()::atom()) -> binaries().
+%%-----------------------------------
+%% @spec dow(Day_number,View) -> binaries() | {error,_Reason}
+%% where
+%%      Day_number :: pos_integer(),
+%%      View :: full | alpha2 | alpha3.
 %% @doc Retuen a binary within day of the week name in defined view
+-spec dow(Day_number,View) -> byte() | {error,_Reason}
+	when Day_number :: pos_integer(), View :: full | alpha2 | alpha3.
+
 dow(1,full) -> <<"Monday">>;
 dow(2,full) -> <<"Tuesday">>;
 dow(3,full) -> <<"Wednesday">>;
@@ -133,8 +177,15 @@ dow(Dow,View) ->
 %% Month
 %% ------------------------------------------------
 
-%% @spec month(Month_number::integer(),View()::atom()) -> binary()
+%%-----------------------------------
+%% @spec month(Month_number,View) -> byte() | {error,_Reason}
+%% where
+%%      Month_number :: pos_integer(),
+%%      View :: full | alpha2 | alpha3.
 %% @doc Return binary within month name in defined view
+-spec month(Month_number,View) -> byte() | {error,_Reason}
+	when Month_number :: pos_integer(), View :: full | alpha2 | alpha3.
+
 month(1,full) -> <<"January">>;
 month(2,full) -> <<"February">>;
 month(3,full) -> <<"March">>;
@@ -184,16 +235,25 @@ month(Month_number,View) ->
 			a:error(?FUNCTION_NAME(),a000)
 	end.
 
+
 %% ------------------------------------------------
 %% Format
 %% ------------------------------------------------
 
-%% @spec format(View,Time_in) -> binary()
+%%-----------------------------------
+%% @spec format(View,Time_in) -> byte() | {error,_Reason}
 %% where
 %%      View = ansi | rfc850 | rfc822
 %%      Time = {timestamp | date,{Time_data()}}
 %%      Time_data() = tuple()
 %% @doc Return a binary within a formated time
+-spec format(View,Time_in) -> byte() | {error,_Reason}
+	when
+		View :: full | alpha2 | alpha3,
+		Time_in :: {timestamp,{Mega,Seconds,Micro}} | {date,Time},
+		Mega :: integer(), Seconds :: integer(), Micro :: integer(),
+		Time :: tuple().
+
 format(ansi,Time_in) ->
 	case Time_in of
 		{timestamp,{Mega,Seconds,Micro}} ->

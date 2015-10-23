@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.1.92").
+-vsn("0.0.1.144").
 
 
 %% Module API
@@ -16,6 +16,7 @@
 -export([error/2]).
 -export([bin/1]).
 -export([read_file/1]).
+-export([cwd/0]).
 
 %% System include
 
@@ -24,21 +25,36 @@
 -include("error_codes.hrl").
 %% Module Include End
 
-%% @spec str(Function::bitstring()) -> string()
+%%-----------------------------------
+%% @spec str(Bitstring::byte()) -> string()
 %% @doc Return string converted from binary
-str(Function) when is_bitstring(Function) == true -> binary_to_list(Function);
+-spec str(Bitstring::byte()) -> string().
+
+str(Bitstring) when is_bitstring(Bitstring) -> binary_to_list(Bitstring);
 str(_) -> a:error(?FUNCTION_NAME(),a002).
 
-%% @spec bin(Function) -> binary()
+%%-----------------------------------
+%% @spec bin(Value) -> binary()
 %% where
-%%      Function = integer() | string()
+%%      Value = integer() | string()
 %% @doc Return binary within converted value, purposed for integer() or string() datatypes
-bin(Function) when is_integer(Function) == true -> integer_to_binary(Function);
-bin(Function) when is_list(Function) == true -> list_to_binary(Function);
+-spec bin(Value) -> byte() when
+	Value :: integer() | string().
+
+bin(Value) when is_integer(Value) -> integer_to_binary(Value);
+bin(Value) when is_list(Value) ->
+	case io_lib:char_list(Value) of
+		true -> list_to_binary(Value);
+		false -> a:error(?FUNCTION_NAME(),a013)
+	end;
 bin(_) -> a:error(?FUNCTION_NAME(),a013).
 
-%% @spec error(Function_name::tuple(),Reason::string()) -> tuple()
+%%-----------------------------------
+%% @spec error(Function_name::tuple(),Error_code::string()) -> tuple()
 %% @doc Return a tuple within function Id and the reason of an error
+-spec error({_,{Module,Function,Arity}},Error_code::atom()) -> tuple()
+	when Module::atom(), Function::atom(), Arity::integer().
+
 error({_,{Module,Function,Arity}},Error_code) when is_atom(Error_code) ->
 	Reason = proplists:get_value(Error_code,?ERROR_CODES),
 	case Reason of
@@ -49,13 +65,33 @@ error({_,{Module,Function,Arity}},Error_code) when is_atom(Error_code) ->
 	end;
 error(_,_) -> {error,{a,error,2,proplists:get_value(e000,?ERROR_CODES)}}.
 
-%% @spec read_file(Path) -> binary() | {error,Reason}
+%%-----------------------------------
+%% @spec read_file(Path) -> byte() | {error,_}
 %% where
 %%      Path = string()
 %% @doc Return the requested file in binary mode or {error,Reason}
-read_file(Path) when is_list(Path) == true ->
-	case file:read_file(Path) of
-		{ok,File} -> File;
-		{error,Reason} -> {error,Reason}
+-spec read_file(Path::string()) -> byte() | {error,_}.
+
+read_file(Path) when is_list(Path) ->
+	case io_lib:char_list(Path) of
+		true ->
+			case file:read_file(Path) of
+				{ok,File} -> File;
+				{error,Reason} -> {error,Reason}
+			end;
+		false -> a:error(?FUNCTION_NAME(),a002)
 	end;
 read_file(_) -> a:error(?FUNCTION_NAME(),a002).
+
+%%-----------------------------------
+%% @spec cwd() -> string() | {errror,Reason}
+%% where
+%%      Dir = string()
+%% @doc Return a working directory
+-spec cwd() -> string() | {errror,_}.
+
+cwd() ->
+	case file:get_cwd() of
+		{ok,Dir} -> Dir;
+		{error,Reason} -> {error,Reason}
+end.

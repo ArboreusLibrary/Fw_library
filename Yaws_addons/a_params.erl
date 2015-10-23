@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.0.0").
+-vsn("0.0.1.144").
 
 %% Module API
 -export([check/3]).
@@ -20,12 +20,17 @@
 -include("../Handler/a.hrl").
 %% Module Include End
 
-%% @spec check({Type,Parameter}) -> Checked_parameter()
+%%-----------------------------------
+%% @spec check(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter}
 %% where
-%%      Type == atom()
-%%      Parameters = Parameter()
+%%      Type::atom()
+%%      Parameter::string()
+%%      Type_properties::list()
 %% @doc Checking the request parameter through the Regexp defined for the type. Return the
 %% Parameter = Checked_parameter() converted to the defined datatype from list
+-spec check(Type,Parameter,Type_properties) -> nomatch | {match,_Checked_parameter}
+	when Type::atom(), Parameter::string(), Type_properties::list().
+
 check(integer,Parameter,_) when is_list(Parameter) == true ->
 	case io_lib:char_list(Parameter) of
 		true ->
@@ -101,13 +106,15 @@ check(Type,_,_) when is_atom(Type) == true -> a:error(?FUNCTION_NAME(),m003_001)
 check(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %% ----------------------------
+%% @spec check_parameters(Data_schema,Parameters) -> list() | false.
 %% @doc Checking requested parameters in following of Data_schema selected
 %% in following of table name.
 %% Return:
 %%      false - in case of wrong request parameters
 %%      list() - in case of passed checking
 %% Example of passed checking: [{parameter1,"Value1"},{parameter2,"Value2"},{parameter2,"Value2"}]
--spec check_parameters(Data_schema::list(),Parameters::list()) -> false | list().
+-spec check_parameters(Data_schema,Parameters) -> list() | false
+	when Data_schema::list(), Parameters::list().
 
 check_parameters(Data_schema,Parameters) ->
 	check_parameters(Data_schema,Parameters,[]).

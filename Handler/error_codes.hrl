@@ -17,6 +17,8 @@
 	{a012,"Bad arguments, must be an atom() from defined list"},
 	{a013,"Bad arguments, wrong type of arguments"},
 	{a014,"Bad arguments, must be string()"},
+	{a015,"Bad arguments, must be typified list()"},
+	{a016,"Throw exeption"},
 
 	%% Error handler
 	{e000,"Error handler: bad arguments"},
