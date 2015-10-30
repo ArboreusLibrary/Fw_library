@@ -10,13 +10,14 @@
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
 
 %% API
+-export([get_out/3]).
 -export([lpath/3]).
 -export([lpath_verify/1]).
--export([test/1]).
 
 %% Module Include Start
 -include("../Handler/a.hrl").
 %% Module Include End
+
 
 -define(TEST_LIST,[
 	{key1,[
@@ -55,7 +56,6 @@ lpath(get_pair,Path,Proplist) ->
 		_ -> {Key,Lpath_run}
 	end.
 
-
 lpath_run([],Element) -> Element;
 lpath_run([Path_point|Path_way],Proplist) ->
 	Element = proplists:get_value(Path_point,Proplist),
@@ -78,12 +78,29 @@ lpath_verify(List) when is_list(List) ->
 lpath_verify(_) -> a:error(?FUNCTION_NAME(),a015).
 
 
-test(Argument) ->
-	try
-	    list_to_binary(Argument)
-	catch
-	    error:Error  ->
-		    {_,Function} = ?FUNCTION_NAME(),
-		    {error,Function,Error}
-	end
-.
+%% ----------------------------
+%% @doc Get out key-value pair and return cleared List and value
+-spec get_out(Type,Key,List) -> Result | {error,_Reason}
+	when
+		Type :: value | pair,
+		Key :: atom(),
+		List :: list(),
+		Result :: list().
+
+get_out(value,Key,List) ->
+	Value = proplists:get_value(Key,List),
+	case Value of
+		undefined -> a:error(?FUNCTION_NAME(),m004_001);
+		_ ->
+			List_out = proplists:delete(Key,List),
+			[Value,List_out]
+	end;
+get_out(pair,Key,List) ->
+	Value = proplists:get_value(Key,List),
+	case Value of
+		undefined -> a:error(?FUNCTION_NAME(),m004_001);
+		_ ->
+			List_out = proplists:delete(Key,List),
+			[{Key,Value},List_out]
+	end;
+get_out(_,_,_) -> a:error(?FUNCTION_NAME(),a000).

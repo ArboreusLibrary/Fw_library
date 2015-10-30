@@ -66,7 +66,12 @@ current_day() -> {_,_,Day} = current_date(), Day.
 -spec current_dow(View) -> byte() | {error,_Reason}
 	when View :: full | alpha2 | alpha3.
 
-current_dow(View) -> dow(calendar:day_of_the_week(current_date()),View);
+current_dow(View)
+	when
+		View == full;
+		View == alpha2;
+		View == alpha3 ->
+	dow(calendar:day_of_the_week(current_date()),View);
 current_dow(_) -> a:error(?FUNCTION_NAME(),a012).
 
 %%-----------------------------------

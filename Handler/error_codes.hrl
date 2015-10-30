@@ -36,6 +36,7 @@
 	{m003_001,"Bad parameters type, must be defined in a_params module"},
 
 	%% Module: a_list
-	{m004_001,"Wrong path"}
+	{m004_001,"Wrong path"},
+	{m004_002,"No key-value pair in list"}
 
 ]).

@@ -38,15 +38,17 @@ str(_) -> a:error(?FUNCTION_NAME(),a002).
 %% where
 %%      Value = integer() | string()
 %% @doc Return binary within converted value, purposed for integer() or string() datatypes
--spec bin(Value) -> byte() when
+-spec bin(Value) -> byte() | {error,_Reason} when
 	Value :: integer() | string().
 
-bin(Value) when is_integer(Value) -> integer_to_binary(Value);
 bin(Value) when is_list(Value) ->
 	case io_lib:char_list(Value) of
-		true -> list_to_binary(Value);
-		false -> a:error(?FUNCTION_NAME(),a013)
+		true -> unicode:characters_to_binary(Value);
+		_ -> a:error(?FUNCTION_NAME(),a013)
 	end;
+bin(Value) when is_atom(Value) -> atom_to_binary(Value,utf8);
+bin(Value) when is_integer(Value) -> integer_to_binary(Value);
+bin(Value) when is_binary(Value) -> Value;
 bin(_) -> a:error(?FUNCTION_NAME(),a013).
 
 %%-----------------------------------
