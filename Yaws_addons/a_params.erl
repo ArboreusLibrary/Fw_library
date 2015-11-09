@@ -165,8 +165,7 @@ check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) 
 									true -> false
 								end;
 							true -> false
-						end;
-					_ -> false
+						end
 				end
 			end,
 			Exception_binary = fun() ->
@@ -180,8 +179,7 @@ check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) 
 							true ->
 								Binary_rule = unicode:characters_to_binary(Exception_rule),
 								<<("|[")/utf8,Binary_rule/binary,("]")/utf8>>
-						end;
-					_ -> false
+						end
 				end
 			end,
 			case Length_binary() of
