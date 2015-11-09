@@ -28,31 +28,62 @@
 %%      Type_properties::list()
 %% @doc Checking the request parameter through the Regexp defined for the type. Return the
 %% Parameter = Checked_parameter() converted to the defined datatype from list
--spec check(Type,Parameter,Type_properties) -> nomatch | {match,_Checked_parameter}
+-spec check(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter
 	when Type::atom(), Parameter::string(), Type_properties::list().
 
-check(integer,Parameter,_) when is_list(Parameter) == true ->
+%% Float, regex rule ^[\-]?[0-9]*\.[0-9]*$
+check(float,Parameter,_) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
 		true ->
-			Pattern = "^[0-9]*$",
-			case re:run(Parameter,Pattern) of
+			try list_to_float(Parameter)
+			catch _:_ -> nomatch end;
+		false ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Integer, regex rule ^[\-]?[0-9]*$
+check(integer,Parameter,_) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			try list_to_integer(Parameter)
+			catch _:_ -> nomatch end;
+		false ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Positive integer, regex rule "^[0-9]*$"
+check(pos_integer,Parameter,_) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			case check(integer,Parameter,[]) of
 				nomatch -> nomatch;
-				{match,_} -> list_to_integer(Parameter)
+				Integer ->
+					if
+						Integer >= 0 -> Integer;
+						true -> nomatch
+					end
 			end;
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
-check(atom,Parameter,_) when is_list(Parameter) == true ->
+%% Atom
+check(atom,Parameter,_) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			try list_to_atom(Parameter)
+			catch _:_ -> nomatch end;
+		_ ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% A_atom, regex rule ^[a-z]{1}[a-zA-Z0-9\_]*$
+check(a_atom,Parameter,_) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
 		true ->
 			Pattern = "^[a-z]{1}[a-zA-Z0-9\_]*$",
 			case re:run(Parameter,Pattern) of
 				nomatch -> nomatch;
 				{match,_} -> list_to_atom(Parameter)
-			end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
+			end
 	end;
+%% Boolean, regex rule ^true$|^false$
 check(boolean,Parameter,_) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
 		true ->
@@ -68,7 +99,8 @@ check(boolean,Parameter,_) when is_list(Parameter) ->
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
-check(e_mail,Parameter,_) when is_list(Parameter) == true ->
+%% E-mail
+check(e_mail,Parameter,_) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
 		true ->
 			Pattern = "^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$",
@@ -81,6 +113,7 @@ check(e_mail,Parameter,_) when is_list(Parameter) == true ->
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
+%% Id
 check(id,Parameter,[Length,Output])
 	when
 		is_list(Parameter) == true,
