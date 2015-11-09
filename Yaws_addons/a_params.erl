@@ -61,7 +61,41 @@ check(pos_integer,Parameter,_) when is_list(Parameter) ->
 						true -> nomatch
 					end
 			end;
-		_ ->
+		false ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Neg_integer, regex rule ^[\-]{1}[0-9]*$
+check(neg_integer,Parameter,_) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			case check(integer,Parameter,[]) of
+				nomatch -> nomatch;
+				Integer ->
+					if
+						Integer < 0 -> Integer;
+						true -> nomatch
+					end
+			end;
+		false ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Ranged integer
+check(ranged_integer,Parameter,[Minor,Major]) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			case check(integer,Parameter,[]) of
+				nomatch -> nomatch;
+				Integer ->
+					if
+						Integer =< Major ->
+							if
+								Integer >= Minor -> Integer;
+								true -> nomatch
+							end;
+						true -> nomatch
+					end
+			end;
+		false ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
 %% Atom
@@ -96,6 +130,35 @@ check(boolean,Parameter,_) when is_list(Parameter) ->
 						Parameter == "false" -> false
 					end
 			end;
+		_ ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Latin_name, regex rule ^[a-zA-Z0-9 -_]{1,lenght}$
+check(latin_name,Parameter,[Lenght]) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			Pattern = fun() ->
+				case Lenght of
+					free -> <<("^[a-zA-Z0-9 \-\_]{1,}$")/utf8>>;
+					_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Lenght))/binary,("}$")/utf8>>
+				end
+			end,
+			Binary_parameter = unicode:characters_to_binary(Parameter),
+			case re:run(Binary_parameter,Pattern()) of
+				nomatch -> nomatch;
+				{match,_} -> Binary_parameter
+			end;
+		_ ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Unicode binary, regex rule
+check(unicode_binary,Parameter,[Exception_rule,Lenght]) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			Pattern = fun() ->
+				case Exception_rule of
+					free -> <<("")/utf8>>
+				end;
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
