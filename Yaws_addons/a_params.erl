@@ -13,7 +13,6 @@
 %% Module API
 -export([check/3]).
 -export([check_parameters/2]).
-
 %% System include
 
 %% Module Include Start
@@ -134,19 +133,78 @@ check(boolean,Parameter,_) when is_list(Parameter) ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
 %% Latin_name, regex rule ^[a-zA-Z0-9 -_]{1,lenght}$
-check(latin_name,Parameter,[Lenght]) when is_list(Parameter) ->
+check(latin_name,Parameter,[Length]) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
 		true ->
 			Pattern = fun() ->
-				case Lenght of
+				case Length of
 					free -> <<("^[a-zA-Z0-9 \-\_]{1,}$")/utf8>>;
-					_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Lenght))/binary,("}$")/utf8>>
+					_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Length))/binary,("}$")/utf8>>
 				end
 			end,
 			Binary_parameter = unicode:characters_to_binary(Parameter),
 			case re:run(Binary_parameter,Pattern()) of
 				nomatch -> nomatch;
 				{match,_} -> Binary_parameter
+			end;
+		_ ->
+			a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Unicode binary, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
+check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) ->
+	case io_lib:char_list(Parameter) of
+		true ->
+			Length_binary = fun() ->
+				case Length of
+					free -> <<("")/utf8>>;
+					Length ->
+						if
+							is_integer(Length) ->
+								if
+									Length >=2 -> integer_to_binary(Length) ;
+									true -> false
+								end;
+							true -> false
+						end;
+					_ -> false
+				end
+			end,
+			Exception_binary = fun() ->
+				case Exception_rule of
+					"" -> <<("")/utf8>>;
+					free -> <<("")/utf8>>;
+					Exception_rule ->
+						Test_rule = io_lib:char_list(Exception_rule),
+						if
+							Test_rule == false -> false;
+							true ->
+								Binary_rule = unicode:characters_to_binary(Exception_rule),
+								<<("|[")/utf8,Binary_rule/binary,("]")/utf8>>
+						end;
+					_ -> false
+				end
+			end,
+			case Length_binary() of
+				false -> a:error(?FUNCTION_NAME(),a014);
+				_ ->
+					case Exception_binary() of
+						false -> a:error(?FUNCTION_NAME(),a014);
+						_ ->
+							Pattern = fun() ->
+								<<("^(<<\"){1}((?!\">>")/utf8,
+									(Exception_binary())/binary,
+									(").){1,")/utf8,
+									(Length_binary())/binary,
+									("}(\">>)$")/utf8>>
+							end,
+							case re:run(Parameter,Pattern()) of
+								nomatch -> nomatch;
+								{match,_} ->
+									Parameter_binary = unicode:characters_to_binary(Parameter),
+									Size = byte_size(Parameter_binary),
+									binary:part(Parameter_binary,3,Size-6)
+							end
+					end
 			end;
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
@@ -169,7 +227,8 @@ check(e_mail,Parameter,_) when is_list(Parameter) ->
 check(id,Parameter,[Length,Output])
 	when
 		is_list(Parameter) == true,
-		is_integer(Length) == true ->
+		is_integer(Length) == true,
+		Length > 0 ->
 	case io_lib:char_list(Parameter) of
 		true ->
 			Pattern = lists:concat(["^[a-zA-Z0-9]{",integer_to_list(Length),"}$"]),
