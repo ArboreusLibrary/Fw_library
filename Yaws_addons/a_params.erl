@@ -157,7 +157,7 @@ check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) 
 			Length_binary = fun() ->
 				case Length of
 					free -> <<("")/utf8>>;
-					Length ->
+					_ ->
 						if
 							is_integer(Length) ->
 								if
@@ -172,7 +172,7 @@ check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) 
 				case Exception_rule of
 					"" -> <<("")/utf8>>;
 					free -> <<("")/utf8>>;
-					Exception_rule ->
+					_ ->
 						Test_rule = io_lib:char_list(Exception_rule),
 						if
 							Test_rule == false -> false;
