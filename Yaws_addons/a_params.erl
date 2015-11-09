@@ -151,17 +151,6 @@ check(latin_name,Parameter,[Lenght]) when is_list(Parameter) ->
 		_ ->
 			a:error(?FUNCTION_NAME(),a014)
 	end;
-%% Unicode binary, regex rule
-check(unicode_binary,Parameter,[Exception_rule,Lenght]) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = fun() ->
-				case Exception_rule of
-					free -> <<("")/utf8>>
-				end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
 %% E-mail
 check(e_mail,Parameter,_) when is_list(Parameter) ->
 	case io_lib:char_list(Parameter) of
