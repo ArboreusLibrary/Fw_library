@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.2.157").
+-vsn("0.0.3.158").
 
 %% Module API
 -export([check/3]).
@@ -20,71 +20,67 @@
 %% Module Include End
 
 %%-----------------------------------
-%% @spec check(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter}
+%% @spec check(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter} | {error,_Reason}
 %% where
 %%      Type::atom()
 %%      Parameter::string()
 %%      Type_properties::list()
 %% @doc Checking the request parameter through the Regexp defined for the type. Return the
 %% Parameter = Checked_parameter() converted to the defined datatype from list
--spec check(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter
+-spec check(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
+	when Type::atom(), Parameter::string(), Type_properties::list().
+
+check(Type,Parameter,Type_properties) ->
+	case io_lib:char_list(Parameter) of
+		true -> parameter_value(Type,Parameter,Type_properties);
+		false -> a:error(?FUNCTION_NAME(),a014)
+	end.
+
+%%-----------------------------------
+%% @spec parameter_value(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter} | {error,_Reason}
+%% where
+%%      Type::atom()
+%%      Parameter::string()
+%%      Type_properties::list()
+%% @doc Secondary function for check/3
+-spec parameter_value(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
 	when Type::atom(), Parameter::string(), Type_properties::list().
 
 %% Float, regex rule ^[\-]?[0-9]*\.[0-9]*$
-check(float,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			try list_to_float(Parameter)
-			catch _:_ -> nomatch end;
-		false ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
+parameter_value(float,Parameter,_) ->
+	try list_to_float(Parameter)
+	catch _:_ -> nomatch end;
 %% Integer, regex rule ^[\-]?[0-9]*$
-check(integer,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			try list_to_integer(Parameter)
-			catch _:_ -> nomatch end;
-		false ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
+parameter_value(integer,Parameter,_) ->
+	try list_to_integer(Parameter)
+	catch _:_ -> nomatch end;
 %% Positive integer, regex rule "^[0-9]*$"
-check(pos_integer,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			case check(integer,Parameter,[]) of
-				nomatch -> nomatch;
-				Integer ->
-					if
-						Integer >= 0 -> Integer;
-						true -> nomatch
-					end
-			end;
-		false ->
-			a:error(?FUNCTION_NAME(),a014)
+parameter_value(pos_integer,Parameter,_) ->
+	case check(integer,Parameter,[]) of
+		nomatch -> nomatch;
+		Integer ->
+			if
+				Integer >= 0 -> Integer;
+				true -> nomatch
+			end
 	end;
 %% Neg_integer, regex rule ^[\-]{1}[0-9]*$
-check(neg_integer,Parameter,_) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			case check(integer,Parameter,[]) of
-				nomatch -> nomatch;
-				Integer ->
-					if
-						Integer < 0 -> Integer;
-						true -> nomatch
-					end
-			end;
-		false ->
-			a:error(?FUNCTION_NAME(),a014)
+parameter_value(neg_integer,Parameter,_) ->
+	case check(integer,Parameter,[]) of
+		nomatch -> nomatch;
+		Integer ->
+			if
+				Integer < 0 -> Integer;
+				true -> nomatch
+			end
 	end;
 %% Ranged integer
-check(ranged_integer,Parameter,[Minor,Major]) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			case check(integer,Parameter,[]) of
-				nomatch -> nomatch;
-				Integer ->
+parameter_value(ranged_integer,Parameter,[Minor,Major]) ->
+	case check(integer,Parameter,[]) of
+		nomatch -> nomatch;
+		Integer ->
+			if
+				Minor < Major ->
 					if
 						Integer =< Major ->
 							if
@@ -92,160 +88,123 @@ check(ranged_integer,Parameter,[Minor,Major]) ->
 								true -> nomatch
 							end;
 						true -> nomatch
-					end
-			end;
-		false ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
-%% Atom
-check(atom,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			try list_to_atom(Parameter)
-			catch _:_ -> nomatch end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
-%% A_atom, regex rule ^[a-z]{1}[a-zA-Z0-9\_]*$
-check(a_atom,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = "^[a-z]{1}[a-zA-Z0-9\_]*$",
-			case re:run(Parameter,Pattern) of
-				nomatch -> nomatch;
-				{match,_} -> list_to_atom(Parameter)
+					end;
+				true -> a:error(?FUNCTION_NAME(),a000)
 			end
 	end;
+%% Atom
+parameter_value(atom,Parameter,_) ->
+	try list_to_atom(Parameter)
+	catch _:_ -> nomatch end;
+%% A_atom, regex rule ^[a-z]{1}[a-zA-Z0-9\_]*$
+parameter_value(a_atom,Parameter,_) ->
+	Pattern = "^[a-z]{1}[a-zA-Z0-9\_]*$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} -> list_to_atom(Parameter)
+	end;
 %% Boolean, regex rule ^true$|^false$
-check(boolean,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = "^true$|^false$",
-			case re:run(Parameter,Pattern) of
-				nomatch -> nomatch;
-				{match,_} ->
-					if
-						Parameter == "true" -> true;
-						Parameter == "false" -> false
-					end
-			end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
+parameter_value(boolean,Parameter,_) ->
+	Pattern = "^true$|^false$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			if
+				Parameter == "true" -> true;
+				Parameter == "false" -> false
+			end
 	end;
 %% Latin_name, regex rule ^[a-zA-Z0-9 -_]{1,lenght}$
-check(latin_name,Parameter,[Length]) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = fun() ->
-				case Length of
-					free -> <<("^[a-zA-Z0-9 \-\_]{1,}$")/utf8>>;
-					_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Length))/binary,("}$")/utf8>>
-				end
-			end,
-			Binary_parameter = unicode:characters_to_binary(Parameter),
-			case re:run(Binary_parameter,Pattern()) of
-				nomatch -> nomatch;
-				{match,_} -> Binary_parameter
-			end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
+parameter_value(latin_name,Parameter,[Length]) ->
+	Pattern = fun() ->
+		case Length of
+			free -> <<("^[a-zA-Z0-9 \-\_]{1,}$")/utf8>>;
+			_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Length))/binary,("}$")/utf8>>
+		end
+	          end,
+	Binary_parameter = unicode:characters_to_binary(Parameter),
+	case re:run(Binary_parameter,Pattern()) of
+		nomatch -> nomatch;
+		{match,_} -> Binary_parameter
 	end;
 %% Unicode binary, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
-check(unicode_binary,Parameter,[Exception_rule,Length]) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Length_binary = fun() ->
-				case Length of
-					free -> <<("")/utf8>>;
-					_ ->
+parameter_value(unicode_binary,Parameter,[Exception_rule,Length]) ->
+	Length_binary = fun() ->
+		case Length of
+			free -> <<("")/utf8>>;
+			_ ->
+				if
+					is_integer(Length) ->
 						if
-							is_integer(Length) ->
-								if
-									Length >=2 -> integer_to_binary(Length) ;
-									true -> false
-								end;
+							Length >=2 -> integer_to_binary(Length) ;
 							true -> false
-						end
+						end;
+					true -> false
 				end
-			end,
-			Exception_binary = fun() ->
-				case Exception_rule of
-					"" -> <<("")/utf8>>;
-					free -> <<("")/utf8>>;
-					_ ->
-						Test_rule = io_lib:char_list(Exception_rule),
-						if
-							Test_rule == false -> false;
-							true ->
-								Binary_rule = unicode:characters_to_binary(Exception_rule),
-								<<("|[")/utf8,Binary_rule/binary,("]")/utf8>>
-						end
+		end
+	                end,
+	Exception_binary = fun() ->
+		case Exception_rule of
+			"" -> <<("")/utf8>>;
+			free -> <<("")/utf8>>;
+			_ ->
+				Test_rule = io_lib:char_list(Exception_rule),
+				if
+					Test_rule == false -> false;
+					true ->
+						Binary_rule = unicode:characters_to_binary(Exception_rule),
+						<<("|[")/utf8,Binary_rule/binary,("]")/utf8>>
 				end
-			end,
-			case Length_binary() of
+		end
+	                   end,
+	case Length_binary() of
+		false -> a:error(?FUNCTION_NAME(),a014);
+		_ ->
+			case Exception_binary() of
 				false -> a:error(?FUNCTION_NAME(),a014);
 				_ ->
-					case Exception_binary() of
-						false -> a:error(?FUNCTION_NAME(),a014);
-						_ ->
-							Pattern = fun() ->
-								<<("^(<<\"){1}((?!\">>")/utf8,
-									(Exception_binary())/binary,
-									(").){1,")/utf8,
-									(Length_binary())/binary,
-									("}(\">>)$")/utf8>>
-							end,
-							case re:run(Parameter,Pattern()) of
-								nomatch -> nomatch;
-								{match,_} ->
-									Parameter_binary = unicode:characters_to_binary(Parameter),
-									Size = byte_size(Parameter_binary),
-									binary:part(Parameter_binary,3,Size-6)
-							end
+					Pattern = fun() ->
+						<<("^(<<\"){1}((?!\">>")/utf8,
+							(Exception_binary())/binary,
+							(").){1,")/utf8,
+							(Length_binary())/binary,
+							("}(\">>)$")/utf8>>
+					          end,
+					case re:run(Parameter,Pattern()) of
+						nomatch -> nomatch;
+						{match,_} ->
+							Parameter_binary = unicode:characters_to_binary(Parameter),
+							Size = byte_size(Parameter_binary),
+							binary:part(Parameter_binary,3,Size-6)
 					end
-			end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
-	end;
-%% E-mail
-check(e_mail,Parameter,_) when is_list(Parameter) ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = "^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$",
-			Pattern_unicode = unicode:characters_to_binary(Pattern),
-			Parameter_binary = unicode:characters_to_binary(Parameter),
-			case re:run(Parameter_binary,Pattern_unicode) of
-				nomatch -> nomatch;
-				{match,_} -> unicode:characters_to_binary(Parameter)
-			end;
-		_ ->
-			a:error(?FUNCTION_NAME(),a014)
+			end
 	end;
 %% Id
-check(id,Parameter,[Length,Output])
-	when
-		is_list(Parameter) == true,
-		is_integer(Length) == true,
-		Length > 0 ->
-	case io_lib:char_list(Parameter) of
-		true ->
-			Pattern = lists:concat(["^[a-zA-Z0-9]{",integer_to_list(Length),"}$"]),
-			Pattern_unicode = unicode:characters_to_binary(Pattern),
-			Parameter_binary = unicode:characters_to_binary(Parameter),
-			case re:run(Parameter_binary,Pattern_unicode) of
-				nomatch -> nomatch;
-				{match,_} ->
-					case Output of
-						binary -> Parameter_binary;
-						string -> binary_to_list(Parameter_binary);
-						_ -> a:error(?FUNCTION_NAME(),a012)
-					end
-			end;
+parameter_value(id,Parameter,[Length,Output]) ->
+	case is_integer(Length) of
+		false -> a:error(?FUNCTION_NAME(),a000);
 		_ ->
-			a:error(?FUNCTION_NAME(),a014)
+			if
+				Length > 0 ->
+					Pattern = <<("^[a-zA-Z0-9]{")/utf8,
+						(integer_to_binary(Length))/binary,
+						("}$")/utf8>>,
+					Parameter_binary = unicode:characters_to_binary(Parameter),
+					case re:run(Parameter_binary,Pattern) of
+						nomatch -> nomatch;
+						{match,_} ->
+							case Output of
+								binary -> Parameter_binary;
+								string -> binary_to_list(Parameter_binary);
+								_ -> a:error(?FUNCTION_NAME(),a012)
+							end
+					end;
+				true -> a:error(?FUNCTION_NAME(),a000)
+			end
 	end;
-check(Type,_,_) when is_atom(Type) == true -> a:error(?FUNCTION_NAME(),m003_001);
-check(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
+parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+
 
 %% ----------------------------
 %% @spec check_parameters(Data_schema,Parameters) -> list() | false.
