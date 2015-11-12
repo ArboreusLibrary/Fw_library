@@ -50,6 +50,25 @@ check(Type,Parameter,Type_properties) ->
 parameter_value(float,Parameter,_) ->
 	try list_to_float(Parameter)
 	catch _:_ -> nomatch end;
+%% Float, regex rule ^[0-9]*\.[0-9]*$
+parameter_value(pos_float,Parameter,_) ->
+	case check(float,Parameter,[]) of
+		nomatch -> nomatch;
+		Value ->
+			if
+				Value >= 0 -> Value;
+				true -> nomatch
+			end
+	end;
+parameter_value(neg_float,Parameter,_) ->
+	case check(float,Parameter,[]) of
+		nomatch -> nomatch;
+		Value ->
+			if
+				Value < 0 -> Value;
+				true -> nomatch
+			end
+	end;
 %% Integer, regex rule ^[\-]?[0-9]*$
 parameter_value(integer,Parameter,_) ->
 	try list_to_integer(Parameter)
@@ -118,14 +137,20 @@ parameter_value(boolean,Parameter,_) ->
 parameter_value(latin_name,Parameter,[Length]) ->
 	Pattern = fun() ->
 		case Length of
-			free -> <<("^[a-zA-Z0-9 \-\_]{1,}$")/utf8>>;
-			_ -> <<("^[a-zA-Z0-9 \-\_]{1,")/utf8,(integer_to_binary(Length))/binary,("}$")/utf8>>
+			free ->
+				<<("^(<<\"){1}([a-zA-Z0-9 _-]{1,})(\">>)$")/utf8>>;
+			_ ->
+				<<("^(<<\"){1}([a-zA-Z0-9 \-\_]{1,")/utf8,
+				(integer_to_binary(Length))/binary,
+				("})(\">>)$")/utf8>>
 		end
 	          end,
 	Binary_parameter = unicode:characters_to_binary(Parameter),
 	case re:run(Binary_parameter,Pattern()) of
 		nomatch -> nomatch;
-		{match,_} -> Binary_parameter
+		{match,_} ->
+			Size = byte_size(Binary_parameter),
+			binary:part(Binary_parameter,3,Size-6)
 	end;
 %% Unicode binary, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
 parameter_value(unicode_binary,Parameter,[Exception_rule,Length]) ->
