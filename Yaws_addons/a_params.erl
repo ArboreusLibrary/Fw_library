@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.3.158").
+-vsn("0.0.4.163").
 
 %% Module API
 -export([check/3]).
@@ -110,6 +110,60 @@ parameter_value(ranged_integer,Parameter,[Minor,Major]) ->
 					end;
 				true -> a:error(?FUNCTION_NAME(),a000)
 			end
+	end;
+%% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
+%% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$
+%% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
+parameter_value(Parameter_type,Parameter,_)
+	when
+		Parameter_type == range_pos_integer;
+		Parameter_type == range_neg_integer;
+		Parameter_type == range_integer	->
+	Pattern = fun() ->
+		case Parameter_type of
+			range_pos_integer -> "^([0-9]{1,})\:([0-9]{1,})$";
+			range_neg_integer -> "^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$";
+			range_integer -> "^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$"
+		end
+	end,
+	case re:split(Parameter,Pattern(),[{return,list}]) of
+		[_,Value1_string,Value2_string,_] ->
+			Value1 = list_to_integer(Value1_string),
+			Value2 = list_to_integer(Value2_string),
+			if
+				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
+				true -> Major = Value2, Minor = Value1
+			end,
+			[Minor,Major];
+		[_] -> nomatch;
+		_ -> nomatch
+	end;
+%% Range positive float, regex rule ^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$
+%% Range negative float, regex rule ^(\-[0-9]{1,}\.[0-9]{1,}|0)\:(\-[0-9]{1,}\.[0-9]{1,}|0)$
+%% Range float, regex rule ^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$
+parameter_value(Parameter_type,Parameter,_)
+	when
+		Parameter_type == range_pos_float;
+		Parameter_type == range_neg_float;
+		Parameter_type == range_float	->
+	Pattern = fun() ->
+		case Parameter_type of
+			range_pos_float -> "^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$";
+			range_neg_float -> "^(\-[0-9]{1,}\.[0-9]{1,}|0\.0)\:(\-[0-9]{1,}\.[0-9]{1,}|0\.0)$";
+			range_float -> "^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$"
+		end
+	end,
+	case re:split(Parameter,Pattern(),[{return,list}]) of
+		[_,Value1_string,Value2_string,_] ->
+			Value1 = list_to_float(Value1_string),
+			Value2 = list_to_float(Value2_string),
+			if
+				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
+				true -> Major = Value2, Minor = Value1
+			end,
+			[Minor,Major];
+		[_] -> nomatch;
+		_ -> nomatch
 	end;
 %% Atom
 parameter_value(atom,Parameter,_) ->
