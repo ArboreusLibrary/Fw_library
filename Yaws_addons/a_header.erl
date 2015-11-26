@@ -11,10 +11,13 @@
 -vsn("0.0.4.144").
 
 %% Module API
--export([last_modified/1]).
--export([expires/1]).
--export([cache/1]).
--export([json/1]).
+-export([
+	last_modified/1,
+	expires/1,
+	cache/1,
+	json/1,
+	csv/2
+]).
 
 %% System include
 
@@ -90,7 +93,7 @@ cache(no) ->
 cache(_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec json(Header_type) -> list() | {error,_Reason}.
+%% @spec json(Header_type) -> list() | {error,_Reason}
 %% where
 %%      Header_type() = np_cache | solid
 %% @doc Return a list within headers for JSON
@@ -102,5 +105,34 @@ json(no_cache) ->
 		json(solid)
 	];
 json(solid) ->
-	[{header,["Content-Type","application/json; charset=UTF-8"]}];
+	[{header,["Content-Type:","application/json; charset=utf-8"]}];
 json(_) -> a:error(?FUNCTION_NAME(),a000).
+
+%%-----------------------------------
+%% @spec csv(Type,File_name) -> list() | {error,_Reason}
+%% where
+%%      Type :: no_cache | solid,
+%%      File_name :: unicode:latin1_chardata().
+%% @doc Return a list within HTTP headers for CSV file format
+-spec csv(Type,File_name) -> list() | {error,_Reason}
+	when
+		Type :: no_cache | solid,
+		File_name :: unicode:latin1_chardata().
+
+csv(Type,File_name) when is_atom(Type) ->
+	case io_lib:char_list(File_name) of
+		true -> csv_set(Type,File_name);
+		false -> a:error(?FUNCTION_NAME(),a000)
+	end;
+csv(_,_) -> a:error(?FUNCTION_NAME(),a000).
+csv_set(no_cache,File_name) ->
+	[
+		cache(no),
+		csv(solid,File_name)
+	];
+csv_set(solid,File_name) ->
+	[
+		{header,["Content-Type:","text/csv; charset=utf-8"]},
+		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
+	];
+csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
