@@ -16,7 +16,8 @@
 	expires/1,
 	cache/1,
 	json/1,
-	csv/2
+	csv/2,
+	xml/1
 ]).
 
 %% System include
@@ -136,3 +137,17 @@ csv_set(solid,File_name) ->
 		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
 	];
 csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
+
+%%-----------------------------------
+%% @spec xml(Content_type) -> list() | {error,_Reason}
+%% where
+%%      Content_typr :: text_xml | application_xml
+%% @doc Return list within XML MIME type headers for Yaws out() function
+-spec xml(Content_type) -> list() | {error,_Reason}
+	when Content_type :: text_xml | application_xml.
+
+xml(text_xml) ->
+	[{header,["Content-Type:","text/xml; charset=utf-8"]}];
+xml(application_xml) ->
+	[{header,["Content-Type:","application/xml; charset=utf-8"]}];
+xml(_) -> a:error(?FUNCTION_NAME(),a000).

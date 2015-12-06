@@ -41,7 +41,6 @@ function variable_error(){
 # Checking exclusions
 # --------------------------------------------
 function exclusion(){
-	CHECK="";
 	if [ $1 == "--dir" ];
 	then
 		if [ ! -z ${EXCLUSION_DIRS+x} ];
@@ -69,7 +68,7 @@ function exclusion(){
 			CHECK="false";
 		fi
 	fi
-	if [ ${CHECK} == "false" ];
+	if [ "$CHECK" == "false" ];
 	then echo "false"; else echo "true"; fi
 }
 
@@ -113,10 +112,79 @@ function compile(){
 	printf "***\nDone! Erlang source compiled\n";
 }
 
-function update(){
-	echo "update"
+# --------------------------------------------
+# File compilation
+# --------------------------------------------
+function compile_file(){
+	if [ ! -f $1 ];
+	then
+		if [ ! -f ${DIR_SRC}$1 ];
+			then printf "Error: no defined file for compilation\n"; exit 1;
+			else
+				FILE_PATH=${DIR_SRC}$1;
+				IFS="/" read -ra PATH_DEVIDED <<< "$1";
+				FILE_NAME_POSITION=$((${#PATH_DEVIDED[@]}-1));
+				FILE_NAME=${PATH_DEVIDED[$FILE_NAME_POSITION]};
+				RELATIVE_PATH=$(echo $1 | sed "s/\/$FILE_NAME$//");
+		fi
+	else
+		FILE_PATH=$1
+		IFS="/" read -ra PATH_DEVIDED <<< "$1";
+		FILE_NAME_POSITION=$((${#PATH_DEVIDED[@]}-1));
+		FILE_NAME=${PATH_DEVIDED[$FILE_NAME_POSITION]};
+		PATH_FROM_SRC=$(echo "$1" | sed "s/^[$DIR_SRC]*//");
+		RELATIVE_PATH=$(echo "/$PATH_FROM_SRC" | sed "s/\/$FILE_NAME$//");
+	fi
+	EXCLUSION_FILE=$(exclusion --file ${DIR_SRC}${RELATIVE_PATH}"/"${FILE_NAME});
+	if [ ${EXCLUSION_FILE} == "true" ];
+	then
+		printf "Error: file for compilation excluded\n";
+		exit 1;
+	fi
+	MODULE_NAME=$(echo $FILE_NAME | sed "s/.erl$//");
+	BINARY_FILE=${DIR_BIN}${RELATIVE_PATH}"/"${MODULE_NAME}".beam";
+	OLD_BINARY_DIR=${DIR_OLD_BIN}${RELATIVE_PATH};
+	OLD_BINARY_FILE=${OLD_BINARY_DIR}"/"${MODULE_NAME}".beam"
+	if [ ! -d ${DIR_BIN}${RELATIVE_PATH} ]; then mkdir -p ${DIR_BIN}${RELATIVE_PATH}; fi
+	if [ ! -d ${OLD_BINARY_DIR} ]; then mkdir -p ${OLD_BINARY_DIR}; fi
+	if [ -f ${BINARY_FILE} ]; then mv ${BINARY_FILE} ${OLD_BINARY_FILE}; fi
+	erlc -o ${DIR_BIN}${RELATIVE_PATH} ${FILE_PATH};
+	printf "Done! $FILE_PATH\n"
 }
 
+# --------------------------------------------
+# Rollback project
+# --------------------------------------------
+function rollback {
+	if [ -d "$DIR_OLD_BIN" ];
+	then
+		rm -rf ${DIR_BIN}
+		mv ${DIR_OLD_BIN} ${DIR_BIN}
+	else
+		echo "No old binaries to restore"
+	fi
+}
+
+# --------------------------------------------
+# Update project
+# --------------------------------------------
+function update(){
+	cd ${DIR_ROOT}
+	echo ${DIR_ROOT}
+	git pull
+	printf "***\nDone! Erlang source updated\n";
+}
+
+# --------------------------------------------
+# Reload application
+# --------------------------------------------
+function reload(){
+	echo "Reload"
+}
+
+# --------------------------------------------
+# Script help
+# --------------------------------------------
 function help(){
 	echo "help"
 }
@@ -150,6 +218,14 @@ then
 				fi
 				if [ $4 == "compile" ]; then compile;
 				elif [ $4 == "update" ]; then update;
+				elif [ $4 == "rollback" ]; then rollback;
+				elif [ $4 == "reload" ]; then reload;
+				elif [ $4 == "compile_file" ];
+				then
+					if [ $5 ];
+					then compile_file $5;
+					else printf "Error: no file definition\n";
+					fi
 				else
 					printf "Error: wrong action defined\n";
 				fi
