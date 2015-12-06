@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# --------------------------------------------
+# @doc Arboreus Library service script configuration template
+# Only for BASH usage, no DASH compatibility
+# @author Alexandr KIRILOV (http://alexandr.kirilov.me)
+# @copyright (C) 2015, Arboreus Library, http://arboreus.system
+# --------------------------------------------
+
+# System settings
+USER_NAME="user_name"
+
+# Erlang Node names
+NODE_TEST_NAME="node_name"
+NODE_NAME="node_name"
+
+# Project directories
+DIR_ROOT="/Path/to/Arboreus_fw_library";
+DIR_SRC="${DIR_ROOT}/src";
+DIR_BIN="${DIR_ROOT}/bin";
+DIR_OLD_BIN="${DIR_BIN}_old";
+
+# Directory and files exclusion
+EXCLUSION_FILES=(
+
+	# List of files that should be excluded due compilation
+	#
+	# Example:
+	# '/Path/To/File'
+
+)
+EXCLUSION_DIRS=(
+
+	# List of directories that should be excluded due compilation
+	#
+	# Example:
+	# '/Path/To/Directory'
+
+)
