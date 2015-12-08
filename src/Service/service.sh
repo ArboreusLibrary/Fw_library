@@ -47,7 +47,7 @@ function exclusion(){
 		then
 			for DIR in ${EXCLUSION_DIRS}
 			do
-				if [ ${DIR} == $2 ];
+				if [ "$DIR" == $2 ];
 				then CHECK="true"; break;
 				else CHECK="false"; fi
 			done
@@ -60,7 +60,7 @@ function exclusion(){
 		then
 			for FILE in ${EXLUSION_FILES}
 			do
-				if [ ${FILE} == $2 ];
+				if [ "$FILE" == $2 ];
 				then CHECK="true"; break;
 				else CHECK="false"; fi
 			done
