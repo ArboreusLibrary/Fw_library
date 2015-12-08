@@ -109,7 +109,7 @@ function compile(){
 			fi
 		fi
 	done
-	printf "***\nDone! Erlang source compiled\n";
+	printf "***\nDone! Erlang source compiled\n\n";
 }
 
 # --------------------------------------------
@@ -119,7 +119,9 @@ function compile_file(){
 	if [ ! -f $1 ];
 	then
 		if [ ! -f ${DIR_SRC}$1 ];
-			then printf "Error: no defined file for compilation\n"; exit 1;
+			then
+				printf "Error: no defined file for compilation\n";
+				exit 1;
 			else
 				FILE_PATH=${DIR_SRC}$1;
 				IFS="/" read -ra PATH_DEVIDED <<< "$1";
@@ -149,7 +151,7 @@ function compile_file(){
 	if [ ! -d ${OLD_BINARY_DIR} ]; then mkdir -p ${OLD_BINARY_DIR}; fi
 	if [ -f ${BINARY_FILE} ]; then mv ${BINARY_FILE} ${OLD_BINARY_FILE}; fi
 	erlc -o ${DIR_BIN}${RELATIVE_PATH} ${FILE_PATH};
-	printf "Done! $FILE_PATH\n"
+	printf "***\nDone! $FILE_PATH\n\n"
 }
 
 # --------------------------------------------
@@ -160,6 +162,7 @@ function rollback {
 	then
 		rm -rf ${DIR_BIN}
 		mv ${DIR_OLD_BIN} ${DIR_BIN}
+		reload;
 	else
 		echo "No old binaries to restore"
 	fi
@@ -172,21 +175,56 @@ function update(){
 	cd ${DIR_ROOT}
 	echo ${DIR_ROOT}
 	git pull
-	printf "***\nDone! Erlang source updated\n";
+	printf "***\nDone! Erlang source updated\n\n";
 }
 
 # --------------------------------------------
 # Reload application
 # --------------------------------------------
 function reload(){
-	echo "Reload"
+	if [ -d ${DIR_BIN} ];
+	then
+		cd ${DIR_BIN};
+		FILES_BIN=$(find . -name '*.beam');
+		for FILE_PATH_BIN in ${FILES_BIN}
+		do
+			FILE_PATH=${FILE_PATH_BIN:1};
+			IFS="/" read -ra PATH_DEVIDED <<< "$FILE_PATH";
+			FILE_NAME_POSITION=$((${#PATH_DEVIDED[@]}-1));
+			FILE_NAME=${PATH_DEVIDED[$FILE_NAME_POSITION]};
+			MODULE_NAME=$(echo $FILE_NAME | sed "s/.beam$//");
+			YAWS_ANSWER=$(${YAWS_RUN} --load ${MODULE_NAME});
+			printf "Module: $MODULE_NAME -> Yaws: $YAWS_ANSWER\n";
+		done
+		printf "***\nDone! All binaries loaded to Yaws\n\n"
+	else
+		printf "Error: no binary directory\n";
+		exit 1
+	fi
+}
+
+# --------------------------------------------
+# Upgrade application
+# --------------------------------------------
+function upgrade(){
+	update;
+	compile;
+	reload;
+	printf "***\nDone! Application $PROJECT_NAME - upgraded\n"
 }
 
 # --------------------------------------------
 # Script help
 # --------------------------------------------
 function help(){
-	echo "help"
+	printf "Script usage:\n\n";
+	printf "\t $ bash service.sh --help\n\t\tshow help\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do compile\n\t\tcompile all erlang sources\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do compile_file /path/to/file\n\t\tcompile defined file\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do update\n\t\tupdate repository within sources\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do rollback\n\t\trollback to previous binaries\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do reload\n\t\treload binaries to Yaws\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do upgrade\n\t\tfull upgrade application within update repository\n";
 }
 
 # --------------------------------------------
@@ -220,6 +258,7 @@ then
 				elif [ $4 == "update" ]; then update;
 				elif [ $4 == "rollback" ]; then rollback;
 				elif [ $4 == "reload" ]; then reload;
+				elif [ $4 == "upgrade" ]; then upgrade;
 				elif [ $4 == "compile_file" ];
 				then
 					if [ $5 ];
