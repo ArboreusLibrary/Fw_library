@@ -23,19 +23,22 @@ DIR_BIN="${DIR_ROOT}/bin";
 DIR_OLD_BIN="${DIR_BIN}_old";
 
 # Directory and files exclusion
-EXCLUSION_FILES=(
+EXCLUSION_FILES=('
 
 	# List of files that should be excluded due compilation
 	#
 	# Example:
 	# '/Path/To/File'
 
-)
-EXCLUSION_DIRS=(
+')
+EXCLUSION_DIRS=('
 
 	# List of directories that should be excluded due compilation
 	#
 	# Example:
 	# '/Path/To/Directory'
 
-)
+')
+function load_to_yaws(){
+	echo "Set the command for reloading modules to yaws, the module nam is \$1 variable"
+}

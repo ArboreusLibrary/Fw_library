@@ -45,9 +45,9 @@ function exclusion(){
 	then
 		if [ ! -z ${EXCLUSION_DIRS+x} ];
 		then
-			for DIR in ${EXCLUSION_DIRS}
+			for DIR in "${EXCLUSION_DIRS[@]}"
 			do
-				if [ "$DIR" == $2 ];
+				if [ "$DIR" == "$2" ];
 				then CHECK="true"; break;
 				else CHECK="false"; fi
 			done
@@ -58,9 +58,9 @@ function exclusion(){
 	then
 		if [ ! -z ${EXCLUSION_FILES+x} ];
 		then
-			for FILE in ${EXLUSION_FILES}
+			for FILE in "${EXCLUSION_FILES[@]}"
 			do
-				if [ "$FILE" == $2 ];
+				if [ "$FILE" == "$2" ];
 				then CHECK="true"; break;
 				else CHECK="false"; fi
 			done
@@ -193,7 +193,7 @@ function reload(){
 			FILE_NAME_POSITION=$((${#PATH_DEVIDED[@]}-1));
 			FILE_NAME=${PATH_DEVIDED[$FILE_NAME_POSITION]};
 			MODULE_NAME=$(echo $FILE_NAME | sed "s/.beam$//");
-			YAWS_ANSWER=$(${YAWS_RUN} --load ${MODULE_NAME});
+			YAWS_ANSWER=$(load_to_yaws ${MODULE_NAME});
 			printf "Module: $MODULE_NAME -> Yaws: $YAWS_ANSWER\n";
 		done
 		printf "***\nDone! All binaries loaded to Yaws\n\n"
