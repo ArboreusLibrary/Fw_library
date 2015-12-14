@@ -19,22 +19,34 @@ function sync(){
 # --------------------------------------------
 # Pull
 # --------------------------------------------
-function pull(){
-	echo "pull"
+function push(){
+	printf "Push started\n***\n";
+	cd ${DIR_ROOT_GIT};
+	echo -n "Enter the message for commit [ENTER]: ";
+	read MESSAGE;
+	git add -A;
+	git commit -m "$MESSAGE";
+	git push origin master;
+	printf "\n***\nDone!\n"
 }
 
 # --------------------------------------------
 # Update
 # --------------------------------------------
 function update(){
-	echo "update"
+	sync;
+	push;
 }
 
 # --------------------------------------------
 # Help
 # --------------------------------------------
 function help(){
-	echo "help"
+	printf "Script usage:\n\n";
+	printf "\t $ bash service.sh --help\n\t\tshow help\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do sync\n\t\tsynchronise directories\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do push\n\t\tpush to Github\n";
+	printf "\t $ bash service.sh --conf /path/to/conf --do update\n\t\tsynchronise and push\n";
 }
 
 # --------------------------------------------
@@ -65,7 +77,7 @@ then
 				fi
 				if [ $4 == "update" ]; then update;
 				elif [ $4 == "sync" ]; then sync;
-				elif [ $4 == "pull" ]; then pull;
+				elif [ $4 == "push" ]; then push;
 				else
 					printf "Error: wrong action defined\n";
 				fi
