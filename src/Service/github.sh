@@ -11,8 +11,9 @@
 # Synchronisation
 # --------------------------------------------
 function sync(){
-	rsync -arv ${DIR_SRC} ${DIR_GIT}
-	echo "sync"
+	printf "Rsync started\n***\n";
+	rsync -arv --delete-before ${DIR_SRC} ${DIR_GIT};
+	printf "***\nDone!\n";
 }
 
 # --------------------------------------------
