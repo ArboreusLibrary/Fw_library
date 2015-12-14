@@ -76,6 +76,7 @@ function exclusion(){
 # Project compilation
 # --------------------------------------------
 function compile(){
+	printf "Compilation started\n"
 	if [ -d "$DIR_BIN" ];
 	then
 		if [ -d "$DIR_OLD_BIN" ];
@@ -109,13 +110,14 @@ function compile(){
 			fi
 		fi
 	done
-	printf "***\nDone! Erlang source compiled\n\n";
+	printf "***\nDone!\n\n";
 }
 
 # --------------------------------------------
 # File compilation
 # --------------------------------------------
 function compile_file(){
+	printf "File compilation started\n"
 	if [ ! -f $1 ];
 	then
 		if [ ! -f ${DIR_SRC}$1 ];
@@ -158,6 +160,7 @@ function compile_file(){
 # Rollback project
 # --------------------------------------------
 function rollback {
+	printf "Rollback started\n"
 	if [ -d "$DIR_OLD_BIN" ];
 	then
 		rm -rf ${DIR_BIN}
@@ -172,10 +175,11 @@ function rollback {
 # Update project
 # --------------------------------------------
 function update(){
+	printf "Erlang source updating, started\n"
 	cd ${DIR_ROOT}
 	echo ${DIR_ROOT}
 	git pull
-	printf "***\nDone! Erlang source updated\n\n";
+	printf "***\nDone!\n\n";
 }
 
 # --------------------------------------------
@@ -184,6 +188,7 @@ function update(){
 function reload(){
 	if [ -d ${DIR_BIN} ];
 	then
+		printf "Binaries reloading started\n"
 		cd ${DIR_BIN};
 		FILES_BIN=$(find . -name '*.beam');
 		for FILE_PATH_BIN in ${FILES_BIN}
@@ -196,7 +201,7 @@ function reload(){
 			YAWS_ANSWER=$(load_to_yaws ${MODULE_NAME});
 			printf "Module: $MODULE_NAME -> Yaws: $YAWS_ANSWER\n";
 		done
-		printf "***\nDone! All binaries loaded to Yaws\n\n"
+		printf "***\nDone!\n\n"
 	else
 		printf "Error: no binary directory\n";
 		exit 1
@@ -207,10 +212,18 @@ function reload(){
 # Upgrade application
 # --------------------------------------------
 function upgrade(){
-	update;
+	if [ $1 ]; then
+		if [ "$1" == "full" ];
+		then
+			update;
+		else
+			printf "Error: wrong upgrade parameter\n";
+			exit 1;
+		fi
+	fi
 	compile;
 	reload;
-	printf "***\nDone! Application $PROJECT_NAME - upgraded\n"
+	printf "***\nDone! Application $PROJECT_NAME\n"
 }
 
 # --------------------------------------------
@@ -258,7 +271,12 @@ then
 				elif [ $4 == "update" ]; then update;
 				elif [ $4 == "rollback" ]; then rollback;
 				elif [ $4 == "reload" ]; then reload;
-				elif [ $4 == "upgrade" ]; then upgrade;
+				elif [ $4 == "upgrade" ];
+				then
+					if [ $5 ];
+					then upgrade $5;
+					else upgrade;
+					fi
 				elif [ $4 == "compile_file" ];
 				then
 					if [ $5 ];
