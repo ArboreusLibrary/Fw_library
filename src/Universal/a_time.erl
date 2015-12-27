@@ -11,12 +11,14 @@
 -vsn("0.0.7.144").
 
 %% Module API
--export([current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1]).
--export([current/0,current/1]).
--export([timestamp/0,timestamp/1,timestamp_to_tuple/1]).
--export([dow/2]).
--export([month/2]).
--export([format/2]).
+-export([
+	current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1,
+	current/0,current/1,
+	timestamp/0,timestamp/1,timestamp_to_tuple/1,
+	dow/2,
+	month/2,
+	format/2
+]).
 
 %% Module Include Start
 -include("../Handler/a.hrl").
@@ -128,7 +130,6 @@ timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 
 	Micro = Timestamp rem 1000000,
 	{Mega,Sec,Micro};
 timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
-
 
 %% ------------------------------------------------
 %% Day of the week

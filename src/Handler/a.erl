@@ -12,11 +12,11 @@
 
 
 %% Module API
--export([str/1]).
--export([error/2]).
--export([bin/1]).
--export([read_file/1]).
--export([cwd/0]).
+-export([
+	str/1,error/2,
+	bin/1,read_file/1,
+	cwd/0,test/0
+]).
 
 %% System include
 
@@ -24,6 +24,12 @@
 -include("a.hrl").
 -include("error_codes.hrl").
 %% Module Include End
+
+%%-----------------------------------
+%% @spec Test application usage
+-spec test() -> ok.
+
+test() -> ok.
 
 %%-----------------------------------
 %% @spec str(Bitstring::byte()) -> string()

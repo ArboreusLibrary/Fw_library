@@ -81,9 +81,13 @@ function compile(){
 	then
 		if [ -d "$DIR_OLD_BIN" ];
 		then
-			rm -rf ${DIR_OLD_BIN};
+			rm -rf ${DIR_OLD_BIN}/*;
 		fi
-		mv ${DIR_BIN} ${DIR_OLD_BIN};
+		if [ ! -d "$DIR_OLD_BIN" ];
+		then
+			mkdir -p ${DIR_OLD_BIN};
+		fi
+		mv ${DIR_BIN}/* ${DIR_OLD_BIN}/;
 		mkdir -p ${DIR_BIN};
 	else
 		mkdir -p ${DIR_BIN};
