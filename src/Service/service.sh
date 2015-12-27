@@ -291,6 +291,7 @@ then
 			fi
 		fi
 	elif [ $1 == "--help" ]; then help;
+	elif [ $1 == "--test" ]; then echo "ok";
 	else
 		printf "Error: you should define configuration file at first\n";
 	fi

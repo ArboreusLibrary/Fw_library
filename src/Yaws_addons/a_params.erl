@@ -11,8 +11,11 @@
 -vsn("0.0.4.163").
 
 %% Module API
--export([check/3]).
--export([check_parameters/2]).
+-export([
+	check/3,
+	check_parameters/2
+]).
+
 %% System include
 
 %% Module Include Start
@@ -257,6 +260,42 @@ parameter_value(unicode_binary,Parameter,[Exception_rule,Length]) ->
 							binary:part(Parameter_binary,3,Size-6)
 					end
 			end
+	end;
+%% Unicode_base64 ^([a-zA-Z0-9\=\+\/]{4,})$
+parameter_value(base64,Parameter,[az_esm]) ->
+	Pattern = "^([a-zA-Z0-9\=\+\/]{4,})$",
+	try
+		case re:run(Parameter,Pattern) of
+			nomatch -> nomatch;
+			{match,_} -> Parameter
+		end
+	catch _:_ -> nomatch
+	end;
+parameter_value(base64,Parameter,[az_esm_binary]) ->
+	case parameter_value(base64,Parameter,[az_esm]) of
+		nomatch -> nomatch;
+		_ -> unicode:characters_to_binary(Parameter)
+	end;
+parameter_value(base64,Parameter,[az_esm_unicode,string]) ->
+	case parameter_value(base64,Parameter,[az_esm]) of
+		nomatch -> nomatch;
+		_ ->
+			try binary_to_list(base64:decode(Parameter))
+			catch _:_ -> nomatch
+			end
+	end;
+parameter_value(base64,Parameter,[az_esm_unicode,binary]) ->
+	case parameter_value(base64,Parameter,[az_esm_binary]) of
+		nomatch -> nomatch;
+		_ ->
+			try base64:decode(Parameter)
+			catch _:_  -> nomatch
+			end
+	end;
+parameter_value(base64,Parameter,[typified,Type,Type_properties]) ->
+	case parameter_value(base64,Parameter,[az_esm_unicode,string]) of
+		nomatch -> nomatch;
+		Checked_parameter -> check(Type,Checked_parameter,Type_properties)
 	end;
 %% Id
 parameter_value(id,Parameter,[Length,Output]) ->
