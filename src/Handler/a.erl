@@ -15,7 +15,8 @@
 -export([
 	str/1,error/2,
 	bin/1,read_file/1,
-	cwd/0,test/0
+	cwd/0,test/0,
+	var_dump/2
 ]).
 
 %% System include
@@ -26,10 +27,21 @@
 %% Module Include End
 
 %%-----------------------------------
-%% @spec Test application usage
+%% @doc Test application usage
 -spec test() -> ok.
 
 test() -> ok.
+
+%%-----------------------------------
+%% @doc Write to file the variable value
+-spec
+var_dump(Path,Variable) -> ok | {error, _Reason}
+	when
+		Path :: unicode:chardata(),
+		Variable :: any().
+
+var_dump(Path,Variable) ->
+	file:write_file(Path,io_lib:fwrite("~p.\n",[Variable])).
 
 %%-----------------------------------
 %% @spec str(Bitstring::byte()) -> string()
