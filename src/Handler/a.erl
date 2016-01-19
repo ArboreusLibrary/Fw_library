@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.1.144").
+-vsn("0.0.2.183").
 
 
 %% Module API

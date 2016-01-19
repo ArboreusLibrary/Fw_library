@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.4.163").
+-vsn("0.0.5.184").
 
 %% Module API
 -export([
@@ -320,6 +320,19 @@ parameter_value(id,Parameter,[Length,Output]) ->
 				true -> a:error(?FUNCTION_NAME(),a000)
 			end
 	end;
+%% IP regex rule ^([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})$
+parameter_value(ipv4,Parameter,[Output_type]) ->
+	try
+		{ok,Ip_tuple} = inet:parse_ipv4_address(Parameter),
+		case Output_type of
+			string -> Parameter;
+			binary -> unicode:characters_to_binary(Parameter);
+			list -> tuple_to_list(Ip_tuple);
+			tuple -> Ip_tuple;
+			integer -> a_net:ipv4_to_integer(Ip_tuple)
+		end
+	catch _:_ -> nomatch end;
+
 parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
 parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
 
