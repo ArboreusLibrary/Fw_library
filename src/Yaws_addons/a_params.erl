@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.5.184").
+-vsn("0.0.6.140").
 
 %% Module API
 -export([
@@ -335,6 +335,17 @@ parameter_value(ipv4,Parameter,[Output_type]) ->
 %% FQDN regex rule
 parameter_value(fqdn,Parameter,[Output_type]) ->
 	Pattern = "^(\.?([a-zA-Z0-9\-\_]{1,})){0,}$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			case Output_type of
+				string -> Parameter;
+				binary -> unicode:characters_to_binary(Parameter)
+			end
+	end;
+%% E-mail regex rule ^(\.?([a-zA-Z0-9\-\_]{1,})){1,}\@(\.?([a-zA-Z0-9\-\_]{1,})){1,}$
+parameter_value(e_mail,Parameter,[Output_type]) ->
+	Pattern = "^(\.?([a-zA-Z0-9\-\_]{1,})){1,}\@(\.?([a-zA-Z0-9\-\_]{1,})){1,}$",
 	case re:run(Parameter,Pattern) of
 		nomatch -> nomatch;
 		{match,_} ->
