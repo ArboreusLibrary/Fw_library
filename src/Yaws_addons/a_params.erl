@@ -332,6 +332,17 @@ parameter_value(ipv4,Parameter,[Output_type]) ->
 			integer -> a_net:ipv4_to_integer(Ip_tuple)
 		end
 	catch _:_ -> nomatch end;
+%% FQDN regex rule
+parameter_value(fqdn,Parameter,[Output_type]) ->
+	Pattern = "^(\.?([a-zA-Z0-9\-\_]{1,})){0,}$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			case Output_type of
+				string -> Parameter;
+				binary -> unicode:characters_to_binary(Parameter)
+			end
+	end;
 
 parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
 parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
