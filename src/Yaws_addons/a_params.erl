@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.6.140").
+-vsn("0.0.9.188").
 
 %% Module API
 -export([
@@ -33,6 +33,9 @@
 -spec check(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
 	when Type::atom(), Parameter::string(), Type_properties::list().
 
+check(user_defined,Parameter,[Module,Function,Arguments]) ->
+	try apply(Module,Function,[Parameter,Arguments])
+	catch _:_ -> a:error(?FUNCTION_NAME(),m003_002) end;
 check(Type,Parameter,Type_properties) ->
 	case io_lib:char_list(Parameter) of
 		true -> parameter_value(Type,Parameter,Type_properties);
@@ -141,6 +144,21 @@ parameter_value(Parameter_type,Parameter,_)
 		[_] -> nomatch;
 		_ -> nomatch
 	end;
+%% Limited range integer
+parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
+	when
+		is_integer(MinorA), is_integer(MajorA),
+		is_integer(MinorB), is_integer(MajorB) ->
+	case parameter_value(range_integer,Parameter,[]) of
+		[A,B] ->
+			if
+				A > MajorA; A < MinorA -> nomatch;
+				B > MajorB; B < MinorB -> nomatch;
+				true -> [A,B]
+			end;
+		nomatch -> nomatch;
+		{error,Reason} -> {error,Reason}
+	end;
 %% Range positive float, regex rule ^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$
 %% Range negative float, regex rule ^(\-[0-9]{1,}\.[0-9]{1,}|0)\:(\-[0-9]{1,}\.[0-9]{1,}|0)$
 %% Range float, regex rule ^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$
@@ -167,6 +185,21 @@ parameter_value(Parameter_type,Parameter,_)
 			[Minor,Major];
 		[_] -> nomatch;
 		_ -> nomatch
+	end;
+%% Limited range integer
+parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
+	when
+		is_float(MinorA), is_float(MajorA),
+		is_float(MinorB), is_float(MajorB) ->
+	case parameter_value(range_float,Parameter,[]) of
+		[A,B] ->
+			if
+				A > MajorA; A < MinorA -> nomatch;
+				B > MajorB; B < MinorB -> nomatch;
+				true -> [A,B]
+			end;
+		nomatch -> nomatch;
+		{error,Reason} -> {error,Reason}
 	end;
 %% Atom
 parameter_value(atom,Parameter,_) ->
@@ -329,7 +362,20 @@ parameter_value(ipv4,Parameter,[Output_type]) ->
 			binary -> unicode:characters_to_binary(Parameter);
 			list -> tuple_to_list(Ip_tuple);
 			tuple -> Ip_tuple;
-			integer -> a_net:ipv4_to_integer(Ip_tuple)
+			integer -> a_net:ipv4_to_integer(Ip_tuple);
+			_ -> a:error(?FUNCTION_NAME(),m003_003)
+		end
+	catch _:_ -> nomatch end;
+%% IP v6 regex rule ^(\:?([a-z0-9]{4})){8}$
+parameter_value(ipv6,Parameter,[Output_type]) ->
+	try
+		{ok,Ip_tuple} = inet:parse_ipv6_address(Parameter),
+		case Output_type of
+			string -> Parameter;
+			binary -> unicode:characters_to_binary(Parameter);
+			list -> tuple_to_list(Ip_tuple);
+			tuple -> Ip_tuple;
+			_ -> a:error(?FUNCTION_NAME(),m003_003)
 		end
 	catch _:_ -> nomatch end;
 %% FQDN regex rule

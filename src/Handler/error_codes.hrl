@@ -35,6 +35,8 @@
 
 	%% Module: a_params
 	{m003_001,"Bad parameters type, must be defined in a_params module"},
+	{m003_002,"User defined function failed"},
+	{m003_003,"Wrong output type"},
 
 	%% Module: a_list
 	{m004_001,"Wrong path"},
