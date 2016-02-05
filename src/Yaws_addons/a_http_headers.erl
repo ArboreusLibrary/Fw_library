@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 08. Aug 2015 18:48
 %%%-------------------------------------------------------------------
--module(a_header).
+-module(a_http_headers).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
 -vsn("0.0.4.144").
 

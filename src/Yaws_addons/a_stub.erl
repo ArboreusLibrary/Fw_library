@@ -25,7 +25,7 @@
 
 set(html) ->
 	[
-		a_header:cache(no),
+		a_http_headers:cache(no),
 		{'ehtml',[
 			["<!DOCTYPE html> "],
 			{'html',[],[
@@ -42,7 +42,7 @@ set(html) ->
 	];
 set(http_headers) ->
 	[
-		a_header:cache(no),
+		a_http_headers:cache(no),
 		{header,["Stub:","yes"]},
 		{header,["Type:",?STUB_HEADER]},
 		{header,["Note:",?STUB_TEXT]},
@@ -50,6 +50,6 @@ set(http_headers) ->
 	];
 set(_) ->
 	[
-		a_header:cache(no),
+		a_http_headers:cache(no),
 		{header,["Stub_error:","wrong stub type"]}
 	].
