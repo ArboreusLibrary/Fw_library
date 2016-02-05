@@ -20,6 +20,7 @@
 	{a015,"Bad arguments, must be typified list()"},
 	{a016,"Throw exeption"},
 	{a017,"Wrong path"},
+	{a004,"Bad arguments, must be string()"},
 
 	%% Error handler
 	{e000,"Error handler: bad arguments"},

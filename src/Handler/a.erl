@@ -8,15 +8,18 @@
 %%%-------------------------------------------------------------------
 -module(a).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.2.183").
+-vsn("0.0.3.189").
 
 
 %% Module API
 -export([
-	str/1,error/2,
-	bin/1,read_file/1,
-	cwd/0,test/0,
-	var_dump/2
+	error/2,
+	to_string/1,
+	to_binary/1,
+	read_file/1,
+	cwd/0,
+	var_dump/2,
+	test/0
 ]).
 
 %% System include
@@ -34,8 +37,7 @@ test() -> ok.
 
 %%-----------------------------------
 %% @doc Write to file the variable value
--spec
-var_dump(Path,Variable) -> ok | {error, _Reason}
+-spec var_dump(Path,Variable) -> ok | {error, _Reason}
 	when
 		Path :: unicode:chardata(),
 		Variable :: any().
@@ -44,30 +46,38 @@ var_dump(Path,Variable) ->
 	file:write_file(Path,io_lib:fwrite("~p.\n",[Variable])).
 
 %%-----------------------------------
-%% @spec str(Bitstring::byte()) -> string()
+%% @spec str(Bitstring::any()) -> string()
 %% @doc Return string converted from binary
--spec str(Bitstring::byte()) -> string().
+-spec to_string(Bitstring::any()) -> string().
 
-str(Bitstring) when is_bitstring(Bitstring) -> binary_to_list(Bitstring);
-str(_) -> a:error(?FUNCTION_NAME(),a002).
-
-%%-----------------------------------
-%% @spec bin(Value) -> binary()
-%% where
-%%      Value = integer() | string()
-%% @doc Return binary within converted value, purposed for integer() or string() datatypes
--spec bin(Value) -> byte() | {error,_Reason} when
-	Value :: integer() | string().
-
-bin(Value) when is_list(Value) ->
-	case io_lib:char_list(Value) of
-		true -> unicode:characters_to_binary(Value);
+to_string(String) when is_list(String) ->
+	case io_lib:char_list(String) of
+		true -> String;
 		_ -> a:error(?FUNCTION_NAME(),a013)
 	end;
-bin(Value) when is_atom(Value) -> atom_to_binary(Value,utf8);
-bin(Value) when is_integer(Value) -> integer_to_binary(Value);
-bin(Value) when is_binary(Value) -> Value;
-bin(_) -> a:error(?FUNCTION_NAME(),a013).
+to_string(Binary) when is_binary(Binary) -> unicode:characters_to_list(Binary);
+to_string(Atom) when is_atom(Atom) -> atom_to_list(Atom);
+to_string(Integer) when is_integer(Integer) -> integer_to_list(Integer);
+to_string(Float) when is_float(Float) -> float_to_list(Float);
+to_string(_) -> a:error(?FUNCTION_NAME(),a013).
+
+%%-----------------------------------
+%% @spec to_binary(Value) -> binary()
+%% where
+%%      Value = any()
+%% @doc Return binary within converted value, purposed for integer() or string() datatypes
+-spec to_binary(Value::any()) -> byte() | {error,_Reason}.
+
+to_binary(String) when is_list(String) ->
+	case io_lib:char_list(String) of
+		true -> unicode:characters_to_binary(String);
+		_ -> a:error(?FUNCTION_NAME(),a013)
+	end;
+to_binary(Binary) when is_binary(Binary) -> Binary;
+to_binary(Atom) when is_atom(Atom) -> atom_to_binary(Atom,utf8);
+to_binary(Integer) when is_integer(Integer) -> integer_to_binary(Integer);
+to_binary(Float) when is_float(Float) -> float_to_binary(Float);
+to_binary(_) -> a:error(?FUNCTION_NAME(),a013).
 
 %%-----------------------------------
 %% @spec error(Function_name::tuple(),Error_code::string()) -> tuple()
