@@ -117,90 +117,6 @@ parameter_value(ranged_integer,Parameter,[Minor,Major]) ->
 				true -> a:error(?FUNCTION_NAME(),a000)
 			end
 	end;
-%% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
-%% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$
-%% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
-parameter_value(Parameter_type,Parameter,_)
-	when
-		Parameter_type == range_pos_integer;
-		Parameter_type == range_neg_integer;
-		Parameter_type == range_integer	->
-	Pattern = fun() ->
-		case Parameter_type of
-			range_pos_integer -> "^([0-9]{1,})\:([0-9]{1,})$";
-			range_neg_integer -> "^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$";
-			range_integer -> "^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$"
-		end
-	end,
-	case re:split(Parameter,Pattern(),[{return,list}]) of
-		[_,Value1_string,Value2_string,_] ->
-			Value1 = list_to_integer(Value1_string),
-			Value2 = list_to_integer(Value2_string),
-			if
-				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
-				true -> Major = Value2, Minor = Value1
-			end,
-			[Minor,Major];
-		[_] -> nomatch;
-		_ -> nomatch
-	end;
-%% Limited range integer
-parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
-	when
-		is_integer(MinorA), is_integer(MajorA),
-		is_integer(MinorB), is_integer(MajorB) ->
-	case parameter_value(range_integer,Parameter,[]) of
-		[A,B] ->
-			if
-				A > MajorA; A < MinorA -> nomatch;
-				B > MajorB; B < MinorB -> nomatch;
-				true -> [A,B]
-			end;
-		nomatch -> nomatch;
-		{error,Reason} -> {error,Reason}
-	end;
-%% Range positive float, regex rule ^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$
-%% Range negative float, regex rule ^(\-[0-9]{1,}\.[0-9]{1,}|0)\:(\-[0-9]{1,}\.[0-9]{1,}|0)$
-%% Range float, regex rule ^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$
-parameter_value(Parameter_type,Parameter,_)
-	when
-		Parameter_type == range_pos_float;
-		Parameter_type == range_neg_float;
-		Parameter_type == range_float	->
-	Pattern = fun() ->
-		case Parameter_type of
-			range_pos_float -> "^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$";
-			range_neg_float -> "^(\-[0-9]{1,}\.[0-9]{1,}|0\.0)\:(\-[0-9]{1,}\.[0-9]{1,}|0\.0)$";
-			range_float -> "^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$"
-		end
-	end,
-	case re:split(Parameter,Pattern(),[{return,list}]) of
-		[_,Value1_string,Value2_string,_] ->
-			Value1 = list_to_float(Value1_string),
-			Value2 = list_to_float(Value2_string),
-			if
-				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
-				true -> Major = Value2, Minor = Value1
-			end,
-			[Minor,Major];
-		[_] -> nomatch;
-		_ -> nomatch
-	end;
-%% Limited range integer
-parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
-	when
-		is_float(MinorA), is_float(MajorA),
-		is_float(MinorB), is_float(MajorB) ->
-	case parameter_value(range_float,Parameter,[]) of
-		[A,B] ->
-			if
-				A > MajorA; A < MinorA -> nomatch;
-				B > MajorB; B < MinorB -> nomatch;
-				true -> [A,B]
-			end;
-		nomatch -> nomatch;
-		{error,Reason} -> {error,Reason}
-	end;
 %% Atom
 parameter_value(atom,Parameter,_) ->
 	try list_to_atom(Parameter)
@@ -399,6 +315,90 @@ parameter_value(e_mail,Parameter,[Output_type]) ->
 				string -> Parameter;
 				binary -> unicode:characters_to_binary(Parameter)
 			end
+	end;
+%% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
+%% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$
+%% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
+parameter_value(Parameter_type,Parameter,_)
+	when
+	Parameter_type == range_pos_integer;
+	Parameter_type == range_neg_integer;
+	Parameter_type == range_integer	->
+	Pattern = fun() ->
+		case Parameter_type of
+			range_pos_integer -> "^([0-9]{1,})\:([0-9]{1,})$";
+			range_neg_integer -> "^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$";
+			range_integer -> "^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$"
+		end
+	          end,
+	case re:split(Parameter,Pattern(),[{return,list}]) of
+		[_,Value1_string,Value2_string,_] ->
+			Value1 = list_to_integer(Value1_string),
+			Value2 = list_to_integer(Value2_string),
+			if
+				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
+				true -> Major = Value2, Minor = Value1
+			end,
+			{Minor,Major};
+		[_] -> nomatch;
+		_ -> nomatch
+	end;
+%% Limited range integer
+parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
+	when
+	is_integer(MinorA), is_integer(MajorA),
+	is_integer(MinorB), is_integer(MajorB) ->
+	case parameter_value(range_integer,Parameter,[]) of
+		{A,B} ->
+			if
+				A > MajorA; A < MinorA -> nomatch;
+				B > MajorB; B < MinorB -> nomatch;
+				true -> {A,B}
+			end;
+		nomatch -> nomatch;
+		{error,Reason} -> {error,Reason}
+	end;
+%% Range positive float, regex rule ^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$
+%% Range negative float, regex rule ^(\-[0-9]{1,}\.[0-9]{1,}|0)\:(\-[0-9]{1,}\.[0-9]{1,}|0)$
+%% Range float, regex rule ^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$
+parameter_value(Parameter_type,Parameter,_)
+	when
+	Parameter_type == range_pos_float;
+	Parameter_type == range_neg_float;
+	Parameter_type == range_float	->
+	Pattern = fun() ->
+		case Parameter_type of
+			range_pos_float -> "^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$";
+			range_neg_float -> "^(\-[0-9]{1,}\.[0-9]{1,}|0\.0)\:(\-[0-9]{1,}\.[0-9]{1,}|0\.0)$";
+			range_float -> "^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$"
+		end
+	          end,
+	case re:split(Parameter,Pattern(),[{return,list}]) of
+		[_,Value1_string,Value2_string,_] ->
+			Value1 = list_to_float(Value1_string),
+			Value2 = list_to_float(Value2_string),
+			if
+				Value1 > Value2 -> Major = Value1, Minor = Value2 ;
+				true -> Major = Value2, Minor = Value1
+			end,
+			{Minor,Major};
+		[_] -> nomatch;
+		_ -> nomatch
+	end;
+%% Limited range integer
+parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
+	when
+	is_float(MinorA), is_float(MajorA),
+	is_float(MinorB), is_float(MajorB) ->
+	case parameter_value(range_float,Parameter,[]) of
+		{A,B} ->
+			if
+				A > MajorA; A < MinorA -> nomatch;
+				B > MajorB; B < MinorB -> nomatch;
+				true -> {A,B}
+			end;
+		nomatch -> nomatch;
+		{error,Reason} -> {error,Reason}
 	end;
 
 parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
