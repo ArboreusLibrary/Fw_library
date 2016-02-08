@@ -13,7 +13,8 @@
 %% API
 -export([
 	ipv4_to_integer/1,
-	ipv6_to_integer/1
+	ipv6_to_integer/1,
+	integer_to_ipv4/2
 ]).
 
 %% Module Include Start
@@ -55,4 +56,41 @@ ipv6_to_integer(Ip_string) ->
 	case inet:parse_ipv6_address(Ip_string) of
 		{ok,_} -> list_to_integer(re:replace(Ip_string,":","",[global,{return,list}]),16);
 		_ -> a:error(?FUNCTION_NAME(),a018)
+	end.
+
+
+%%-----------------------------------
+%% @doc Return formated Ip address from integer
+-spec integer_to_ipv4(Integer,Output_type) -> unicode:charlist() | tuple() | list() | byte() | {error,_Reason}
+	when
+		Integer :: integer(),
+		Output_type :: tuple | list | binary | string.
+
+integer_to_ipv4(Integer,Output_type) when is_integer(Integer), Integer >=0 ->
+	A = Integer div 16777216, After_A = Integer-A*16777216,
+	B = After_A div 65536, After_B = After_A-B*65536,
+	C = After_B div 256,
+	D = After_B-C*256,
+	if
+		A > 255 -> a:error(?FUNCTION_NAME(),a009);
+		B > 255 -> a:error(?FUNCTION_NAME(),a009);
+		C > 255 -> a:error(?FUNCTION_NAME(),a009);
+		D > 255 -> a:error(?FUNCTION_NAME(),a009);
+		true ->
+			case Output_type of
+				tuple -> {A,B,C,D};
+				list -> [A,B,C,D];
+				binary ->
+					<<(integer_to_binary(A))/binary,"."/utf8,
+						(integer_to_binary(B))/binary,"."/utf8,
+						(integer_to_binary(C))/binary,"."/utf8,
+						(integer_to_binary(D))/binary>>;
+				string ->
+					lists:concat([
+						integer_to_list(A),".",
+						integer_to_list(B),".",
+						integer_to_list(C),".",
+						integer_to_list(D)
+					])
+			end
 	end.
