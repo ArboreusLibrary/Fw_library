@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_net).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.3.194").
+-vsn("0.0.4.195").
 
 %% API
 -export([
@@ -66,7 +66,7 @@ ipv6_to_integer(Ip_string) ->
 		Integer :: integer(),
 		Output_type :: tuple | list | binary | string.
 
-integer_to_ipv4(Integer,Output_type) when is_integer(Integer), Integer >=0 ->
+integer_to_ipv4(Integer,Output_type) when is_integer(Integer), Integer >= 0 ->
 	A = Integer div 16777216, After_A = Integer-A*16777216,
 	B = After_A div 65536, After_B = After_A-B*65536,
 	C = After_B div 256,
