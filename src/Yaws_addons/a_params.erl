@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.10.190").
+-vsn("0.0.12.197").
 
 %% Module API
 -export([
@@ -66,6 +66,7 @@ parameter_value(pos_float,Parameter,_) ->
 				true -> nomatch
 			end
 	end;
+%% Negative float
 parameter_value(neg_float,Parameter,_) ->
 	case check(float,Parameter,[]) of
 		nomatch -> nomatch;
@@ -73,6 +74,16 @@ parameter_value(neg_float,Parameter,_) ->
 			if
 				Value < 0 -> Value;
 				true -> nomatch
+			end
+	end;
+%% Float from list
+parameter_value(float_from_list,Parameter,[List]) ->
+	case parameter_value(float,Parameter,[]) of
+		nomatch -> nomatch;
+		Float ->
+			case lists:member(Float,List) of
+				true -> Float;
+				false -> nomatch
 			end
 	end;
 %% Integer, regex rule ^[\-]?[0-9]*$
@@ -117,10 +128,30 @@ parameter_value(ranged_integer,Parameter,[Minor,Major]) ->
 				true -> a:error(?FUNCTION_NAME(),a000)
 			end
 	end;
+%% Integer from list
+parameter_value(integer_from_list,Parameter,[List]) ->
+	case parameter_value(integer,Parameter,[]) of
+		nomatch -> nomatch;
+		Integer ->
+			case lists:member(Integer,List) of
+				true -> Integer;
+				false -> nomatch
+			end
+	end;
 %% Atom
 parameter_value(atom,Parameter,_) ->
 	try list_to_atom(Parameter)
 	catch _:_ -> nomatch end;
+%% Atom from list
+parameter_value(atom_from_list,Parameter,[List]) ->
+	case parameter_value(atom,Parameter,[]) of
+		nomatch -> nomatch;
+		Atom ->
+			case lists:member(Atom,List) of
+				true -> Atom;
+				false -> nomatch
+			end
+	end;
 %% A_atom, regex rule ^[a-z]{1}[a-zA-Z0-9\_]*$
 parameter_value(a_atom,Parameter,_) ->
 	Pattern = "^[a-z]{1}[a-zA-Z0-9\_]*$",
@@ -321,16 +352,16 @@ parameter_value(e_mail,Parameter,[Output_type]) ->
 %% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
 parameter_value(Parameter_type,Parameter,_)
 	when
-	Parameter_type == range_pos_integer;
-	Parameter_type == range_neg_integer;
-	Parameter_type == range_integer	->
+		Parameter_type == range_pos_integer;
+		Parameter_type == range_neg_integer;
+		Parameter_type == range_integer	->
 	Pattern = fun() ->
 		case Parameter_type of
 			range_pos_integer -> "^([0-9]{1,})\:([0-9]{1,})$";
 			range_neg_integer -> "^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$";
 			range_integer -> "^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$"
 		end
-	          end,
+	end,
 	case re:split(Parameter,Pattern(),[{return,list}]) of
 		[_,Value1_string,Value2_string,_] ->
 			Value1 = list_to_integer(Value1_string),
@@ -346,8 +377,8 @@ parameter_value(Parameter_type,Parameter,_)
 %% Limited range integer
 parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
 	when
-	is_integer(MinorA), is_integer(MajorA),
-	is_integer(MinorB), is_integer(MajorB) ->
+		is_integer(MinorA), is_integer(MajorA),
+		is_integer(MinorB), is_integer(MajorB) ->
 	case parameter_value(range_integer,Parameter,[]) of
 		{A,B} ->
 			if
@@ -363,16 +394,16 @@ parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}
 %% Range float, regex rule ^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$
 parameter_value(Parameter_type,Parameter,_)
 	when
-	Parameter_type == range_pos_float;
-	Parameter_type == range_neg_float;
-	Parameter_type == range_float	->
+		Parameter_type == range_pos_float;
+		Parameter_type == range_neg_float;
+		Parameter_type == range_float	->
 	Pattern = fun() ->
 		case Parameter_type of
 			range_pos_float -> "^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$";
 			range_neg_float -> "^(\-[0-9]{1,}\.[0-9]{1,}|0\.0)\:(\-[0-9]{1,}\.[0-9]{1,}|0\.0)$";
 			range_float -> "^(\-?[0-9]{1,}\.[0-9]{1,})\:(\-?[0-9]{1,}\.[0-9]{1,})$"
 		end
-	          end,
+	end,
 	case re:split(Parameter,Pattern(),[{return,list}]) of
 		[_,Value1_string,Value2_string,_] ->
 			Value1 = list_to_float(Value1_string),
@@ -388,8 +419,8 @@ parameter_value(Parameter_type,Parameter,_)
 %% Limited range integer
 parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
 	when
-	is_float(MinorA), is_float(MajorA),
-	is_float(MinorB), is_float(MajorB) ->
+		is_float(MinorA), is_float(MajorA),
+		is_float(MinorB), is_float(MajorB) ->
 	case parameter_value(range_float,Parameter,[]) of
 		{A,B} ->
 			if
