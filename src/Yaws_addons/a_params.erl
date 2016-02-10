@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.12.197").
+-vsn("0.0.13.198").
 
 %% Module API
 -export([
@@ -189,58 +189,7 @@ parameter_value(latin_name,Parameter,[Length]) ->
 			Size = byte_size(Binary_parameter),
 			binary:part(Binary_parameter,3,Size-6)
 	end;
-%% Unicode binary, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
-parameter_value(unicode_binary,Parameter,[Exception_rule,Length]) ->
-	Length_binary = fun() ->
-		case Length of
-			free -> <<("")/utf8>>;
-			_ ->
-				if
-					is_integer(Length) ->
-						if
-							Length >=2 -> integer_to_binary(Length) ;
-							true -> false
-						end;
-					true -> false
-				end
-		end
-	                end,
-	Exception_binary = fun() ->
-		case Exception_rule of
-			"" -> <<("")/utf8>>;
-			free -> <<("")/utf8>>;
-			_ ->
-				Test_rule = io_lib:char_list(Exception_rule),
-				if
-					Test_rule == false -> false;
-					true ->
-						Binary_rule = unicode:characters_to_binary(Exception_rule),
-						<<("|[")/utf8,Binary_rule/binary,("]")/utf8>>
-				end
-		end
-	                   end,
-	case Length_binary() of
-		false -> a:error(?FUNCTION_NAME(),a014);
-		_ ->
-			case Exception_binary() of
-				false -> a:error(?FUNCTION_NAME(),a014);
-				_ ->
-					Pattern = fun() ->
-						<<("^(<<\"){1}((?!\">>")/utf8,
-							(Exception_binary())/binary,
-							(").){1,")/utf8,
-							(Length_binary())/binary,
-							("}(\">>)$")/utf8>>
-					          end,
-					case re:run(Parameter,Pattern()) of
-						nomatch -> nomatch;
-						{match,_} ->
-							Parameter_binary = unicode:characters_to_binary(Parameter),
-							Size = byte_size(Parameter_binary),
-							binary:part(Parameter_binary,3,Size-6)
-					end
-			end
-	end;
+
 %% Unicode_base64 ^([a-zA-Z0-9\=\+\/]{4,})$
 parameter_value(base64,Parameter,[az_esm]) ->
 	Pattern = "^([a-zA-Z0-9\=\+\/]{4,})$",
@@ -347,6 +296,184 @@ parameter_value(e_mail,Parameter,[Output_type]) ->
 				binary -> unicode:characters_to_binary(Parameter)
 			end
 	end;
+%% Unicode binary, regex rule ^((?![t1j]).){1,}$
+parameter_value(unicode_binary,Parameter,[free]) ->
+	unicode:characters_to_binary(Parameter);
+parameter_value(unicode_binary,Parameter,[free,free]) ->
+	unicode:characters_to_binary(Parameter);
+parameter_value(unicode_binary,Parameter,[free,{less_equal,Length}]) ->
+	if
+		is_integer(Length), Length >= 1 ->
+			Binary = unicode:characters_to_binary(Parameter),
+			if
+				byte_size(Binary) =< Length -> Binary;
+				true -> nomatch
+			end;
+		true -> a:error(?FUNCTION_NAME(),a003)
+	end;
+parameter_value(unicode_binary,Parameter,[free,{size,Length}]) ->
+	if
+		is_integer(Length), Length >= 1 ->
+			Binary = unicode:characters_to_binary(Parameter),
+			if
+				byte_size(Binary) == Length -> Binary;
+				true -> nomatch
+			end;
+		true -> a:error(?FUNCTION_NAME(),a003)
+	end;
+parameter_value(unicode_binary,Parameter,[free,{range,Minor_length,Major_length}]) ->
+	if
+		is_integer(Minor_length), is_integer(Major_length),
+		Minor_length >= 1, Major_length > Minor_length ->
+			Binary = unicode:characters_to_binary(Parameter),
+			Size = byte_size(Binary),
+			if
+				Size >= Minor_length, Size =< Major_length -> Binary;
+				true -> nomatch
+			end;
+		true -> a:error(?FUNCTION_NAME(),a003)
+	end;
+parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type]) ->
+	case io_lib:char_list(Exception_chars) of
+		true ->
+			Binary = unicode:characters_to_binary(Parameter),
+			Exception = unicode:characters_to_binary(Exception_chars),
+			Pattern = fun() ->
+				case Length_type of
+					free ->
+						<<("^((?![")/utf8,(Exception)/binary,("]).){1,}$")/utf8>>;
+					{less_equal,Length} ->
+						if
+							is_integer(Length), Length >= 2 ->
+								<<("^((?![")/utf8,(Exception)/binary,
+									("]).){1,")/utf8,(integer_to_binary(Length))/binary,
+									("}$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end;
+					{size,Length} ->
+						if
+							is_integer(Length), Length >= 2 ->
+								<<("^((?![")/utf8,(Exception)/binary,
+									("]).){")/utf8,(integer_to_binary(Length))/binary,
+									("}$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end;
+					{range,Minor_length,Major_length} ->
+						if
+							is_integer(Minor_length),is_integer(Major_length),
+							Minor_length >= 1, Major_length > Minor_length ->
+								<<("^((?![")/utf8,(Exception)/binary,
+									("]).){")/utf8,(integer_to_binary(Minor_length))/binary,
+									(",")/utf8,(integer_to_binary(Major_length))/binary,
+									("}$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end
+				end
+			end,
+			case Pattern() of
+				{error,Reason} -> {error,Reason};
+				Pattern_binary ->
+					case re:run(Binary,Pattern_binary) of
+						nomatch -> nomatch;
+						{match,_} -> Binary
+					end
+			end;
+		false -> a:error(?FUNCTION_NAME(),a014)
+	end;
+%% Unicode binary_wrapped, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
+parameter_value(unicode_binary_wrapped,Parameter,[free]) ->
+	parameter_value(unicode_binary_wrapped,Parameter,[free,free]);
+parameter_value(unicode_binary_wrapped,Parameter,[free,free]) ->
+	Pattern = <<"^(<<\"){1}((?!\">>).){1,}(\">>)$">>,
+	Parameter_binary = unicode:characters_to_binary(Parameter),
+	case re:run(Parameter_binary,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			Size = byte_size(Parameter_binary),
+			binary:part(Parameter_binary,3,Size-6)
+	end;
+parameter_value(unicode_binary_wrapped,Parameter,[free,{less_equal,Length}]) ->
+	case parameter_value(unicode_binary_wrapped,Parameter,[free,free]) of
+		nomatch -> nomatch;
+		Binary_parameter ->
+			if
+				byte_size(Binary_parameter) =< Length -> Binary_parameter;
+				true -> nomatch
+			end
+	end;
+parameter_value(unicode_binary_wrapped,Parameter,[free,{size,Length}]) ->
+	case parameter_value(unicode_binary_wrapped,Parameter,[free,free]) of
+		nomatch -> nomatch;
+		Binary_parameter ->
+			if
+				byte_size(Binary_parameter) == Length -> Binary_parameter;
+				true -> nomatch
+			end
+	end;
+parameter_value(unicode_binary_wrapped,Parameter,[free,{range,Minor_length,Major_length}]) ->
+	if
+		is_integer(Minor_length), is_integer(Major_length),
+		Minor_length >= 1, Major_length > Minor_length ->
+			case parameter_value(unicode_binary_wrapped,Parameter,[free,free]) of
+				nomatch -> nomatch;
+				Binary_parameter ->
+					Size = byte_size(Binary_parameter),
+					if
+						Size >= Minor_length, Size =< Major_length -> Binary_parameter;
+						true -> nomatch
+					end
+			end;
+		true -> a:error(?FUNCTION_NAME(),a003)
+	end;
+parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Length_type]) ->
+	case io_lib:char_list(Exception_chars) of
+		true ->
+			Binary = unicode:characters_to_binary(Parameter),
+			Exception = unicode:characters_to_binary(Exception_chars),
+			Pattern = fun() ->
+				case Length_type of
+					free ->
+						<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,("]).){1,}(\">>)$")/utf8>>;
+					{less_equal,Length} ->
+						if
+							is_integer(Length), Length >= 2 ->
+								<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,
+									("]).){1,")/utf8,(integer_to_binary(Length))/binary,
+									("}(\">>)$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end;
+					{size,Length} ->
+						if
+							is_integer(Length), Length >= 2 ->
+								<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,
+									("]).){")/utf8,(integer_to_binary(Length))/binary,
+									("}(\">>)$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end;
+					{range,Minor_length,Major_length} ->
+						if
+							is_integer(Minor_length),is_integer(Major_length),
+							Minor_length >= 1, Major_length > Minor_length ->
+								<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,
+									("]).){")/utf8,(integer_to_binary(Minor_length))/binary,
+									(",")/utf8,(integer_to_binary(Major_length))/binary,
+									("}(\">>)$")/utf8>>;
+							true -> a:error(?FUNCTION_NAME(),a003)
+						end
+				end
+			end,
+			case Pattern() of
+				{error,Reason} -> {error,Reason};
+				Pattern_binary ->
+					case re:run(Binary,Pattern_binary) of
+						nomatch -> nomatch;
+						{match,_} ->
+							Size = byte_size(Binary),
+							binary:part(Binary,3,Size-6)
+					end
+			end;
+		false -> a:error(?FUNCTION_NAME(),a014)
+	end;
 %% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
 %% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$
 %% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
@@ -380,14 +507,14 @@ parameter_value(limited_range_integer,Parameter,[{MinorA,MajorA},{MinorB,MajorB}
 		is_integer(MinorA), is_integer(MajorA),
 		is_integer(MinorB), is_integer(MajorB) ->
 	case parameter_value(range_integer,Parameter,[]) of
+		{error,Reason} -> {error,Reason};
 		{A,B} ->
 			if
 				A > MajorA; A < MinorA -> nomatch;
 				B > MajorB; B < MinorB -> nomatch;
 				true -> {A,B}
 			end;
-		nomatch -> nomatch;
-		{error,Reason} -> {error,Reason}
+		nomatch -> nomatch
 	end;
 %% Range positive float, regex rule ^([0-9]*\.[0-9]*)\:([0-9]*\.[0-9]*)$
 %% Range negative float, regex rule ^(\-[0-9]{1,}\.[0-9]{1,}|0)\:(\-[0-9]{1,}\.[0-9]{1,}|0)$
@@ -422,14 +549,14 @@ parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
 		is_float(MinorA), is_float(MajorA),
 		is_float(MinorB), is_float(MajorB) ->
 	case parameter_value(range_float,Parameter,[]) of
+		{error,Reason} -> {error,Reason};
 		{A,B} ->
 			if
 				A > MajorA; A < MinorA -> nomatch;
 				B > MajorB; B < MinorB -> nomatch;
 				true -> {A,B}
 			end;
-		nomatch -> nomatch;
-		{error,Reason} -> {error,Reason}
+		nomatch -> nomatch
 	end;
 
 parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
