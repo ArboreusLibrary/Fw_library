@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.15.205").
+-vsn("0.0.16.206").
 
 %% Module API
 -export([
@@ -272,6 +272,32 @@ parameter_value(ipv4,Parameter,[Output_type]) ->
 			_ -> a:error(?FUNCTION_NAME(),m003_003)
 		end
 	catch _:_ -> nomatch end;
+%% Ip_range rule ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\/([0-9]{1,3})$
+parameter_value(ipv4_range,Parameter,[Output_type]) ->
+	Pattern = "^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\/([0-9]{1,3})$",
+	case re:split(Parameter,Pattern) of
+		[_,A,B,C,D,E,_] ->
+			Integer_A = binary_to_integer(A),
+			Integer_B = binary_to_integer(B),
+			Integer_C = binary_to_integer(C),
+			Integer_D = binary_to_integer(D),
+			Integer_E = binary_to_integer(E),
+			if
+				Integer_A >= 0, Integer_A =< 255,
+				Integer_B >= 0, Integer_B =< 255,
+				Integer_C >= 0, Integer_C =< 255,
+				Integer_D >= 0, Integer_D =< 255,
+				Integer_E >= 0, Integer_E =< 255 ->
+					case Output_type of
+						binary -> unicode:characters_to_binary(Parameter);
+						string -> Parameter;
+						tuple -> {Integer_A,Integer_B,Integer_C,Integer_D,Integer_E};
+						list -> [Integer_A,Integer_B,Integer_C,Integer_D,Integer_E]
+					end;
+				true -> nomatch
+			end;
+		[_] -> nomatch
+	end;
 %% IP v6 regex rule ^(\:?([a-z0-9]{4})){8}$
 parameter_value(ipv6,Parameter,[Output_type]) ->
 	try
