@@ -8,11 +8,12 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.13.198").
+-vsn("0.0.14.199").
 
 %% Module API
 -export([
 	check/3,
+	checkout/4,
 	check_parameters/2
 ]).
 
@@ -22,12 +23,8 @@
 -include("../Handler/a.hrl").
 %% Module Include End
 
+
 %%-----------------------------------
-%% @spec check(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter} | {error,_Reason}
-%% where
-%%      Type::atom()
-%%      Parameter::string()
-%%      Type_properties::list()
 %% @doc Checking the request parameter through the Regexp defined for the type. Return the
 %% Parameter = Checked_parameter() converted to the defined datatype from list
 -spec check(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
@@ -42,12 +39,25 @@ check(Type,Parameter,Type_properties) ->
 		false -> a:error(?FUNCTION_NAME(),a014)
 	end.
 
+
+%% ----------------------------
+%% @doc Find and check parameter from Yaws parameters proplist
+-spec checkout(Parameter_name,Parameters,Type,Type_properties) ->
+	notinlist | nomatch | _Checked_parameter | {error,_Reason}
+	when
+		Parameter_name :: string(),
+		Parameters :: proplists:proplist(),
+		Type :: atom(),
+		Type_properties :: list().
+
+checkout(Parameter_name,Parameters,Type,Type_properties) ->
+	case proplists:get_value(Parameter_name,Parameters) of
+		undefined -> notinlist;
+		Value_string -> check(Type,Value_string,Type_properties)
+	end.
+
+
 %%-----------------------------------
-%% @spec parameter_value(Type,Parameter,Type_properties) -> nomatch | {match,Checked_parameter} | {error,_Reason}
-%% where
-%%      Type::atom()
-%%      Parameter::string()
-%%      Type_properties::list()
 %% @doc Secondary function for check/3
 -spec parameter_value(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
 	when Type::atom(), Parameter::string(), Type_properties::list().
@@ -181,7 +191,7 @@ parameter_value(latin_name,Parameter,[Length]) ->
 				(integer_to_binary(Length))/binary,
 				("})(\">>)$")/utf8>>
 		end
-	          end,
+	end,
 	Binary_parameter = unicode:characters_to_binary(Parameter),
 	case re:run(Binary_parameter,Pattern()) of
 		nomatch -> nomatch;
@@ -564,7 +574,6 @@ parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 
 %% ----------------------------
-%% @spec check_parameters(Data_schema,Parameters) -> list() | false.
 %% @doc Checking requested parameters in following of Data_schema selected
 %% in following of table name.
 %% Return:
