@@ -281,6 +281,7 @@ parameter_value(ipv6,Parameter,[Output_type]) ->
 			binary -> unicode:characters_to_binary(Parameter);
 			list -> tuple_to_list(Ip_tuple);
 			tuple -> Ip_tuple;
+			integer -> a_net:ipv6_to_integer(Parameter);
 			_ -> a:error(?FUNCTION_NAME(),m003_003)
 		end
 	catch _:_ -> nomatch end;
