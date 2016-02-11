@@ -41,6 +41,9 @@
 
 	%% Module: a_list
 	{m004_001,"Wrong path"},
-	{m004_002,"No key-value pair in list"}
+	{m004_002,"No key-value pair in list"},
+
+	%% Module: a_qlc, a_mnesia
+	{m005_001,"Mnesia transaction exeption"}
 
 ]).
