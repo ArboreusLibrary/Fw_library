@@ -16,3 +16,6 @@
 %% a_output_dsv
 -define(DSV_OUTPUT_FILENAME,"application.dsv").
 -define(DSV_SEPARATOR,";;").
+
+%% a_output_xml
+-define(XML_OUTPUT_FILENAME,"application.xml").
