@@ -8,6 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_output_xml).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
+-vsn("0.0.1.211").
 
 %% System includes
 -include_lib("stdlib/include/qlc.hrl").

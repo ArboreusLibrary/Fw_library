@@ -8,6 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_proplists).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
+-vsn("0.0.1.210").
 
 %% Module Include Start
 -include("../Handler/a.hrl").
