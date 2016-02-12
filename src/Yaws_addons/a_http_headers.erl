@@ -36,7 +36,7 @@
 	when Time_in :: pos_integer() | tuple() | current.
 
 last_modified(Time_in) when is_integer(Time_in), Time_in > 0 ->
-	Time = a:str(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
+	Time = a:to_string(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
 	[{header,["Last-Modified:",Time]}];
 last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 	when
@@ -46,7 +46,7 @@ last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 		is_integer(Hour) == true, Hour >= 0, Hour =< 23,
 		is_integer(Minute) == true, Minute >= 0, Minute =< 59,
 		is_integer(Second) == true, Second >= 0, Second =< 59 ->
-	Time = a:str(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
+	Time = a:to_string(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
 	[{header,["Last-Modified:",Time]}];
 last_modified(current) -> last_modified(erlang:localtime());
 last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
@@ -61,7 +61,7 @@ last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
 	when Time_in :: pos_integer() | tuple() | current.
 
 expires(Time_in) when is_integer(Time_in) == true, Time_in > 0 ->
-	Time = a:str(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
+	Time = a:to_string(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
 	[{header,["Expires:",Time]}];
 expires({{Year,Month,Day},{Hour,Minute,Second}})
 	when
@@ -71,7 +71,7 @@ expires({{Year,Month,Day},{Hour,Minute,Second}})
 		is_integer(Hour) == true, Hour >= 0, Hour =< 23,
 		is_integer(Minute) == true, Minute >= 0, Minute =< 59,
 		is_integer(Second) == true, Second >= 0, Second =< 59 ->
-	Time = a:str(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
+	Time = a:to_string(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
 	[{header,["Expires:",Time]}];
 expires(current) -> expires(erlang:localtime());
 expires(_) -> a:error(?FUNCTION_NAME(),a000).
