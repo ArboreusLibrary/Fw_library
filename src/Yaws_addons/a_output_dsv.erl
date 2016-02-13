@@ -8,42 +8,44 @@
 %%%-------------------------------------------------------------------
 -module(a_output_dsv).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.1.210").
+-vsn("0.0.2.214").
 
 %% Module Include Start
 -include("../Configuration/configuration.conf.hrl").
 
 %% API
 -export([
-	make/2
+	make/4
 ]).
 
 
 %% ----------------------------
 %% @doc Return a list prepared for Yaws appmod within
 %% DSV formated information from Mnesia DB
--spec make(Datum,Data_module) -> list()
+-spec make(Datum,Data_module,Output_type,Output_file_name) -> list()
 	when
 		Datum :: list() | tuple(),
-		Data_module :: atom().
+		Data_module :: atom(),
+		Output_type :: atom(),
+		Output_file_name :: string().
 
-make({atomic,[]},_) ->
+make({atomic,[]},_,_,_) ->
 	[
 		a_http_headers:cache(no),
 		?APPLICATION_HEADER_OK
 	];
-make({atomic,Db_responce},Data_module)
+make({atomic,Db_responce},Data_module,Output_type,Output_file_name)
 	when
 		is_list(Db_responce),
 		is_atom(Data_module) ->
 	[
-		a_http_headers:csv(no_cache,?DSV_OUTPUT_FILENAME),
+		a_http_headers:csv(Output_type,Output_file_name),
 		?APPLICATION_HEADER_OK,
 		{'ehtml',[
 			unicode:characters_to_list(dsv(Data_module,{atomic,Db_responce},<<>>))
 		]}
 	];
-make([{count,Count},{atomic,Db_responce}],Data_module)
+make([{count,Count},{atomic,Db_responce}],Data_module,Output_type,Output_file_name)
 	when
 		is_integer(Count),
 		is_list(Db_responce),
@@ -52,11 +54,11 @@ make([{count,Count},{atomic,Db_responce}],Data_module)
 		("\n")/utf8,
 		(dsv(Data_module,{atomic,Db_responce},<<>>))/binary>>,
 	[
-		a_http_headers:csv(no_cache,?DSV_OUTPUT_FILENAME),
+		a_http_headers:csv(Output_type,Output_file_name),
 		?APPLICATION_HEADER_OK,
 		{'ehtml',[unicode:characters_to_list(Dsv)]}
 	];
-make(_,_) ->
+make(_,_,_,_) ->
 	[
 		a_http_headers:cache(no),
 		?APPLICATION_HEADER_ERROR("wrong_output_dsv_make_parameters")
@@ -105,7 +107,7 @@ make_row([Field_value|List_from_record],Output) ->
 	Dsv_out = fun() ->
 		case List_from_record of
 			[] -> <<Output/binary,Value/binary,"\n">>;
-			_ -> <<Output/binary,Value/binary,?DSV_SEPARATOR>>
+			_ -> <<Output/binary,Value/binary,";;">>
 		end
 	end,
 	make_row(List_from_record,Dsv_out()).
@@ -124,7 +126,7 @@ data_schema([Field|Schema],Output) ->
 	Output_out = fun() ->
 		case Schema of
 			[] -> <<Output/binary,Field_name/binary,"\n">>;
-			_ -> <<Output/binary,Field_name/binary,?DSV_SEPARATOR>>
+			_ -> <<Output/binary,Field_name/binary,";;">>
 		end
 	end,
 	data_schema(Schema,Output_out()).

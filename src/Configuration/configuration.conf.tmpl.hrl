@@ -12,10 +12,3 @@
 
 -define(APPLICATION_HEADER_OK,{header,["Appplication:","ok"]}).
 -define(APPLICATION_HEADER_ERROR,fun(X) -> {header,["Appplication:",X]} end).
-
-%% a_output_dsv
--define(DSV_OUTPUT_FILENAME,"application.dsv").
--define(DSV_SEPARATOR,";;").
-
-%% a_output_xml
--define(XML_OUTPUT_FILENAME,"application.xml").

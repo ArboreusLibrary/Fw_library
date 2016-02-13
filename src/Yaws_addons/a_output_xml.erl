@@ -8,39 +8,40 @@
 %%%-------------------------------------------------------------------
 -module(a_output_xml).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.1.211").
-
-%% System includes
--include_lib("stdlib/include/qlc.hrl").
+-vsn("0.0.2.213").
 
 %% Module Include Start
 -include("../Configuration/configuration.conf.hrl").
 
 %% API
 -export([
-	make/2
+	make/4
 ]).
 
 
 %% ----------------------------
 %% @doc Return a list prepared for Yaws appmod within
 %% XML formated information from Mnesia DB
--spec make(Datum,Data_module) -> list()
+-spec make(Datum,Data_module,Output_type,Output_file_name) -> list()
 	when
 		Datum :: list() | tuple(),
-		Data_module :: atom().
+		Data_module :: atom(),
+		Output_type :: atom(),
+		Output_file_name :: string().
 
-make({atomic,[]},_) ->
+make({atomic,[]},_,_,_) ->
 	[
 		a_http_headers:cache(no),
 		?APPLICATION_HEADER_OK
 	];
-make({atomic,Db_responce},Data_module)
+make({atomic,Db_responce},Data_module,Output_type,Output_file_name)
 	when
 		is_list(Db_responce),
-		is_atom(Data_module) ->
+		is_atom(Data_module),
+		is_atom(Output_type),
+		is_list(Output_file_name) ->
 	[
-		a_http_headers:csv(no_cache,?XML_OUTPUT_FILENAME),
+		a_http_headers:xml(Output_type,Output_file_name),
 		?APPLICATION_HEADER_OK,
 		{'ehtml',[
 			unicode:characters_to_list(<<
@@ -51,13 +52,15 @@ make({atomic,Db_responce},Data_module)
 			>>)
 		]}
 	];
-make([{count,Count},{atomic,Db_responce}],Data_module)
+make([{count,Count},{atomic,Db_responce}],Data_module,Output_type,Output_file_name)
 	when
 		is_integer(Count),
 		is_list(Db_responce),
-		is_atom(Data_module) ->
+		is_atom(Data_module),
+		is_atom(Output_type),
+		is_list(Output_file_name) ->
 	[
-		a_http_headers:csv(no_cache,?XML_OUTPUT_FILENAME),
+		a_http_headers:xml(Output_type,Output_file_name),
 		?APPLICATION_HEADER_OK,
 		{'ehtml',[
 			unicode:characters_to_list(<<
@@ -69,7 +72,7 @@ make([{count,Count},{atomic,Db_responce}],Data_module)
 			>>)
 		]}
 	];
-make(_,_) ->
+make(_,_,_,_) ->
 	[
 		a_http_headers:cache(no),
 		?APPLICATION_HEADER_ERROR("wrong_output_xml_make_parameters")

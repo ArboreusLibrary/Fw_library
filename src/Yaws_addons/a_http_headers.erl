@@ -8,16 +8,16 @@
 %%%-------------------------------------------------------------------
 -module(a_http_headers).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.4.144").
+-vsn("0.0.5.212").
 
 %% Module API
 -export([
 	last_modified/1,
 	expires/1,
 	cache/1,
-	json/1,
+	json/2,
 	csv/2,
-	xml/1
+	xml/2
 ]).
 
 %% System include
@@ -27,9 +27,6 @@
 %% Module Include End
 
 %%-----------------------------------
-%% @spec last_modified(Time_in) -> list() | {error,_Reason}.
-%% where
-%%      Time_in() :: integer() | tuple() | current
 %% @doc Return a list() within HTTP Header formated for Yaws out() function.
 %% Example: "Last-Modified: Fri, 30 Oct 1998 14:19:41 GMT"
 -spec last_modified(Time_in) -> list() | {error,_Reason}
@@ -52,9 +49,6 @@ last_modified(current) -> last_modified(erlang:localtime());
 last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec expires(Time_in) -> list() | {error,_Reason}.
-%% where
-%%      Time_in :: integer() | tuple() | current
 %% @doc Return a list() within HTTP Header formated for Yaws out() function.
 %% Example: "Expires: Fri, 30 Oct 1998 14:19:41 GMT"
 -spec expires(Time_in) -> list() | {error,_Reason}
@@ -77,9 +71,6 @@ expires(current) -> expires(erlang:localtime());
 expires(_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec cache(Operation) -> list() | {error,_Reason}.
-%% where
-%%      Operation() = no
 %% @doc Return a list() within HTTP headers fromated for Yaws out() function.
 -spec cache(Operation) -> list() | {error,_Reason}
 	when Operation :: no.
@@ -94,26 +85,31 @@ cache(no) ->
 cache(_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec json(Header_type) -> list() | {error,_Reason}
-%% where
-%%      Header_type() = np_cache | solid
 %% @doc Return a list within headers for JSON
--spec json(no_cache) -> list() | {error,_Reason}.
+-spec json(Type,File_name) -> list() | {error,_Reason}
+	when
+		Type :: no_cache | solid,
+		File_name :: unicode:latin1_chardata().
 
-json(no_cache) ->
+json(Type,File_name) when is_atom(Type) ->
+	case io_lib:char_list(File_name) of
+		true -> json_set(Type,File_name);
+		false -> a:error(?FUNCTION_NAME(),a000)
+	end;
+json(_,_) -> a:error(?FUNCTION_NAME(),a000).
+json_set(no_cache,File_name) ->
 	[
 		cache(no),
-		json(solid)
+		json(solid,File_name)
 	];
-json(solid) ->
-	[{header,["Content-Type:","application/json; charset=utf-8"]}];
-json(_) -> a:error(?FUNCTION_NAME(),a000).
+json_set(solid,File_name) ->
+	[
+		{header,["Content-Type:","application/json; charset=utf-8"]},
+		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
+	];
+json_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec csv(Type,File_name) -> list() | {error,_Reason}
-%% where
-%%      Type :: no_cache | solid,
-%%      File_name :: unicode:latin1_chardata().
 %% @doc Return a list within HTTP headers for CSV file format
 -spec csv(Type,File_name) -> list() | {error,_Reason}
 	when
@@ -139,15 +135,28 @@ csv_set(solid,File_name) ->
 csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %%-----------------------------------
-%% @spec xml(Content_type) -> list() | {error,_Reason}
-%% where
-%%      Content_typr :: text_xml | application_xml
 %% @doc Return list within XML MIME type headers for Yaws out() function
--spec xml(Content_type) -> list() | {error,_Reason}
-	when Content_type :: text_xml | application_xml.
+-spec xml(Content_type,File_name) -> list() | {error,_Reason}
+	when
+		Content_type :: text_xml | application_xml,
+		File_name :: unicode:latin1_chardata().
 
-xml(text_xml) ->
-	[{header,["Content-Type:","text/xml; charset=utf-8"]}];
-xml(application_xml) ->
-	[{header,["Content-Type:","application/xml; charset=utf-8"]}];
-xml(_) -> a:error(?FUNCTION_NAME(),a000).
+xml(Type,File_name) when is_atom(Type) ->
+	case io_lib:char_list(File_name) of
+		true -> xml_set(Type,File_name);
+		false -> a:error(?FUNCTION_NAME(),a000)
+	end;
+xml(_,_) -> a:error(?FUNCTION_NAME(),a000).
+xml_set(text,File_name) ->
+	[
+		{header,["Content-Type:","text/xml; charset=utf-8"]},
+		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
+	];
+xml_set(text_no_cache,File_name) -> [cache(no),xml_set(text,File_name)];
+xml_set(application,File_name) ->
+	[
+		{header,["Content-Type:","application/xml; charset=utf-8"]},
+		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
+	];
+xml_set(application_no_cache,File_name) -> [cache(no),xml_set(application,File_name)];
+xml_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
