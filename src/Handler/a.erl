@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.3.189").
+-vsn("0.0.4.221").
 
 
 %% Module API
@@ -16,6 +16,7 @@
 	error/2,
 	to_string/1,
 	to_binary/1,
+	to_integer/1,
 	read_file/1,
 	cwd/0,
 	var_dump/2,
@@ -35,6 +36,7 @@
 
 test() -> ok.
 
+
 %%-----------------------------------
 %% @doc Write to file the variable value
 -spec var_dump(Path,Variable) -> ok | {error, _Reason}
@@ -45,8 +47,8 @@ test() -> ok.
 var_dump(Path,Variable) ->
 	file:write_file(Path,io_lib:fwrite("~p.\n",[Variable])).
 
+
 %%-----------------------------------
-%% @spec str(Bitstring::any()) -> string()
 %% @doc Return string converted from binary
 -spec to_string(Bitstring::any()) -> string().
 
@@ -61,10 +63,8 @@ to_string(Integer) when is_integer(Integer) -> integer_to_list(Integer);
 to_string(Float) when is_float(Float) -> float_to_list(Float);
 to_string(_) -> a:error(?FUNCTION_NAME(),a013).
 
+
 %%-----------------------------------
-%% @spec to_binary(Value) -> binary()
-%% where
-%%      Value = any()
 %% @doc Return binary within converted value, purposed for integer() or string() datatypes
 -spec to_binary(Value::any()) -> byte() | {error,_Reason}.
 
@@ -79,8 +79,23 @@ to_binary(Integer) when is_integer(Integer) -> integer_to_binary(Integer);
 to_binary(Float) when is_float(Float) -> float_to_binary(Float);
 to_binary(_) -> a:error(?FUNCTION_NAME(),a013).
 
+
 %%-----------------------------------
-%% @spec error(Function_name::tuple(),Error_code::string()) -> tuple()
+%% @doc Return integer
+-spec to_integer(Value::any()) -> integer() | {error,_Reason}.
+
+to_integer(String) when is_list(String) ->
+	case io_lib:char_list(String) of
+		true -> list_to_integer(String);
+		_ -> a:error(?FUNCTION_NAME(),a013)
+	end;
+to_integer(Integer) when is_integer(Integer) -> Integer;
+to_integer(Float) when is_float(Float) -> list_to_integer(float_to_list(Float,[{decimals,0}]));
+to_integer(Binary) when is_binary(Binary) -> binary_to_integer(Binary);
+to_integer(_) -> a:error(?FUNCTION_NAME(),a013).
+
+
+%%-----------------------------------
 %% @doc Return a tuple within function Id and the reason of an error
 -spec error({_,{Module,Function,Arity}},Error_code::atom()) -> tuple()
 	when Module::atom(), Function::atom(), Arity::integer().
@@ -94,6 +109,7 @@ error({_,{Module,Function,Arity}},Error_code) when is_atom(Error_code) ->
 			{error,{Module,Function,Arity,Reason}}
 	end;
 error(_,_) -> {error,{a,error,2,proplists:get_value(e000,?ERROR_CODES)}}.
+
 
 %%-----------------------------------
 %% @spec read_file(Path) -> byte() | {error,_}
@@ -112,6 +128,7 @@ read_file(Path) when is_list(Path) ->
 		false -> a:error(?FUNCTION_NAME(),a002)
 	end;
 read_file(_) -> a:error(?FUNCTION_NAME(),a002).
+
 
 %%-----------------------------------
 %% @spec cwd() -> string() | {errror,Reason}
