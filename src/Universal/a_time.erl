@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.7.144").
+-vsn("0.0.9.219").
 
 %% Module API
 -export([
@@ -16,7 +16,7 @@
 	current/0,current/1,
 	timestamp/0,timestamp/1,timestamp_to_tuple/1,
 	dow/1,dow/2,
-	month/2,
+	month/1,month/2,
 	format/2
 ]).
 
@@ -178,6 +178,26 @@ dow(Dow,View) ->
 %% ------------------------------------------------
 %% Month
 %% ------------------------------------------------
+
+
+%%-----------------------------------
+%% @doc Return integer within month number from unicode binary
+-spec month(Month::unicode:latin1_binary()) -> integer() | {error,_Reason}.
+
+month(Month) when Month == <<"January">>; Month == <<"Jan">>; Month == <<"Ja">> -> 1;
+month(Month) when Month == <<"February">>; Month == <<"Feb">>; Month == <<"Fe">> -> 2;
+month(Month) when Month == <<"March">>; Month == <<"Mar">>; Month == <<"Mr">> -> 3;
+month(Month) when Month == <<"April">>; Month == <<"Apr">>; Month == <<"Ap">> -> 4;
+month(Month) when Month == <<"May">>; Month == <<"May">>; Month == <<"Ma">> -> 5;
+month(Month) when Month == <<"June">>; Month == <<"Jun">>; Month == <<"Jn">> -> 6;
+month(Month) when Month == <<"July">>; Month == <<"Jul">>; Month == <<"Jl">> -> 7;
+month(Month) when Month == <<"August">>; Month == <<"Aug">>; Month == <<"Au">> -> 8;
+month(Month) when Month == <<"September">>; Month == <<"Sep">>; Month == <<"Se">> -> 9;
+month(Month) when Month == <<"October">>; Month == <<"Oct">>; Month == <<"Oc">> -> 10;
+month(Month) when Month == <<"November">>; Month == <<"Nov">>; Month == <<"No">> -> 11;
+month(Month) when Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">> -> 12;
+month(_) -> a:error(?FUNCTION_NAME(),a007).
+
 
 %%-----------------------------------
 %% @doc Return binary within month name in defined view
