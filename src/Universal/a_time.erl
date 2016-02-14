@@ -15,7 +15,7 @@
 	current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1,
 	current/0,current/1,
 	timestamp/0,timestamp/1,timestamp_to_tuple/1,
-	dow/2,
+	dow/1,dow/2,
 	month/2,
 	format/2
 ]).
@@ -30,14 +30,12 @@
 %% ------------------------------------------------
 
 %%-----------------------------------
-%% @spec current_date() -> tuple()
 %% @doc Return a Date() within a tuple() :: {Year,Month,Day}, the part of erlang:localtime()
 -spec current_date() -> tuple().
 
 current_date() -> {Date,_}=erlang:localtime(), Date.
 
 %%-----------------------------------
-%% @spec current_year(Output_type) -> integer()
 %% @doc Return a Year :: integer(), the part of erlang:localtime()
 -spec current_year(Output_type) -> integer() | {error,_Error_notice} when
 	Output_type :: full | short .
@@ -47,23 +45,18 @@ current_year(short) -> current_year(full) - trunc(current_year(full)/100)*100;
 current_year(_) -> a:error(?FUNCTION_NAME(),a011).
 
 %%-----------------------------------
-%% @spec current_month() -> integer()
 %% @doc Return a Month() = integer(), the part of erlang:localtime()
 -spec current_month() -> integer().
 
 current_month() -> {_,Month,_} = current_date(), Month.
 
 %%-----------------------------------
-%% @spec current_day() -> integer()
 %% @doc Return a Day :: integer(), the part of erlang:localtime()
 -spec current_day() -> integer().
 
 current_day() -> {_,_,Day} = current_date(), Day.
 
 %%-----------------------------------
-%% @spec current_dow(View) -> byte()
-%% where
-%%      View :: full | alpha2 | alpha3.
 %% @doc Return the current day of the week within binaries
 -spec current_dow(View) -> byte() | {error,_Reason}
 	when View :: full | alpha2 | alpha3.
@@ -77,16 +70,12 @@ current_dow(View)
 current_dow(_) -> a:error(?FUNCTION_NAME(),a012).
 
 %%-----------------------------------
-%% @spec current() -> tuple()
 %% @doc Return a Time() within a tuple() = {Hours,Minutes,Seconds}, the part of erlang:localtime()
 -spec current() -> tuple().
 
 current() -> {_,Time}=erlang:localtime(), Time.
 
 %%-----------------------------------
-%% @spec current(Format) -> binary()
-%% where
-%%      Format :: rfc850 | rfc822 | ansi
 %% @doc Return a binary within the current time formated by the Format()::atom() from the list
 -spec current(Format) -> binary() | {error,_Reason}
 	when Format :: rfc850 | rfc822 | ansi.
@@ -103,7 +92,6 @@ current(_) -> a:error(?FUNCTION_NAME(),a012).
 %% ------------------------------------------------
 
 %%-----------------------------------
-%% @spec timestamp(Type::binaries) -> byte().
 %% @doc Return difned format value of current timestamp
 -spec timestamp(Type::binaries) -> byte() | {error,_Reason}.
 
@@ -111,7 +99,6 @@ timestamp(binaries) -> integer_to_binary(timestamp());
 timestamp(_) -> a:error(?FUNCTION_NAME(),a012).
 
 %%-----------------------------------
-%% @spec timestamp() -> integer()
 %% @doc Return current timestamp as integer
 -spec timestamp() -> integer().
 
@@ -120,7 +107,6 @@ timestamp() ->
 	Mega*1000000000000+Sec*1000000+Micro.
 
 %%-----------------------------------
-%% @spec timestamp_to_tuple(Timestamp) -> tuple()
 %% @doc Return a tuple within converted Timestamp from integer
 -spec timestamp_to_tuple(Timestamp::integer()) -> tuple() | {error,_Reason}.
 
@@ -136,11 +122,21 @@ timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
 %% ------------------------------------------------
 
 %%-----------------------------------
-%% @spec dow(Day_number,View) -> binaries() | {error,_Reason}
-%% where
-%%      Day_number :: pos_integer(),
-%%      View :: full | alpha2 | alpha3.
-%% @doc Retuen a binary within day of the week name in defined view
+%% @doc Return integer within number of day the week
+-spec dow(Dow::unicode:latin1_binary()) -> integer() | {error,_Reason}.
+
+dow(Dow) when Dow == <<"Monday">>; Dow == <<"Mon">>; Dow == <<"Mo">> -> 1;
+dow(Dow) when Dow == <<"Tuesday">>; Dow == <<"Tue">>; Dow == <<"Tu">> -> 2;
+dow(Dow) when Dow == <<"Wednesday">>; Dow == <<"Wed">>; Dow == <<"Wd">> -> 3;
+dow(Dow) when Dow == <<"Thursday">>; Dow == <<"Thu">>; Dow == <<"Th">> -> 4;
+dow(Dow) when Dow == <<"Friday">>; Dow == <<"Fri">>; Dow == <<"Fr">> -> 5;
+dow(Dow) when Dow == <<"Saturday">>; Dow == <<"Sat">>; Dow == <<"Sa">> -> 6;
+dow(Dow) when Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">> -> 7;
+dow(_) -> a:error(?FUNCTION_NAME(),a007).
+
+
+%%-----------------------------------
+%% @doc Return a binary within day of the week name in defined view
 -spec dow(Day_number,View) -> byte() | {error,_Reason}
 	when Day_number :: pos_integer(), View :: full | alpha2 | alpha3.
 
@@ -184,10 +180,6 @@ dow(Dow,View) ->
 %% ------------------------------------------------
 
 %%-----------------------------------
-%% @spec month(Month_number,View) -> byte() | {error,_Reason}
-%% where
-%%      Month_number :: pos_integer(),
-%%      View :: full | alpha2 | alpha3.
 %% @doc Return binary within month name in defined view
 -spec month(Month_number,View) -> byte() | {error,_Reason}
 	when Month_number :: pos_integer(), View :: full | alpha2 | alpha3.
@@ -247,11 +239,6 @@ month(Month_number,View) ->
 %% ------------------------------------------------
 
 %%-----------------------------------
-%% @spec format(View,Time_in) -> byte() | {error,_Reason}
-%% where
-%%      View = ansi | rfc850 | rfc822
-%%      Time = {timestamp | date,{Time_data()}}
-%%      Time_data() = tuple()
 %% @doc Return a binary within a formated time
 -spec format(View,Time_in) -> byte() | {error,_Reason}
 	when
