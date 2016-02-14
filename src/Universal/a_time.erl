@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.10.219").
+-vsn("0.0.11.220").
 
 %% Module API
 -export([
@@ -17,6 +17,7 @@
 	timestamp/0,timestamp/1,timestamp_to_tuple/1,
 	dow/1,dow/2,
 	month/1,month/2,
+	year/2,
 	format/2
 ]).
 
@@ -310,6 +311,44 @@ month(Month_number,View) ->
 			a:error(?FUNCTION_NAME(),a000)
 	end.
 
+%% ------------------------------------------------
+%% Year
+%% ------------------------------------------------
+
+%%-----------------------------------
+%% @doc Return integer from unicode binary chars
+-spec year(Type,Year) -> integer() | {error,_Reason}
+	when
+		Type :: to_string | to_binary | to_integer,
+		Year :: any().
+
+year(to_string,Year) ->
+	try
+		case a:to_string(Year) of
+			{error,Reason} -> {error,Reason};
+			Year_binary -> Year_binary
+		end
+	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+year(to_binary,Year) ->
+	try
+		case a:to_binary(Year) of
+			{error,Reason} -> {error,Reason};
+			Year_binary -> Year_binary
+		end
+	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+year(to_integer,Year) ->
+	try
+		Year_integer = a:to_integer(Year),
+		case Year_integer of
+			{error,Reason} -> {error,Reason};
+			_ ->
+				if
+					Year_integer > 0 -> Year_integer;
+					true -> a:error(?FUNCTION_NAME(),a000)
+				end
+		end
+	catch _:_ -> a:error(?FUNCTION_NAME(),a010) end;
+year(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %% ------------------------------------------------
 %% Format
