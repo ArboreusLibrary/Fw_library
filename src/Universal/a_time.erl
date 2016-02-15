@@ -438,16 +438,10 @@ format(ansi,Time_in) ->
 		{date,Time} ->
 			{{Year,Month,Day},{Hour,Minute,Second}} = Time
 	end,
-	Dow = dow(calendar:day_of_the_week(Year,Month,Day),alpha3),
-	Out_month = month(Month,alpha3),
-	Out_day = integer_to_binary(Day),
-	Out_hours = format(hour,Hour),
-	Out_minutes = format(min,Minute),
-	Out_seconds = format(sec,Second),
-	Out_year = integer_to_binary(Year),
-	<<Dow/binary," ",Out_month/binary," ",Out_day/binary," ",
-	Out_hours/binary,":",Out_minutes/binary,":",Out_seconds/binary," ",
-	Out_year/binary>>;
+	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary," ",
+		(month(Month,alpha3))/binary," ",(integer_to_binary(Day))/binary," ",
+		(format(hour,Hour))/binary,":",(format(min,Minute))/binary,":",
+		(format(sec,Second))/binary," ",(integer_to_binary(Year))/binary>>;
 
 format(rfc850,Time_in) ->
 	case Time_in of
@@ -456,15 +450,10 @@ format(rfc850,Time_in) ->
 		{date,Time} ->
 			{{Year,Month,Day},{Hour,Minute,Second}} = Time
 	end,
-	Dow = dow(calendar:day_of_the_week(Year,Month,Day),full),
-	Out_month = month(Month,alpha3),
-	Out_day = format(day,Day),
-	Out_hours = format(hour,Hour),
-	Out_minutes = format(min,Minute),
-	Out_seconds = format(sec,Second),
-	Out_year = format(year_short,Year),
-	<<Dow/binary,", ",Out_day/binary,"-",Out_month/binary,"-",Out_year/binary," ",
-	Out_hours/binary,":",Out_minutes/binary,":",Out_seconds/binary," GMT">>;
+	<<(dow(calendar:day_of_the_week(Year,Month,Day),full))/binary,", ",
+		(format(day,Day))/binary,"-",(month(Month,alpha3))/binary,"-",
+		(format(year_short,Year))/binary," ",(format(hour,Hour))/binary,":",
+		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
 
 format(rfc822,Time_in) ->
 	case Time_in of
@@ -473,15 +462,10 @@ format(rfc822,Time_in) ->
 		{date,Time} ->
 			{{Year,Month,Day},{Hour,Minute,Second}} = Time
 	end,
-	Dow = dow(calendar:day_of_the_week(Year,Month,Day),alpha3),
-	Out_month = month(Month,alpha3),
-	Out_day = format(day,Day),
-	Out_hours = format(hour,Hour),
-	Out_minutes = format(min,Minute),
-	Out_seconds = format(sec,Second),
-	Out_year = integer_to_binary(Year),
-	<<Dow/binary,", ",Out_day/binary," ",Out_month/binary," ",Out_year/binary," ",
-	Out_hours/binary,":",Out_minutes/binary,":",Out_seconds/binary," GMT">>;
+	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary,", ",
+		(format(day,Day))/binary," ",(month(Month,alpha3))/binary," ",
+		(integer_to_binary(Year))/binary," ",(format(hour,Hour))/binary,":",
+		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
 
 format(Measure,0)
 	when Measure == hour; Measure == min; Measure == sec -> <<"00">>;
