@@ -128,32 +128,39 @@ timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
 
 dow(Dow)
 	when
-		Dow == <<"1">>, Dow == <<"01">>,
-		Dow == <<"Monday">>; Dow == <<"Mon">>; Dow == <<"Mo">> -> 1;
+		Dow == <<"1">>, Dow == <<"01">>, Dow == "1", Dow == "01",
+		Dow == <<"Monday">>; Dow == <<"Mon">>; Dow == <<"Mo">>,
+		Dow == "Monday"; Dow == "Mon"; Dow == "Mo" -> 1;
 dow(Dow)
 	when
-		Dow == <<"2">>, Dow == <<"02">>,
-		Dow == <<"Tuesday">>; Dow == <<"Tue">>; Dow == <<"Tu">> -> 2;
+		Dow == <<"2">>, Dow == <<"02">>, Dow == "2", Dow == "02",
+		Dow == <<"Tuesday">>; Dow == <<"Tue">>; Dow == <<"Tu">>,
+		Dow == "Tuesday"; Dow == "Tue"; Dow == "Tu" -> 2;
 dow(Dow)
 	when
-		Dow == <<"3">>, Dow == <<"03">>,
-		Dow == <<"Wednesday">>; Dow == <<"Wed">>; Dow == <<"Wd">> -> 3;
+		Dow == <<"3">>, Dow == <<"03">>, Dow == "3", Dow == "03",
+		Dow == <<"Wednesday">>; Dow == <<"Wed">>; Dow == <<"Wd">>,
+		Dow == "Wednesday"; Dow == "Wed"; Dow == "Wd" -> 3;
 dow(Dow)
 	when
-		Dow == <<"4">>, Dow == <<"04">>,
-		Dow == <<"Thursday">>; Dow == <<"Thu">>; Dow == <<"Th">> -> 4;
+		Dow == <<"4">>, Dow == <<"04">>, Dow == "4", Dow == "04",
+		Dow == <<"Thursday">>; Dow == <<"Thu">>; Dow == <<"Th">>,
+		Dow == "Thursday"; Dow == "Thu"; Dow == "Th" -> 4;
 dow(Dow)
 	when
-		Dow == <<"5">>, Dow == <<"05">>,
-		Dow == <<"Friday">>; Dow == <<"Fri">>; Dow == <<"Fr">> -> 5;
+		Dow == <<"5">>, Dow == <<"05">>, Dow == "5", Dow == "05",
+		Dow == <<"Friday">>; Dow == <<"Fri">>; Dow == <<"Fr">>,
+		Dow == "Friday"; Dow == "Fri"; Dow == "Fr" -> 5;
 dow(Dow)
 	when
-		Dow == <<"6">>, Dow == <<"06">>,
-		Dow == <<"Saturday">>; Dow == <<"Sat">>; Dow == <<"Sa">> -> 6;
+		Dow == <<"6">>, Dow == <<"06">>, Dow == "6", Dow == "06",
+		Dow == <<"Saturday">>; Dow == <<"Sat">>; Dow == <<"Sa">>,
+		Dow == "Saturday"; Dow == "Sat"; Dow == "Sa" -> 6;
 dow(Dow)
 	when
-		Dow == <<"7">>, Dow == <<"07">>,
-		Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">> -> 7;
+		Dow == <<"7">>, Dow == <<"07">>, Dow == "7", Dow == "07",
+		Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">>,
+		Dow == "Sunday"; Dow == "Sun"; Dow == "Su" -> 7;
 dow(_) -> a:error(?FUNCTION_NAME(),a007).
 
 
@@ -209,51 +216,72 @@ dow(Dow,View) ->
 month(Month)
 	when
 		Month == <<"1">>, Month == <<"01">>,
-		Month == <<"January">>; Month == <<"Jan">>; Month == <<"Ja">> -> 1;
+		Month == "1", Month == "01",
+		Month == <<"January">>; Month == <<"Jan">>; Month == <<"Ja">>,
+		Month == "January"; Month == "Jan"; Month == "Ja" -> 1;
 month(Month)
 	when
 		Month == <<"2">>, Month == <<"02">>,
-		Month == <<"February">>; Month == <<"Feb">>; Month == <<"Fe">> -> 2;
+		Month == "2", Month == "02",
+		Month == <<"February">>; Month == <<"Feb">>; Month == <<"Fe">>,
+		Month == "February"; Month == "Feb"; Month == "Fe" -> 2;
 month(Month)
 	when
 		Month == <<"3">>, Month == <<"03">>,
-		Month == <<"March">>; Month == <<"Mar">>; Month == <<"Mr">> -> 3;
+		Month == "3", Month == "03",
+		Month == <<"March">>; Month == <<"Mar">>; Month == <<"Mr">>,
+		Month == "March"; Month == "Mar"; Month == "Mr" -> 3;
 month(Month)
 	when
 		Month == <<"4">>, Month == <<"04">>,
-		Month == <<"April">>; Month == <<"Apr">>; Month == <<"Ap">> -> 4;
+		Month == "4", Month == "04",
+		Month == <<"April">>; Month == <<"Apr">>; Month == <<"Ap">>,
+		Month == "April"; Month == "Apr"; Month == "Ap" -> 4;
 month(Month)
 	when
 		Month == <<"5">>, Month == <<"05">>,
-		Month == <<"May">>; Month == <<"May">>; Month == <<"Ma">> -> 5;
+		Month == "5", Month == "05",
+		Month == <<"May">>; Month == <<"May">>; Month == <<"Ma">>,
+		Month == "May"; Month == "May"; Month == "Ma" -> 5;
 month(Month)
 	when
 		Month == <<"6">>, Month == <<"06">>,
-		Month == <<"June">>; Month == <<"Jun">>; Month == <<"Jn">> -> 6;
+		Month == "6", Month == "06",
+		Month == <<"June">>; Month == <<"Jun">>; Month == <<"Jn">>,
+		Month == "June"; Month == "Jun"; Month == "Jn" -> 6;
 month(Month)
 	when
 		Month == <<"7">>, Month == <<"07">>,
-		Month == <<"July">>; Month == <<"Jul">>; Month == <<"Jl">> -> 7;
+		Month == "7", Month == "07",
+		Month == <<"July">>; Month == <<"Jul">>; Month == <<"Jl">>,
+		Month == "July"; Month == "Jul"; Month == "Jl" -> 7;
 month(Month)
 	when
 		Month == <<"8">>, Month == <<"08">>,
-		Month == <<"August">>; Month == <<"Aug">>; Month == <<"Au">> -> 8;
+		Month == "8", Month == "08",
+		Month == <<"August">>; Month == <<"Aug">>; Month == <<"Au">>,
+		Month == "August"; Month == "Aug"; Month == "Au" -> 8;
 month(Month)
 	when
 		Month == <<"9">>, Month == <<"09">>,
-		Month == <<"September">>; Month == <<"Sep">>; Month == <<"Se">> -> 9;
+		Month == "9", Month == "09",
+		Month == <<"September">>; Month == <<"Sep">>; Month == <<"Se">>,
+		Month == "September"; Month == "Sep"; Month == "Se" -> 9;
 month(Month)
 	when
-		Month == <<"10">>,
-		Month == <<"October">>; Month == <<"Oct">>; Month == <<"Oc">> -> 10;
+		Month == <<"10">>, Month == "10",
+		Month == <<"October">>; Month == <<"Oct">>; Month == <<"Oc">>,
+		Month == "October"; Month == "Oct"; Month == "Oc" -> 10;
 month(Month)
 	when
-		Month == <<"11">>,
-		Month == <<"November">>; Month == <<"Nov">>; Month == <<"No">> -> 11;
+		Month == <<"11">>, Month == "11",
+		Month == <<"November">>; Month == <<"Nov">>; Month == <<"No">>,
+		Month == "November"; Month == "Nov"; Month == "No" -> 11;
 month(Month)
 	when
-		Month == <<"12">>,
-		Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">> -> 12;
+		Month == <<"12">>, Month == "12",
+		Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">>,
+		Month == "December"; Month == "Dec"; Month == "De" -> 12;
 month(_) -> a:error(?FUNCTION_NAME(),a007).
 
 
@@ -436,7 +464,7 @@ format(Measure,8)
 format(Measure,9)
 	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"09">>;
 
-format(year,Year) -> a:bin(Year);
+format(year,Year) -> a:to_binary(Year);
 format(year_short,Year) ->
 	binary:part(integer_to_binary(Year),2,2);
 
