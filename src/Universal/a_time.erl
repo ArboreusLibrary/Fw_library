@@ -8,13 +8,14 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.11.220").
+-vsn("0.0.13.224").
 
 %% Module API
 -export([
 	current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1,
 	current/0,current/1,
 	timestamp/0,timestamp/1,timestamp_to_tuple/1,
+	day/1,
 	dow/1,dow/2,
 	month/1,month/2,
 	year/2,
@@ -123,6 +124,45 @@ timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
 %% ------------------------------------------------
 
 %%-----------------------------------
+%% @doc Return integer within converted day
+-spec day(Day) -> integer() | {error,_Reason}
+	when
+		Day :: string() | unicode:latin1_binary().
+
+day(Day) when Day == <<"1">>, Day == <<"01">>, Day == "1", Day == "01" -> 1;
+day(Day) when Day == <<"2">>, Day == <<"02">>, Day == "2", Day == "02" -> 2;
+day(Day) when Day == <<"3">>, Day == <<"03">>, Day == "3", Day == "03" -> 3;
+day(Day) when Day == <<"4">>, Day == <<"04">>, Day == "4", Day == "04" -> 4;
+day(Day) when Day == <<"5">>, Day == <<"05">>, Day == "5", Day == "05" -> 5;
+day(Day) when Day == <<"6">>, Day == <<"06">>, Day == "6", Day == "06" -> 6;
+day(Day) when Day == <<"7">>, Day == <<"07">>, Day == "7", Day == "07" -> 7;
+day(Day) when Day == <<"8">>, Day == <<"08">>, Day == "8", Day == "08" -> 8;
+day(Day) when Day == <<"9">>, Day == <<"09">>, Day == "9", Day == "09" -> 9;
+day(Day) when is_binary(Day) ->
+	try
+	    Day_integer = binary_to_integer(Day),
+		if
+			Day_integer >= 1, Day_integer =< 31 -> Day_integer;
+			true -> a:error(?FUNCTION_NAME(),a000)
+		end
+	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+day(Day) when is_list(Day) ->
+	case io_lib:char_list(Day) of
+		true ->
+			Day_integer = list_to_integer(Day),
+			if
+				Day_integer >= 1, Day_integer =< 31 -> Day_integer;
+				true -> a:error(?FUNCTION_NAME(),a000)
+			end
+	end;
+day(_) -> a:error(?FUNCTION_NAME(),a000).
+
+
+%% ------------------------------------------------
+%% Day of the week
+%% ------------------------------------------------
+
+%%-----------------------------------
 %% @doc Return integer within number of day the week
 -spec dow(Dow::unicode:latin1_binary()) -> integer() | {error,_Reason}.
 
@@ -161,7 +201,7 @@ dow(Dow)
 		Dow == <<"7">>, Dow == <<"07">>, Dow == "7", Dow == "07",
 		Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">>,
 		Dow == "Sunday"; Dow == "Sun"; Dow == "Su" -> 7;
-dow(_) -> a:error(?FUNCTION_NAME(),a007).
+dow(_) -> a:error(?FUNCTION_NAME(),a000).
 
 
 %%-----------------------------------
@@ -282,7 +322,7 @@ month(Month)
 		Month == <<"12">>, Month == "12",
 		Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">>,
 		Month == "December"; Month == "Dec"; Month == "De" -> 12;
-month(_) -> a:error(?FUNCTION_NAME(),a007).
+month(_) -> a:error(?FUNCTION_NAME(),a000).
 
 
 %%-----------------------------------
