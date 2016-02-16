@@ -90,12 +90,15 @@ current() -> {_,Time}=erlang:localtime(), Time.
 %%-----------------------------------
 %% @doc Return a binary within the current time formated by the Format()::atom() from the list
 -spec current(Format) -> binary() | {error,_Reason}
-	when Format :: rfc850 | rfc822 | ansi.
-
-current(Format)
 	when
-		Format == rfc850; Format == rfc822; Format == ansi ->
-	format(Format,{date,erlang:localtime()});
+		Format :: atom() | tuple().
+
+current(timestamp) -> timestamp();
+current(Format) ->
+	case format(Format,{date_tuple,erlang:localtime()}) of
+		{error,_} -> a:error(?FUNCTION_NAME(),a012);
+		Current -> Current
+	end;
 current(_) -> a:error(?FUNCTION_NAME(),a012).
 
 
@@ -551,46 +554,147 @@ year(_,_) -> a:error(?FUNCTION_NAME(),a000).
 %% @doc Return a binary within a formated time
 -spec format(View,Time_in) -> byte() | {error,_Reason}
 	when
-		View :: full | alpha2 | alpha3,
-		Time_in :: {timestamp,{Mega,Seconds,Micro}} | {date,Time},
-		Mega :: integer(), Seconds :: integer(), Micro :: integer(),
-		Time :: tuple().
+		View :: atom() | tuple(),
+		Time_in :: tuple() | integer().
 
-format(ansi,Time_in) ->
-	case Time_in of
-		{timestamp,{Mega,Seconds,Micro}} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = calendar:now_to_local_time({Mega,Seconds,Micro});
-		{date,Time} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = Time
-	end,
+format(View,{timestamp,Timestamp})
+	when is_integer(Timestamp),Timestamp >= 1 ->
+	format(View,{date_tuple,from_timestamp(date_tuple,Timestamp)});
+
+format(View,{timestamp_tuple,{Mega,Seconds,Micro}})
+	when is_integer(Mega),is_integer(Seconds),is_integer(Micro) ->
+	format(View,{date_tuple,calendar:now_to_local_time({Mega,Seconds,Micro})});
+
+format(ansi,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary," ",
 		(month(Month,alpha3))/binary," ",(integer_to_binary(Day))/binary," ",
 		(format(hour,Hour))/binary,":",(format(min,Minute))/binary,":",
 		(format(sec,Second))/binary," ",(integer_to_binary(Year))/binary>>;
 
-format(rfc850,Time_in) ->
-	case Time_in of
-		{timestamp,{Mega,Seconds,Micro}} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = calendar:now_to_local_time({Mega,Seconds,Micro});
-		{date,Time} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = Time
-	end,
+format(rfc850,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),full))/binary,", ",
 		(format(day,Day))/binary,"-",(month(Month,alpha3))/binary,"-",
 		(format(year_short,Year))/binary," ",(format(hour,Hour))/binary,":",
 		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
 
-format(rfc822,Time_in) ->
-	case Time_in of
-		{timestamp,{Mega,Seconds,Micro}} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = calendar:now_to_local_time({Mega,Seconds,Micro});
-		{date,Time} ->
-			{{Year,Month,Day},{Hour,Minute,Second}} = Time
-	end,
+format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary,", ",
 		(format(day,Day))/binary," ",(month(Month,alpha3))/binary," ",
 		(integer_to_binary(Year))/binary," ",(format(hour,Hour))/binary,":",
 		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
+
+format({iso8601,"YYYY-MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,("-")/utf8,(format(month,Month))/binary>>;
+format({iso8601,"YYYY-MM-DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,("-")/utf8,
+		(format(month,Month))/binary,("-")/utf8,
+		(format(day,Day))/binary>>;
+format({iso8601,"YY-MM-DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year_short,Year))/binary,("-")/utf8,
+		(format(month,Month))/binary,("-")/utf8,
+		(format(day,Day))/binary>>;
+
+format({iso8601,"YYYY/MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,("/")/utf8,(format(month,Month))/binary>>;
+format({iso8601,"YYYY/MM/DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,("/")/utf8,
+		(format(month,Month))/binary,("/")/utf8,
+		(format(day,Day))/binary>>;
+format({iso8601,"YY/MM/DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year_short,Year))/binary,("/")/utf8,
+		(format(month,Month))/binary,("/")/utf8,
+		(format(day,Day))/binary>>;
+
+format({iso8601,"YYYY.MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,(".")/utf8,(format(month,Month))/binary>>;
+format({iso8601,"YYYY.MM.DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(day,Day))/binary>>;
+format({iso8601,"YY.MM.DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year_short,Year))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(day,Day))/binary>>;
+
+format({iso8601,"YYYYMM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,(format(month,Month))/binary>>;
+format({iso8601,"YYYYMMDD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year,Year))/binary,
+		(format(month,Month))/binary,
+		(format(day,Day))/binary>>;
+format({iso8601,"YYMMDD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(year_short,Year))/binary,
+		(format(month,Month))/binary,
+		(format(day,Day))/binary>>;
+
+format({iso8601,"MM-YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(month,Month))/binary,("-")/utf8,(format(year,Year))/binary>>;
+format({iso8601,"DD-MM-YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,("-")/utf8,
+		(format(month,Month))/binary,("-")/utf8,
+		(format(year,Year))/binary>>;
+format({iso8601,"DD-MM-YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,("-")/utf8,
+		(format(month,Month))/binary,("-")/utf8,
+		(format(year_short,Year))/binary>>;
+
+format({iso8601,"MM/YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(month,Month))/binary,("/")/utf8,(format(year,Year))/binary>>;
+format({iso8601,"DD/MM/YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,("/")/utf8,
+		(format(month,Month))/binary,("/")/utf8,
+		(format(year,Year))/binary>>;
+format({iso8601,"DD/MM/YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,("/")/utf8,
+		(format(month,Month))/binary,("/")/utf8,
+		(format(year_short,Year))/binary>>;
+
+format({iso8601,"MM.YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(month,Month))/binary,(".")/utf8,(format(year,Year))/binary>>;
+format({iso8601,"DD.MM.YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(year,Year))/binary>>;
+format({iso8601,"DD.MM.YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(year_short,Year))/binary>>;
+
+format({iso8601,"MMYYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
+	<<(format(month,Month))/binary,(".")/utf8,(format(year,Year))/binary>>;
+format({iso8601,"DDMMYYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(year,Year))/binary>>;
+format({iso8601,"DDMMYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format(day,Day))/binary,(".")/utf8,
+		(format(month,Month))/binary,(".")/utf8,
+		(format(year_short,Year))/binary>>;
+
+format({iso8601,"HH:MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
+	<<(format(hour,Hour))/binary,(":")/utf8,(format(min,Minute))/binary>>;
+format({iso8601,"HH.MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
+	<<(format(hour,Hour))/binary,(".")/utf8,(format(min,Minute))/binary>>;
+format({iso8601,"HH,MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
+	<<(format(hour,Hour))/binary,(",")/utf8,(format(min,Minute))/binary>>;
+format({iso8601,"HHMM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
+	<<(format(hour,Hour))/binary,(format(min,Minute))/binary>>;
+
+format({iso8601,"HH:MM:SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
+	<<(format(hour,Hour))/binary,(":")/utf8,
+		(format(min,Minute))/binary,(":")/utf8,
+		(format(sec,Second))/binary>>;
+format({iso8601,"HH.MM.SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
+	<<(format(hour,Hour))/binary,(".")/utf8,
+		(format(min,Minute))/binary,(".")/utf8,
+		(format(sec,Second))/binary>>;
+format({iso8601,"HH,MM,SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
+	<<(format(hour,Hour))/binary,(",")/utf8,
+		(format(min,Minute))/binary,(",")/utf8,
+		(format(sec,Second))/binary>>;
+format({iso8601,"HHMMSS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
+	<<(format(hour,Hour))/binary,(format(min,Minute))/binary,(format(sec,Second))/binary>>;
+
 
 format(Measure,0)
 	when Measure == hour; Measure == min; Measure == sec -> <<"00">>;
@@ -614,31 +718,26 @@ format(Measure,9)
 	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"09">>;
 
 format(year,Year) -> a:to_binary(Year);
-format(year_short,Year) ->
-	binary:part(integer_to_binary(Year),2,2);
+format(year_short,Year) -> binary:part(integer_to_binary(Year),2,2);
 
 format(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
-	Out_day = integer_to_binary(Day),
-	<<Out_day/binary>>;
+	<<(integer_to_binary(Day))/binary>>;
+format(day,_) -> a:error(?FUNCTION_NAME(),a009);
 
 format(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
-	Out_hours = integer_to_binary(Month),
-	<<Out_hours/binary>>;
+	<<(integer_to_binary(Month))/binary>>;
 format(month,_) -> a:error(?FUNCTION_NAME(),a009);
 
 format(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
-	Out_hours = integer_to_binary(Hours),
-	<<Out_hours/binary>>;
+	<<(integer_to_binary(Hours))/binary>>;
 format(hour,_) -> a:error(?FUNCTION_NAME(),a009);
 
 format(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
-	Out_minutes = integer_to_binary(Minutes),
-	<<Out_minutes/binary>>;
+	<<(integer_to_binary(Minutes))/binary>>;
 format(min,_) -> a:error(?FUNCTION_NAME(),a009);
 
 format(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
-	Out_seconds = integer_to_binary(Seconds),
-	<<Out_seconds/binary>>;
+	<<(integer_to_binary(Seconds))/binary>>;
 format(sec,_) -> a:error(?FUNCTION_NAME(),a009);
 
 format(_,_) -> a:error(?FUNCTION_NAME(),a000).
@@ -648,7 +747,7 @@ format(_,_) -> a:error(?FUNCTION_NAME(),a000).
 %% @doc Return timestamp/data()/seconds from formated time
 -spec from_formated(Format_type,Time_source,Output_type) -> tuple() | integer() | false | {error,_Reason}
 	when
-		Format_type :: ansi | rfc850 | rfc822 | date_tuple,
+		Format_type :: atom(),
 		Time_source :: string() | unicode:latin1_binary() | tuple(),
 		Output_type :: tuple | seconds | timestamp.
 

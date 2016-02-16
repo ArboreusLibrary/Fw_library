@@ -32,9 +32,11 @@
 -spec last_modified(Time_in) -> list() | {error,_Reason}
 	when Time_in :: pos_integer() | tuple() | current.
 
-last_modified(Time_in) when is_integer(Time_in), Time_in > 0 ->
-	Time = a:to_string(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
-	[{header,["Last-Modified:",Time]}];
+last_modified(Timestamp) when is_integer(Timestamp), Timestamp > 0 ->
+	[{header,[
+		"Last-Modified:",
+		a:to_string(a_time:format(rfc822,{timestamp_tuple,a_time:timestamp_to_tuple(Timestamp)}))
+	]}];
 last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 	when
 		is_integer(Year) == true, Year > 0,
@@ -43,8 +45,10 @@ last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 		is_integer(Hour) == true, Hour >= 0, Hour =< 23,
 		is_integer(Minute) == true, Minute >= 0, Minute =< 59,
 		is_integer(Second) == true, Second >= 0, Second =< 59 ->
-	Time = a:to_string(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
-	[{header,["Last-Modified:",Time]}];
+	[{header,[
+		"Last-Modified:",
+		a:to_string(a_time:format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}))
+	]}];
 last_modified(current) -> last_modified(erlang:localtime());
 last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
 
@@ -54,9 +58,11 @@ last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
 -spec expires(Time_in) -> list() | {error,_Reason}
 	when Time_in :: pos_integer() | tuple() | current.
 
-expires(Time_in) when is_integer(Time_in) == true, Time_in > 0 ->
-	Time = a:to_string(a_time:format(rfc822,{timestamp,a_time:timestamp_to_tuple(Time_in)})),
-	[{header,["Expires:",Time]}];
+expires(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 ->
+	[{header,[
+		"Expires:",
+		a:to_string(a_time:format(rfc822,{timestamp_tuple,a_time:timestamp_to_tuple(Timestamp)}))
+	]}];
 expires({{Year,Month,Day},{Hour,Minute,Second}})
 	when
 		is_integer(Year) == true, Year > 0,
@@ -65,8 +71,10 @@ expires({{Year,Month,Day},{Hour,Minute,Second}})
 		is_integer(Hour) == true, Hour >= 0, Hour =< 23,
 		is_integer(Minute) == true, Minute >= 0, Minute =< 59,
 		is_integer(Second) == true, Second >= 0, Second =< 59 ->
-	Time = a:to_string(a_time:format(rfc822,{date,{{Year,Month,Day},{Hour,Minute,Second}}})),
-	[{header,["Expires:",Time]}];
+	[{header,[
+		"Expires:",
+		a:to_string(a_time:format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}))
+	]}];
 expires(current) -> expires(erlang:localtime());
 expires(_) -> a:error(?FUNCTION_NAME(),a000).
 
