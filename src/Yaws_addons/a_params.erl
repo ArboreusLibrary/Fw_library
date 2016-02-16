@@ -511,6 +511,13 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 			end;
 		false -> a:error(?FUNCTION_NAME(),a014)
 	end;
+%% Formated time checking
+parameter_value(time,Parameter,[Format_type,Output_type]) ->
+	case a_time:from_formated(Format_type,Parameter,Output_type) of
+		false -> nomatch;
+		{error,_} -> nomatch;
+		Checked_parameter -> Checked_parameter
+	end;
 %% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
 %% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$
 %% Range integer, regex rule ^(\-?[0-9]{1,})\:(\-?[0-9]{1,})$
