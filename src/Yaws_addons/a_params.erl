@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.16.206").
+-vsn("0.0.17.228").
 
 %% Module API
 -export([

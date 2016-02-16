@@ -8,13 +8,13 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.14.226").
+-vsn("0.0.15.230").
 
 %% Module API
 -export([
 	current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1,
 	current/0,current/1,
-	timestamp/0,timestamp/1,timestamp_to_tuple/1,
+	timestamp/0,timestamp/1,timestamp_to_tuple/1,from_timestamp/2,
 	second/1,
 	minute/1,
 	hour/1,
@@ -143,9 +143,25 @@ timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
 to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}}) ->
 	(calendar:datetime_to_gregorian_seconds(
 		{{Year,Month,Day},{Hours,Minutes,Seconds}}
-	) - 62167219200)*1000000;
+	) - 62167219200) * 1000000;
 to_timestamp(_) -> a:error(?FUNCTION_NAME(),a000).
 
+
+%%-----------------------------------
+%% @doc Return formated time from timestamp
+-spec from_timestamp(Time_format,Timestamp) -> unicode:latin1_binary()| {error,_Reason}
+	when
+		Time_format :: atom(),
+		Timestamp :: integer().
+
+from_timestamp(date_tuple,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
+	calendar:gregorian_seconds_to_datetime(Timestamp div 1000000 + 62167219200);
+from_timestamp(Time_format,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
+	case format(Time_format,{date,from_timestamp(date_tuple,Timestamp)}) of
+		{error,_} -> a:error(?FUNCTION_NAME(),a000);
+		Formated_time -> Formated_time
+	end;
+from_timestamp(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %% ------------------------------------------------
 %% Time
