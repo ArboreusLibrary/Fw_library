@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_http_headers).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.5.212").
+-vsn("0.0.6.229").
 
 %% Module API
 -export([

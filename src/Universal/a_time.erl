@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.15.230").
+-vsn("0.0.17.231").
 
 %% Module API
 -export([
@@ -335,41 +335,23 @@ dow(_) -> a:error(?FUNCTION_NAME(),a000).
 %%-----------------------------------
 %% @doc Return a binary within day of the week name in defined view
 -spec dow(Day_number,View) -> byte() | {error,_Reason}
-	when Day_number :: pos_integer(), View :: full | alpha2 | alpha3.
+	when
+		Day_number :: pos_integer(),
+		View :: full | alpha2 | alpha3.
 
-dow(1,full) -> <<"Monday">>;
-dow(2,full) -> <<"Tuesday">>;
-dow(3,full) -> <<"Wednesday">>;
-dow(4,full) -> <<"Thursday">>;
-dow(5,full) -> <<"Friday">>;
-dow(6,full) -> <<"Saturday">>;
+dow(1,full) -> <<"Monday">>; dow(2,full) -> <<"Tuesday">>; dow(3,full) -> <<"Wednesday">>;
+dow(4,full) -> <<"Thursday">>; dow(5,full) -> <<"Friday">>; dow(6,full) -> <<"Saturday">>;
 dow(7,full) -> <<"Sunday">>;
 
-dow(1,alpha3) -> <<"Mon">>;
-dow(2,alpha3) -> <<"Tue">>;
-dow(3,alpha3) -> <<"Wed">>;
-dow(4,alpha3) -> <<"Thu">>;
-dow(5,alpha3) -> <<"Fri">>;
-dow(6,alpha3) -> <<"Sat">>;
+dow(1,alpha3) -> <<"Mon">>; dow(2,alpha3) -> <<"Tue">>; dow(3,alpha3) -> <<"Wed">>;
+dow(4,alpha3) -> <<"Thu">>; dow(5,alpha3) -> <<"Fri">>; dow(6,alpha3) -> <<"Sat">>;
 dow(7,alpha3) -> <<"Sun">>;
 
-dow(1,alpha2) -> <<"Mo">>;
-dow(2,alpha2) -> <<"Tu">>;
-dow(3,alpha2) -> <<"Wd">>;
-dow(4,alpha2) -> <<"Th">>;
-dow(5,alpha2) -> <<"Fr">>;
-dow(6,alpha2) -> <<"Sa">>;
+dow(1,alpha2) -> <<"Mo">>; dow(2,alpha2) -> <<"Tu">>; dow(3,alpha2) -> <<"Wd">>;
+dow(4,alpha2) -> <<"Th">>; dow(5,alpha2) -> <<"Fr">>; dow(6,alpha2) -> <<"Sa">>;
 dow(7,alpha2) -> <<"Su">>;
 
-dow(Dow,View) ->
-	if
-		is_integer(Dow) /= true; Dow < 1; Dow > 7 ->
-			a:error(?FUNCTION_NAME(),a009);
-		is_atom(View) /= true; View /= full; View /= alpha2; View /= alpha3 ->
-			a:error(?FUNCTION_NAME(),a012);
-		true ->
-			a:error(?FUNCTION_NAME(),a000)
-	end.
+dow(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 
 %% ------------------------------------------------
@@ -383,56 +365,47 @@ dow(Dow,View) ->
 
 month(Month)
 	when
-		Month == <<"1">>, Month == <<"01">>,
-		Month == "1", Month == "01",
+		Month == <<"1">>, Month == <<"01">>, Month == "1", Month == "01",
 		Month == <<"January">>; Month == <<"Jan">>; Month == <<"Ja">>,
 		Month == "January"; Month == "Jan"; Month == "Ja" -> 1;
 month(Month)
 	when
-		Month == <<"2">>, Month == <<"02">>,
-		Month == "2", Month == "02",
+		Month == <<"2">>, Month == <<"02">>, Month == "2", Month == "02",
 		Month == <<"February">>; Month == <<"Feb">>; Month == <<"Fe">>,
 		Month == "February"; Month == "Feb"; Month == "Fe" -> 2;
 month(Month)
 	when
-		Month == <<"3">>, Month == <<"03">>,
-		Month == "3", Month == "03",
+		Month == <<"3">>, Month == <<"03">>, Month == "3", Month == "03",
 		Month == <<"March">>; Month == <<"Mar">>; Month == <<"Mr">>,
 		Month == "March"; Month == "Mar"; Month == "Mr" -> 3;
 month(Month)
 	when
-		Month == <<"4">>, Month == <<"04">>,
-		Month == "4", Month == "04",
+		Month == <<"4">>, Month == <<"04">>, Month == "4", Month == "04",
 		Month == <<"April">>; Month == <<"Apr">>; Month == <<"Ap">>,
 		Month == "April"; Month == "Apr"; Month == "Ap" -> 4;
 month(Month)
 	when
-		Month == <<"5">>, Month == <<"05">>,
-		Month == "5", Month == "05",
+		Month == <<"5">>, Month == <<"05">>, Month == "5", Month == "05",
 		Month == <<"May">>; Month == <<"May">>; Month == <<"Ma">>,
 		Month == "May"; Month == "May"; Month == "Ma" -> 5;
 month(Month)
 	when
-		Month == <<"6">>, Month == <<"06">>,
-		Month == "6", Month == "06",
+		Month == <<"6">>, Month == <<"06">>, Month == "6", Month == "06",
 		Month == <<"June">>; Month == <<"Jun">>; Month == <<"Jn">>,
 		Month == "June"; Month == "Jun"; Month == "Jn" -> 6;
 month(Month)
 	when
-		Month == <<"7">>, Month == <<"07">>,
-		Month == "7", Month == "07",
+		Month == <<"7">>, Month == <<"07">>, Month == "7", Month == "07",
 		Month == <<"July">>; Month == <<"Jul">>; Month == <<"Jl">>,
 		Month == "July"; Month == "Jul"; Month == "Jl" -> 7;
 month(Month)
 	when
-		Month == <<"8">>, Month == <<"08">>,
-		Month == "8", Month == "08",
+		Month == <<"8">>, Month == <<"08">>, Month == "8", Month == "08",
 		Month == <<"August">>; Month == <<"Aug">>; Month == <<"Au">>,
 		Month == "August"; Month == "Aug"; Month == "Au" -> 8;
 month(Month)
 	when
-		Month == <<"9">>, Month == <<"09">>,
-		Month == "9", Month == "09",
+		Month == <<"9">>, Month == <<"09">>, Month == "9", Month == "09",
 		Month == <<"September">>; Month == <<"Sep">>; Month == <<"Se">>,
 		Month == "September"; Month == "Sep"; Month == "Se" -> 9;
 month(Month)
@@ -456,56 +429,26 @@ month(_) -> a:error(?FUNCTION_NAME(),a000).
 %%-----------------------------------
 %% @doc Return binary within month name in defined view
 -spec month(Month_number,View) -> byte() | {error,_Reason}
-	when Month_number :: pos_integer(), View :: full | alpha2 | alpha3.
+	when
+		Month_number :: pos_integer(),
+		View :: full | alpha2 | alpha3.
 
-month(1,full) -> <<"January">>;
-month(2,full) -> <<"February">>;
-month(3,full) -> <<"March">>;
-month(4,full) -> <<"April">>;
-month(5,full) -> <<"May">>;
-month(6,full) -> <<"June">>;
-month(7,full) -> <<"July">>;
-month(8,full) -> <<"August">>;
-month(9,full) -> <<"September">>;
-month(10,full) -> <<"October">>;
-month(11,full) -> <<"November">>;
-month(12,full) -> <<"December">>;
+month(1,full) -> <<"January">>; month(2,full) -> <<"February">>; month(3,full) -> <<"March">>;
+month(4,full) -> <<"April">>; month(5,full) -> <<"May">>; month(6,full) -> <<"June">>;
+month(7,full) -> <<"July">>; month(8,full) -> <<"August">>; month(9,full) -> <<"September">>;
+month(10,full) -> <<"October">>; month(11,full) -> <<"November">>; month(12,full) -> <<"December">>;
 
-month(1,alpha3) -> <<"Jan">>;
-month(2,alpha3) -> <<"Feb">>;
-month(3,alpha3) -> <<"Mar">>;
-month(4,alpha3) -> <<"Apr">>;
-month(5,alpha3) -> <<"May">>;
-month(6,alpha3) -> <<"Jun">>;
-month(7,alpha3) -> <<"Jul">>;
-month(8,alpha3) -> <<"Aug">>;
-month(9,alpha3) -> <<"Sep">>;
-month(10,alpha3) -> <<"Oct">>;
-month(11,alpha3) -> <<"Nov">>;
-month(12,alpha3) -> <<"Dec">>;
+month(1,alpha3) -> <<"Jan">>; month(2,alpha3) -> <<"Feb">>; month(3,alpha3) -> <<"Mar">>;
+month(4,alpha3) -> <<"Apr">>; month(5,alpha3) -> <<"May">>; month(6,alpha3) -> <<"Jun">>;
+month(7,alpha3) -> <<"Jul">>; month(8,alpha3) -> <<"Aug">>; month(9,alpha3) -> <<"Sep">>;
+month(10,alpha3) -> <<"Oct">>; month(11,alpha3) -> <<"Nov">>; month(12,alpha3) -> <<"Dec">>;
 
-month(1,alpha2) -> <<"Ja">>;
-month(2,alpha2) -> <<"Fe">>;
-month(3,alpha2) -> <<"Mr">>;
-month(4,alpha2) -> <<"Ap">>;
-month(5,alpha2) -> <<"Ma">>;
-month(6,alpha2) -> <<"Jn">>;
-month(7,alpha2) -> <<"Jl">>;
-month(8,alpha2) -> <<"Au">>;
-month(9,alpha2) -> <<"Se">>;
-month(10,alpha2) -> <<"Oc">>;
-month(11,alpha2) -> <<"No">>;
-month(12,alpha2) -> <<"De">>;
+month(1,alpha2) -> <<"Ja">>; month(2,alpha2) -> <<"Fe">>; month(3,alpha2) -> <<"Mr">>;
+month(4,alpha2) -> <<"Ap">>; month(5,alpha2) -> <<"Ma">>; month(6,alpha2) -> <<"Jn">>;
+month(7,alpha2) -> <<"Jl">>; month(8,alpha2) -> <<"Au">>; month(9,alpha2) -> <<"Se">>;
+month(10,alpha2) -> <<"Oc">>; month(11,alpha2) -> <<"No">>; month(12,alpha2) -> <<"De">>;
 
-month(Month_number,View) ->
-	if
-		is_integer(Month_number) /= true, Month_number > 12, Month_number < 1 ->
-			a:error(?FUNCTION_NAME(),a009);
-		is_atom(View) /= true, View /= full, View /= alpha2, View /= alpha3 ->
-			a:error(?FUNCTION_NAME(),a012);
-		true ->
-			a:error(?FUNCTION_NAME(),a000)
-	end.
+month(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 %% ------------------------------------------------
 %% Year
@@ -567,180 +510,191 @@ format(View,{timestamp_tuple,{Mega,Seconds,Micro}})
 
 format(ansi,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary," ",
-		(month(Month,alpha3))/binary," ",(integer_to_binary(Day))/binary," ",
-		(format(hour,Hour))/binary,":",(format(min,Minute))/binary,":",
-		(format(sec,Second))/binary," ",(integer_to_binary(Year))/binary>>;
+		(month(Month,alpha3))/binary," ",(format_element(day,Day))/binary," ",
+		(format_element(hour,Hour))/binary,":",(format_element(min,Minute))/binary,":",
+		(format_element(sec,Second))/binary," ",(format_element(year,Year))/binary>>;
 
 format(rfc850,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),full))/binary,", ",
-		(format(day,Day))/binary,"-",(month(Month,alpha3))/binary,"-",
-		(format(year_short,Year))/binary," ",(format(hour,Hour))/binary,":",
-		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
+		(format_element(day,Day))/binary,"-",(month(Month,alpha3))/binary,"-",
+		(format_element(year_short,Year))/binary," ",(format_element(hour,Hour))/binary,":",
+		(format_element(min,Minute))/binary,":",(format_element(sec,Second))/binary," GMT">>;
 
 format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
 	<<(dow(calendar:day_of_the_week(Year,Month,Day),alpha3))/binary,", ",
-		(format(day,Day))/binary," ",(month(Month,alpha3))/binary," ",
-		(integer_to_binary(Year))/binary," ",(format(hour,Hour))/binary,":",
-		(format(min,Minute))/binary,":",(format(sec,Second))/binary," GMT">>;
+		(format_element(day,Day))/binary," ",(month(Month,alpha3))/binary," ",
+		(format_element(year,Year))/binary," ",(format_element(hour,Hour))/binary,":",
+		(format_element(min,Minute))/binary,":",(format_element(sec,Second))/binary," GMT">>;
 
 format({iso8601,"YYYY-MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,("-")/utf8,(format(month,Month))/binary>>;
+	<<(format_element(year,Year))/binary,("-")/utf8,(format_element(month,Month))/binary>>;
 format({iso8601,"YYYY-MM-DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,("-")/utf8,
-		(format(month,Month))/binary,("-")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year,Year))/binary,("-")/utf8,
+		(format_element(month,Month))/binary,("-")/utf8,
+		(format_element(day,Day))/binary>>;
 format({iso8601,"YY-MM-DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year_short,Year))/binary,("-")/utf8,
-		(format(month,Month))/binary,("-")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year_short,Year))/binary,("-")/utf8,
+		(format_element(month,Month))/binary,("-")/utf8,
+		(format_element(day,Day))/binary>>;
 
 format({iso8601,"YYYY/MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,("/")/utf8,(format(month,Month))/binary>>;
+	<<(format_element(year,Year))/binary,("/")/utf8,(format_element(month,Month))/binary>>;
 format({iso8601,"YYYY/MM/DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,("/")/utf8,
-		(format(month,Month))/binary,("/")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year,Year))/binary,("/")/utf8,
+		(format_element(month,Month))/binary,("/")/utf8,
+		(format_element(day,Day))/binary>>;
 format({iso8601,"YY/MM/DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year_short,Year))/binary,("/")/utf8,
-		(format(month,Month))/binary,("/")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year_short,Year))/binary,("/")/utf8,
+		(format_element(month,Month))/binary,("/")/utf8,
+		(format_element(day,Day))/binary>>;
 
 format({iso8601,"YYYY.MM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,(".")/utf8,(format(month,Month))/binary>>;
+	<<(format_element(year,Year))/binary,(".")/utf8,(format_element(month,Month))/binary>>;
 format({iso8601,"YYYY.MM.DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year,Year))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(day,Day))/binary>>;
 format({iso8601,"YY.MM.DD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year_short,Year))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(day,Day))/binary>>;
+	<<(format_element(year_short,Year))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(day,Day))/binary>>;
 
 format({iso8601,"YYYYMM"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,(format(month,Month))/binary>>;
+	<<(format_element(year,Year))/binary,(format_element(month,Month))/binary>>;
 format({iso8601,"YYYYMMDD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year,Year))/binary,
-		(format(month,Month))/binary,
-		(format(day,Day))/binary>>;
+	<<(format_element(year,Year))/binary,
+		(format_element(month,Month))/binary,
+		(format_element(day,Day))/binary>>;
 format({iso8601,"YYMMDD"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(year_short,Year))/binary,
-		(format(month,Month))/binary,
-		(format(day,Day))/binary>>;
+	<<(format_element(year_short,Year))/binary,
+		(format_element(month,Month))/binary,
+		(format_element(day,Day))/binary>>;
 
 format({iso8601,"MM-YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(month,Month))/binary,("-")/utf8,(format(year,Year))/binary>>;
+	<<(format_element(month,Month))/binary,("-")/utf8,(format_element(year,Year))/binary>>;
 format({iso8601,"DD-MM-YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,("-")/utf8,
-		(format(month,Month))/binary,("-")/utf8,
-		(format(year,Year))/binary>>;
+	<<(format_element(day,Day))/binary,("-")/utf8,
+		(format_element(month,Month))/binary,("-")/utf8,
+		(format_element(year,Year))/binary>>;
 format({iso8601,"DD-MM-YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,("-")/utf8,
-		(format(month,Month))/binary,("-")/utf8,
-		(format(year_short,Year))/binary>>;
+	<<(format_element(day,Day))/binary,("-")/utf8,
+		(format_element(month,Month))/binary,("-")/utf8,
+		(format_element(year_short,Year))/binary>>;
 
 format({iso8601,"MM/YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(month,Month))/binary,("/")/utf8,(format(year,Year))/binary>>;
+	<<(format_element(month,Month))/binary,("/")/utf8,(format_element(year,Year))/binary>>;
 format({iso8601,"DD/MM/YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,("/")/utf8,
-		(format(month,Month))/binary,("/")/utf8,
-		(format(year,Year))/binary>>;
+	<<(format_element(day,Day))/binary,("/")/utf8,
+		(format_element(month,Month))/binary,("/")/utf8,
+		(format_element(year,Year))/binary>>;
 format({iso8601,"DD/MM/YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,("/")/utf8,
-		(format(month,Month))/binary,("/")/utf8,
-		(format(year_short,Year))/binary>>;
+	<<(format_element(day,Day))/binary,("/")/utf8,
+		(format_element(month,Month))/binary,("/")/utf8,
+		(format_element(year_short,Year))/binary>>;
 
 format({iso8601,"MM.YYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(month,Month))/binary,(".")/utf8,(format(year,Year))/binary>>;
+	<<(format_element(month,Month))/binary,(".")/utf8,(format_element(year,Year))/binary>>;
 format({iso8601,"DD.MM.YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(year,Year))/binary>>;
+	<<(format_element(day,Day))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(year,Year))/binary>>;
 format({iso8601,"DD.MM.YY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(year_short,Year))/binary>>;
+	<<(format_element(day,Day))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(year_short,Year))/binary>>;
 
 format({iso8601,"MMYYYY"},{date_tuple,{{Year,Month,_},{_,_,_}}}) ->
-	<<(format(month,Month))/binary,(".")/utf8,(format(year,Year))/binary>>;
+	<<(format_element(month,Month))/binary,(".")/utf8,(format_element(year,Year))/binary>>;
 format({iso8601,"DDMMYYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(year,Year))/binary>>;
+	<<(format_element(day,Day))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(year,Year))/binary>>;
 format({iso8601,"DDMMYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
-	<<(format(day,Day))/binary,(".")/utf8,
-		(format(month,Month))/binary,(".")/utf8,
-		(format(year_short,Year))/binary>>;
+	<<(format_element(day,Day))/binary,(".")/utf8,
+		(format_element(month,Month))/binary,(".")/utf8,
+		(format_element(year_short,Year))/binary>>;
 
 format({iso8601,"HH:MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
-	<<(format(hour,Hour))/binary,(":")/utf8,(format(min,Minute))/binary>>;
+	<<(format_element(hour,Hour))/binary,(":")/utf8,(format_element(min,Minute))/binary>>;
 format({iso8601,"HH.MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
-	<<(format(hour,Hour))/binary,(".")/utf8,(format(min,Minute))/binary>>;
+	<<(format_element(hour,Hour))/binary,(".")/utf8,(format_element(min,Minute))/binary>>;
 format({iso8601,"HH,MM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
-	<<(format(hour,Hour))/binary,(",")/utf8,(format(min,Minute))/binary>>;
+	<<(format_element(hour,Hour))/binary,(",")/utf8,(format_element(min,Minute))/binary>>;
 format({iso8601,"HHMM"},{date_tuple,{{_,_,_},{Hour,Minute,_}}}) ->
-	<<(format(hour,Hour))/binary,(format(min,Minute))/binary>>;
+	<<(format_element(hour,Hour))/binary,(format_element(min,Minute))/binary>>;
 
 format({iso8601,"HH:MM:SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
-	<<(format(hour,Hour))/binary,(":")/utf8,
-		(format(min,Minute))/binary,(":")/utf8,
-		(format(sec,Second))/binary>>;
+	<<(format_element(hour,Hour))/binary,(":")/utf8,
+		(format_element(min,Minute))/binary,(":")/utf8,
+		(format_element(sec,Second))/binary>>;
 format({iso8601,"HH.MM.SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
-	<<(format(hour,Hour))/binary,(".")/utf8,
-		(format(min,Minute))/binary,(".")/utf8,
-		(format(sec,Second))/binary>>;
+	<<(format_element(hour,Hour))/binary,(".")/utf8,
+		(format_element(min,Minute))/binary,(".")/utf8,
+		(format_element(sec,Second))/binary>>;
 format({iso8601,"HH,MM,SS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
-	<<(format(hour,Hour))/binary,(",")/utf8,
-		(format(min,Minute))/binary,(",")/utf8,
-		(format(sec,Second))/binary>>;
+	<<(format_element(hour,Hour))/binary,(",")/utf8,
+		(format_element(min,Minute))/binary,(",")/utf8,
+		(format_element(sec,Second))/binary>>;
 format({iso8601,"HHMMSS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
-	<<(format(hour,Hour))/binary,(format(min,Minute))/binary,(format(sec,Second))/binary>>;
-
-
-format(Measure,0)
-	when Measure == hour; Measure == min; Measure == sec -> <<"00">>;
-format(Measure,1)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"01">>;
-format(Measure,2)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"02">>;
-format(Measure,3)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"03">>;
-format(Measure,4)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"04">>;
-format(Measure,5)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"05">>;
-format(Measure,6)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"06">>;
-format(Measure,7)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"07">>;
-format(Measure,8)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"08">>;
-format(Measure,9)
-	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"09">>;
-
-format(year,Year) -> a:to_binary(Year);
-format(year_short,Year) -> binary:part(integer_to_binary(Year),2,2);
-
-format(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
-	<<(integer_to_binary(Day))/binary>>;
-format(day,_) -> a:error(?FUNCTION_NAME(),a009);
-
-format(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
-	<<(integer_to_binary(Month))/binary>>;
-format(month,_) -> a:error(?FUNCTION_NAME(),a009);
-
-format(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
-	<<(integer_to_binary(Hours))/binary>>;
-format(hour,_) -> a:error(?FUNCTION_NAME(),a009);
-
-format(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
-	<<(integer_to_binary(Minutes))/binary>>;
-format(min,_) -> a:error(?FUNCTION_NAME(),a009);
-
-format(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
-	<<(integer_to_binary(Seconds))/binary>>;
-format(sec,_) -> a:error(?FUNCTION_NAME(),a009);
+	<<(format_element(hour,Hour))/binary,
+		(format_element(min,Minute))/binary,
+		(format_element(sec,Second))/binary>>;
 
 format(_,_) -> a:error(?FUNCTION_NAME(),a000).
+
+
+%%-----------------------------------
+%% @doc Return formated day
+-spec format_element(Measure,Value) -> byte() | {error,_Reason}
+	when
+		Measure :: atom(),
+		Value :: integer().
+
+format_element(Measure,0)
+	when Measure == hour; Measure == min; Measure == sec -> <<"00">>;
+format_element(Measure,1)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"01">>;
+format_element(Measure,2)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"02">>;
+format_element(Measure,3)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"03">>;
+format_element(Measure,4)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"04">>;
+format_element(Measure,5)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"05">>;
+format_element(Measure,6)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"06">>;
+format_element(Measure,7)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"07">>;
+format_element(Measure,8)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"08">>;
+format_element(Measure,9)
+	when Measure == hour; Measure == min; Measure == sec; Measure == month; Measure == day -> <<"09">>;
+
+format_element(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
+	<<(integer_to_binary(Day))/binary>>;
+format_element(day,_) -> a:error(?FUNCTION_NAME(),a009);
+
+format_element(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
+	<<(integer_to_binary(Month))/binary>>;
+format_element(month,_) -> a:error(?FUNCTION_NAME(),a009);
+
+format_element(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
+	<<(integer_to_binary(Hours))/binary>>;
+format_element(hour,_) -> a:error(?FUNCTION_NAME(),a009);
+
+format_element(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
+	<<(integer_to_binary(Minutes))/binary>>;
+format_element(min,_) -> a:error(?FUNCTION_NAME(),a009);
+
+format_element(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
+	<<(integer_to_binary(Seconds))/binary>>;
+format_element(sec,_) -> a:error(?FUNCTION_NAME(),a009);
+
+format_element(year,Year) -> a:to_binary(Year);
+format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2);
+
+format_element(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 
 %%-----------------------------------
