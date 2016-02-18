@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_sequence).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.3.144").
+-vsn("0.0.4.235").
 
 %% Module API
 -export([dictionaries/0]).
@@ -170,7 +170,7 @@ md_hex(X) ->
 -spec unique(Source) -> byte() when Source :: time | any().
 
 unique(time) ->
-	Time = a:bin(a_time:timestamp()),
+	Time = a:to_binary(a_time:timestamp()),
 	Random_value = make_random(make_dictionary([alpha_lower]),64),
 	md(<<Time/binary,Random_value/binary>>,md4);
 unique(Object) ->
