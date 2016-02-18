@@ -640,6 +640,32 @@ format({iso8601,"HHMMSS"},{date_tuple,{{_,_,_},{Hour,Minute,Second}}}) ->
 		(format_element(min,Minute))/binary,
 		(format_element(sec,Second))/binary>>;
 
+format({iso8601,"DD-MM-YYYY HH:MM:SS"},{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
+	<<(format_element(day,Day))/binary,("-")/utf8,
+		(format_element(month,Month))/binary,("-")/utf8,
+		(format_element(year,Year))/binary,(" ")/utf8,
+		(format_element(hour,Hour))/binary,(":")/utf8,
+		(format_element(min,Minute))/binary,(":")/utf8,
+		(format_element(sec,Second))/binary>>;
+format({iso8601,"DD/MM/YYYY HH:MM:SS"},{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
+	<<(format_element(day,Day))/binary,("/")/utf8,
+		(format_element(month,Month))/binary,("/")/utf8,
+		(format_element(year,Year))/binary,(" ")/utf8,
+		(format_element(hour,Hour))/binary,(":")/utf8,
+		(format_element(min,Minute))/binary,(":")/utf8,
+		(format_element(sec,Second))/binary>>;
+format({iso8601,"DD Month YYYY HH:MM:SS"},{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}) ->
+	<<(format_element(day,Day))/binary,(" ")/utf8,
+		(month(Month,full))/binary,(" ")/utf8,
+		(format_element(year,Year))/binary,(" ")/utf8,
+		(format_element(hour,Hour))/binary,(":")/utf8,
+		(format_element(min,Minute))/binary,(":")/utf8,
+		(format_element(sec,Second))/binary>>;
+format({iso8601,"DD Month YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
+	<<(format_element(day,Day))/binary,(" ")/utf8,
+		(month(Month,full))/binary,(" ")/utf8,
+		(format_element(year,Year))/binary>>;
+
 format(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
 
