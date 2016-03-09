@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.18.234").
+-vsn("0.0.19.284").
 
 %% Module API
 -export([

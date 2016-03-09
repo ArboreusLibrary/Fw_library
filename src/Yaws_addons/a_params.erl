@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(a_params).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.17.228").
+-vsn("0.0.18.284").
 
 %% Module API
 -export([
@@ -511,12 +511,27 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 			end;
 		false -> a:error(?FUNCTION_NAME(),a014)
 	end;
-%% Formated time checking
+%% Formatted time checking
 parameter_value(time,Parameter,[Format_type,Output_type]) ->
-	case a_time:from_formated(Format_type,Parameter,Output_type) of
-		false -> nomatch;
-		{error,_} -> nomatch;
-		Checked_parameter -> Checked_parameter
+	case Output_type of
+		string ->
+			case a_time:from_formated(Format_type,Parameter,tuple) of
+				false -> nomatch;
+				{error,_} -> nomatch;
+				_ -> Parameter
+			end;
+		binary_string ->
+			case a_time:from_formated(Format_type,Parameter,tuple) of
+				false -> nomatch;
+				{error,_} -> nomatch;
+				_ -> unicode:characters_to_binary(Parameter)
+			end;
+		_ ->
+			case a_time:from_formated(Format_type,Parameter,Output_type) of
+				false -> nomatch;
+				{error,_} -> nomatch;
+				Time -> Time
+			end
 	end;
 %% Range positive integer, regex rule ^([0-9]{1,})\:([0-9]{1,})$
 %% Range negative integer, regex rule ^(\-[0-9]{1,}|0)\:(\-[0-9]{1,}|0)$

@@ -29,9 +29,9 @@
 
 dictionaries() ->
 	[
-		{numeric,<<"0123456789">>},
-		{alpha_lower,<<"abcdefghijklmnopqrstuvwxyz">>},
-		{alpha_upper,<<"ABCDEFGHIJKLMNOPQRSTUVWXYZ">>}
+		{numeric,<<("0123456789")/utf8>>},
+		{alpha_lower,<<("abcdefghijklmnopqrstuvwxyz")/utf8>>},
+		{alpha_upper,<<("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/utf8>>}
 	].
 
 %%-----------------------------------
