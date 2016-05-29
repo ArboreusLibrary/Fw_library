@@ -617,6 +617,25 @@ parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
 			end;
 		nomatch -> nomatch
 	end;
+%% By Patter
+parameter_value(by_pattern,Parameter,[Pattern,Output_type])
+	when is_list(Parameter), is_list(Pattern) ->
+	parameter_value(
+		numeric_sequence,
+		unicode:characters_to_binary(Parameter),
+		[unicode:characters_to_binary(Pattern),Output_type]
+	);
+parameter_value(by_pattern,Parameter,[Pattern,Output_type])
+	when is_binary(Parameter), is_binary(Pattern) ->
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			case Output_type of
+				binary -> Parameter;
+				string -> unicode:characters_to_list(Parameter)
+			end
+	end;
+
 
 parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
 parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).

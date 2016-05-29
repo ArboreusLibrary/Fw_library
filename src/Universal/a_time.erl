@@ -98,8 +98,7 @@ current(Format) ->
 	case format(Format,{date_tuple,erlang:localtime()}) of
 		{error,_} -> a:error(?FUNCTION_NAME(),a012);
 		Current -> Current
-	end;
-current(_) -> a:error(?FUNCTION_NAME(),a012).
+	end.
 
 
 %% ------------------------------------------------

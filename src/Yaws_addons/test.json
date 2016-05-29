@@ -1,0 +1,149 @@
+{
+  "friends": -1,
+  "friends_version": "1462810648_1267",
+  "onlines": {
+	"183655": 0,
+	"699683": 0,
+	"152198457": 0,
+	"3403109": 0,
+	"7665066": 7,
+	"112102410": 7,
+	"109875492": 0
+  },
+  "tpl": {
+	"msg": "<div id=\"fc_msg%msg_id%\" class=\"fc_msg wrapped %classname%\">%text%<\/div>",
+	"msg_att": "<div class=\"fc_msg_media\">%msg_id%<\/div>",
+	"msg_fwd": "<div class=\"fc_msg_media\"><a href=\"\/im?msgid=%msg_id%&sel=%peer_nice%\" onclick=\"return FastChat.showMsgFwd(%msg_id%);\" class=\"fc_msg_att_lnk\"><span class=\"fc_msg_att_icon_mail\"><\/span><span class=\"fc_msg_att_text\">%label%<\/span><\/a><\/div>",
+	"msgs": "<div class=\"fc_msgs_wrap %classname%\" data-from=\"%from_id%\" data-date=\"%date%\"><div class=\"chats_sp fc_in_msg_arr\"><\/div><a class=\"fc_msgs_author\" data-title=\"%name%\" href=\"%link%\" onmouseover=\"FastChat.authorOver(this, event);\"><img alt=\"%name%\" src=\"%photo%\" class=\"fc_msgs_author\" \/><\/a><div class=\"fc_msgs fl_l\">%msgs%<div class=\"fc_msgs_date fl_r\">%date_str%<\/div><br class=\"clear\"><\/div><br class=\"clear\"><\/div>",
+	"msgs_out": "<div class=\"fc_msgs_wrap %classname%\" data-from=\"%from_id%\" data-date=\"%date%\"><div class=\"chats_sp fc_out_msg_arr\"><\/div><div class=\"fc_msgs fl_r\">%msgs%<div class=\"fc_msgs_date fl_r\">%date_str%<\/div><br class=\"clear\"><\/div><br class=\"clear\"><\/div>",
+	"clist": "<div id=\"fc_clist\" class=\"fc_tab_wrap\"><div class=\"fc_tab_head\"><a class=\"fc_tab_close_wrap fl_r\"><div class=\"chats_sp fc_tab_close\"><\/div><\/a><a class=\"fc_tab_pin_wrap fl_r\" onmousedown=\"event.cancelBubble = true;\" onclick=\"return FastChat.pinTab(-1, event);\"><div class=\"chats_sp fc_tab_pin\"><\/div><\/a><div class=\"fc_tab_title noselect\">Друзья онлайн<\/div><\/div><div id=\"fc_ctabs_cont\"><div class=\"fc_ctab fc_ctab_active\"><div class=\"fc_contacts_wrap\"><div id=\"fc_contacts\" class=\"fc_contacts\"><\/div><\/div><div class=\"fc_clist_filter_wrap\" onclick=\"elfocus('fc_clist_filter');\"><div class=\"chats_sp fc_clist_search_icon\"><\/div><div class=\"fc_clist_online_wrap fl_r\"><div class=\"fc_clist_online\"><\/div><\/div><div class=\"fc_clist_filter\"><input class=\"text\" id=\"fc_clist_filter\" placeholder=\"Начните вводить имя..\" onclick=\"event.cancelBubble = true;\"\/><\/div><\/div><\/div><\/div><div class=\"fc_pointer_offset\"><div class=\"chats_sp fc_tab_pointer\"><\/div><\/div><\/div>",
+	"def": "<div id=\"fc_wnd_%id%\"><div class=\"fc_tab_head\"><a class=\"fc_tab_close_wrap fl_r\"><div class=\"chats_sp fc_tab_close\"><\/div><\/a><div class=\"fc_tab_title noselect\">%title%<\/div><\/div><div id=\"fc_ctabs_cont\"><div class=\"fc_ctab fc_ctab_active\"><div class=\"fc_content_wrap\"><div class=\"fc_content\">%content%<\/div><\/div><\/div><\/div><div class=\"fc_pointer_offset\"><div class=\"chats_sp fc_tab_pointer\"><\/div><\/div><\/div>"
+  },
+  "lang": {
+	"mail_im_X_onlines_title": [
+	  "",
+	  "%s друг онлайн",
+	  "%s друга онлайн",
+	  "%s друзей онлайн"
+	],
+	"mail_im_onlines_title": "Друзья онлайн",
+	"mail_im_user_became_online": [
+	  "",
+	  "{user} появился в сети",
+	  "{user} появилась в сети"
+	],
+	"mail_im_user_became_offline": [
+	  "",
+	  "{user} ушел из сети",
+	  "{user} ушла из сети"
+	],
+	"mail_im_user_unavail": [
+	  "",
+	  "{user} сейчас не в сети. Вы можете написать ему здесь, и он получит Ваш текст как обычное сообщение, когда вернется на сайт.",
+	  "{user} сейчас не в сети. Вы можете написать ей здесь, и она получит Ваш текст как обычное сообщение, когда вернется на сайт."
+	],
+	"mail_im_clist_empty": "Ваших друзей нет онлайн",
+	"mail_im_clist_notfound": "Не найдено друзей с таким именем.",
+	"mail_im_X_attachments": [
+	  "",
+	  "%s вложение",
+	  "%s вложения",
+	  "%s вложений"
+	],
+	"mail_im_thats_u": "Вы",
+	"mail_im_fwd_msg": "Пересланные сообщения",
+	"mail_im_fwd_msgs": "Пересланные сообщения",
+	"mail_im_clist_all": null,
+	"mail_im_clist_onlines": "Показывать только друзей онлайн",
+	"mail_im_typing": [
+	  "",
+	  "{user} набирает сообщение..",
+	  "{user} набирает сообщение.."
+	],
+	"mail_im_multi_typing": "{users} и {last_user} набирают сообщения..",
+	"mail_im_multi_typing_w_count": "[\"\",\"{users} и ещё {users_count} человек набирают сообщения..\",\"{users} и ещё {users_count} человека набирают сообщения..\",\"{users} и ещё {users_count} человек набирают сообщения..\"]",
+	"mail_emoji_hint": "Используйте TAB, чтобы быстрее открывать смайлы",
+	"global_store_stickers": "Магазин стикеров",
+	"global_store_stickers_new_available": "Доступны новые стикеры",
+	"profile_wall_photo": "Фотографию",
+	"profile_wall_video": "Видеозапись",
+	"profile_wall_audio": "Аудиозапись",
+	"profile_wall_doc": "Документ",
+	"profile_wall_map": "Карту",
+	"profile_wall_gift": "Подарок"
+  },
+  "me": {
+	"id": 7595710,
+	"link": "\/id7595710",
+	"photo": "https:\/\/pp.vk.me\/c618729\/v618729710\/14981\/2vlVkuylO50.jpg",
+	"name": "Александр Кирилов",
+	"fname": "Александр"
+  },
+  "im_queue": {
+	"id": "fastchat7595710",
+	"key": "r23AhlRr7kvLQibxX3la4Uv2q7xsXGm3p6n4FXPzE2ntQmlaAFmcWkt0Am2biQje",
+	"ts": 780476739
+  },
+  "version": 23,
+  "emoji_stickers": [
+	[
+	  -1,
+	  1
+	],
+	[
+	  94,
+	  1,
+	  2
+	],
+	[
+	  4,
+	  1,
+	  2
+	],
+	[
+	  75,
+	  1,
+	  2
+	],
+	[
+	  1,
+	  1,
+	  2
+	],
+	[
+	  2,
+	  1,
+	  2
+	],
+	[
+	  3,
+	  1,
+	  2
+	],
+	[
+	  96,
+	  0,
+	  2
+	],
+	[
+	  95,
+	  0,
+	  2
+	],
+	[
+	  91,
+	  0,
+	  2
+	],
+	[
+	  90,
+	  0,
+	  2
+	]
+  ],
+  "cl_queue": {
+	"id": "contacts7595710",
+	"key": "O_SDPmm2zwG4tKMC6f1s7SwfPuM_jbCCdBRPzqvLbfbwTOaIWm9SafE9lAm8nj6z",
+	"ts": 1779361919
+  }
+}
