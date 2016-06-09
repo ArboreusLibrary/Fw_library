@@ -322,9 +322,9 @@ parameter_value(fqdn,Parameter,[Output_type]) ->
 				binary -> unicode:characters_to_binary(Parameter)
 			end
 	end;
-%% E-mail regex rule ^(\.?([a-zA-Z0-9\-\_]{1,})){1,}\@(\.?([a-zA-Z0-9\-\_]{1,})){1,}$
+%% E-mail regex rule ^([a-zA-Z0-9\.\_\-]{1,})\@([a-zA-Z0-9\.\_\-]{1,})$$
 parameter_value(e_mail,Parameter,[Output_type]) ->
-	Pattern = "^(\.?([a-zA-Z0-9\-\_]{1,})){1,}\@(\.?([a-zA-Z0-9\-\_]{1,})){1,}$",
+	Pattern = "^([a-zA-Z0-9\.\_\-]{1,})\@([a-zA-Z0-9\.\_\-]{1,})$",
 	case re:run(Parameter,Pattern) of
 		nomatch -> nomatch;
 		{match,_} ->
@@ -617,11 +617,11 @@ parameter_value(limited_range_float,Parameter,[{MinorA,MajorA},{MinorB,MajorB}])
 			end;
 		nomatch -> nomatch
 	end;
-%% By Patter
+%% By Pattern
 parameter_value(by_pattern,Parameter,[Pattern,Output_type])
 	when is_list(Parameter), is_list(Pattern) ->
 	parameter_value(
-		numeric_sequence,
+		by_pattern,
 		unicode:characters_to_binary(Parameter),
 		[unicode:characters_to_binary(Pattern),Output_type]
 	);
