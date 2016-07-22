@@ -12,12 +12,14 @@
 
 %% Module API
 -export([
+	test/0,
 	last_modified/1,
 	expires/1,
 	cache/1,
 	json/2,
 	csv/2,
-	xml/2
+	xml/2,
+	cross_domain/0,cross_domain/1
 ]).
 
 %% System include
@@ -25,6 +27,29 @@
 %% Module Include Start
 -include("../Handler/a.hrl").
 %% Module Include End
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
+
+
+%% ----------------------------
+%% @doc Wrapper function for cross_domain/1, return default value for any domain.
+-spec cross_domain() -> list().
+
+cross_domain() -> cross_domain("*").
+
+
+%% ----------------------------
+%% @doc Return list within header for Yaws Appmod
+-spec cross_domain(Domain::any()) -> list().
+
+cross_domain(Domain) when is_list(Domain) -> [{header,["Access-Control-Allow-Origin",Domain]}];
+cross_domain(Domain) -> cross_domain(a:to_string(Domain)).
+
 
 %%-----------------------------------
 %% @doc Return a list() within HTTP Header formated for Yaws out() function.
@@ -52,6 +77,7 @@ last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 last_modified(current) -> last_modified(erlang:localtime());
 last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
 
+
 %%-----------------------------------
 %% @doc Return a list() within HTTP Header formated for Yaws out() function.
 %% Example: "Expires: Fri, 30 Oct 1998 14:19:41 GMT"
@@ -78,6 +104,7 @@ expires({{Year,Month,Day},{Hour,Minute,Second}})
 expires(current) -> expires(erlang:localtime());
 expires(_) -> a:error(?FUNCTION_NAME(),a000).
 
+
 %%-----------------------------------
 %% @doc Return a list() within HTTP headers fromated for Yaws out() function.
 -spec cache(Operation) -> list() | {error,_Reason}
@@ -91,6 +118,7 @@ cache(no) ->
 		last_modified(current)
 	];
 cache(_) -> a:error(?FUNCTION_NAME(),a000).
+
 
 %%-----------------------------------
 %% @doc Return a list within headers for JSON
@@ -117,6 +145,7 @@ json_set(solid,File_name) ->
 	];
 json_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
 
+
 %%-----------------------------------
 %% @doc Return a list within HTTP headers for CSV file format
 -spec csv(Type,File_name) -> list() | {error,_Reason}
@@ -141,6 +170,7 @@ csv_set(solid,File_name) ->
 		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
 	];
 csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
+
 
 %%-----------------------------------
 %% @doc Return list within XML MIME type headers for Yaws out() function
