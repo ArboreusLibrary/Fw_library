@@ -322,9 +322,30 @@ parameter_value(fqdn,Parameter,[Output_type]) ->
 				binary -> unicode:characters_to_binary(Parameter)
 			end
 	end;
-%% E-mail regex rule ^([a-zA-Z0-9\.\_\-]{1,})\@([a-zA-Z0-9\.\_\-]{1,})$$
+%% E-mail regex rule ^([a-zA-Z0-9\.\_\-]{1,})\@([a-zA-Z0-9\.\_\-]{1,})$
 parameter_value(e_mail,Parameter,[Output_type]) ->
 	Pattern = "^([a-zA-Z0-9\.\_\-]{1,})\@([a-zA-Z0-9\.\_\-]{1,})$",
+	case re:run(Parameter,Pattern) of
+		nomatch -> nomatch;
+		{match,_} ->
+			case Output_type of
+				string -> Parameter;
+				binary -> unicode:characters_to_binary(Parameter)
+			end
+	end;
+%% Numerical sequece ^([0-9]{14,})$
+parameter_value(numerical,Parameter,[Length_rule,Output_type]) ->
+	Length = case Length_rule of
+		{less_or_equal,Value} ->
+			lists:concat(["{0,",integer_to_list(Value),"}"]);
+		{equal,Value} ->
+			lists:concat(["{",integer_to_list(Value),"}"]);
+		{ranged,Minimum,Maximum} ->
+			lists:concat(["{",integer_to_list(Minimum),",",integer_to_list(Maximum),"}"]);
+		{more_then,Value} ->
+			lists:concat(["{",integer_to_list(Value),",}"])
+	end,
+	Pattern = lists:concat(["^([0-9]",Length,")$"]),
 	case re:run(Parameter,Pattern) of
 		nomatch -> nomatch;
 		{match,_} ->

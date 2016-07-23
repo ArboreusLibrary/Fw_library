@@ -47,7 +47,7 @@ cross_domain() -> cross_domain("*").
 %% @doc Return list within header for Yaws Appmod
 -spec cross_domain(Domain::any()) -> list().
 
-cross_domain(Domain) when is_list(Domain) -> [{header,["Access-Control-Allow-Origin",Domain]}];
+cross_domain(Domain) when is_list(Domain) -> [{header,["Access-Control-Allow-Origin:",Domain]}];
 cross_domain(Domain) -> cross_domain(a:to_string(Domain)).
 
 
