@@ -10,72 +10,56 @@
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
 
 %% API
--export([get_out/3]).
--export([lpath/3]).
--export([lpath_verify/1]).
+-export([
+	test/0,
+	get_out/3,
+	check/2,check/3
+]).
 
 %% Module Include Start
 -include("../Handler/a.hrl").
 %% Module Include End
 
 
--define(TEST_LIST,[
-	{key1,[
-		{key2,"Value2"},
-		{key3,"Value3"}
-	]},
-	{key4,"Value4"},
-	{key5,[
-		{key6,[
-			{key7,"Value7"},
-			{key8,"Value8"},
-			{key9,[
-				{key10,"Value10"}
-			]}
-		]},
-		{key11,"Value11"},
-		{key12,"Value12"}
-	]}
-]).
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
 
--define(TEST_PATH,[key5,key6,key9,key10]).
+test() -> ok.
 
-lpath(add_pair,Path,{Proplist,Pair}) ->
-	List = [];
-lpath(get_value,Path,Proplist) ->
-	Lpath_run = lpath_run(Path,Proplist),
-	case Lpath_run of
-		{error,_} -> a:error(?FUNCTION_NAME(),m004_001);
-		_ -> Lpath_run
-	end;
-lpath(get_pair,Path,Proplist) ->
-	Key = lists:last(Path),
-	Lpath_run = lpath_run(Path,Proplist),
-	case Lpath_run of
-		{error,_} -> a:error(?FUNCTION_NAME(),m004_001);
-		_ -> {Key,Lpath_run}
+
+%% ----------------------------
+%% @doc Wrapper function for check/3, checking list of typed elements
+-spec check(List,Type_properties) -> list() | nomatch
+	when
+		List :: list(),
+		Type_properties :: {Type,Type_parameters},
+		Type :: atom(),
+		Type_parameters :: list().
+
+check(List,Type_properties) -> check(List,Type_properties,[]).
+
+
+%% ----------------------------
+%% @doc Checking list of typed elements
+-spec check(List,Type_properties,Output) -> list() | nomatch
+	when
+		List :: list(),
+		Type_properties :: {Type,Type_parameters},
+		Type :: atom(),
+		Type_parameters :: list(),
+		Output :: list().
+
+check([],_,Output) -> Output;
+check([Element|List],{Type,Type_parameters},Output) ->
+	case a_params:check(Type,Element,Type_parameters) of
+		nomatch -> nomatch;
+		Checked_element ->
+			check(
+				List,{Type,Type_parameters},
+				lists:append(Output,[Checked_element])
+			)
 	end.
-
-lpath_run([],Element) -> Element;
-lpath_run([Path_point|Path_way],Proplist) ->
-	Element = proplists:get_value(Path_point,Proplist),
-	case Element of
-		undefined -> a:error(?FUNCTION_NAME(),m004_001);
-		_ -> lpath_run(Path_way,Element)
-	end.
-
-lpath_extract([],_,Result) -> Result;
-lpath_extract([Path_point|Path_way],Source,Result) ->
-	Source_output = proplists:get_value(Path_point,Source),
-	Point_list = proplists:delete(Path_point,Source),
-	Result_output = [Point_list|Result],
-	lpath_extract(Path_way,Source_output,Result_output).
-
-lpath_insertion() -> [].
-
-lpath_verify(List) when is_list(List) ->
-	[]  ;
-lpath_verify(_) -> a:error(?FUNCTION_NAME(),a015).
 
 
 %% ----------------------------

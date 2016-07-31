@@ -12,6 +12,7 @@
 
 %% Module API
 -export([
+	test/0,
 	check/3,
 	checkout/4,
 	check_parameters/2
@@ -22,6 +23,13 @@
 %% Module Include Start
 -include("../Handler/a.hrl").
 %% Module Include End
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %%-----------------------------------
@@ -62,6 +70,12 @@ checkout(Parameter_name,Parameters,Type,Type_properties) ->
 -spec parameter_value(Type,Parameter,Type_properties) -> nomatch | _Checked_parameter | {error,_Reason}
 	when Type::atom(), Parameter::string(), Type_properties::list().
 
+%% List of typed elements
+parameter_value(list_of_typed,Parameters,{Separator,Type,Type_properties}) ->
+	a_list:check(
+		string:tokens(Parameters,Separator),
+		{Type,Type_properties}
+	);
 %% Float, regex rule ^[\-]?[0-9]*\.[0-9]*$
 parameter_value(float,Parameter,_) ->
 	try list_to_float(Parameter)
