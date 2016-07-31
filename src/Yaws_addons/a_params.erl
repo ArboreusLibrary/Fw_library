@@ -354,11 +354,25 @@ parameter_value(numerical,Parameter,[Length_rule,Output_type]) ->
 				binary -> unicode:characters_to_binary(Parameter)
 			end
 	end;
+%% Password regex rule ^((?![t1j]).){1,}$
+parameter_value(password,Parameter,[more_equal,Length]) ->
+	parameter_value(unicode_binary,Parameter,[free,{more_equal,Length}]);
+parameter_value(password,Parameter,[ranged,Minor_length,Major_length]) ->
+	parameter_value(unicode_binary,Parameter,[free,{range,Minor_length,Major_length}]);
 %% Unicode binary, regex rule ^((?![t1j]).){1,}$
 parameter_value(unicode_binary,Parameter,[free]) ->
 	unicode:characters_to_binary(Parameter);
 parameter_value(unicode_binary,Parameter,[free,free]) ->
 	unicode:characters_to_binary(Parameter);
+parameter_value(unicode_binary,Parameter,[free,{more_equal,Length}]) ->
+	if
+		is_integer(Length), Length >= 1 ->
+			Binary = unicode:characters_to_binary(Parameter),
+			if
+				byte_size(Binary) >= Length -> Binary;
+				true -> nomatch
+			end
+	end;
 parameter_value(unicode_binary,Parameter,[free,{less_equal,Length}]) ->
 	if
 		is_integer(Length), Length >= 1 ->
