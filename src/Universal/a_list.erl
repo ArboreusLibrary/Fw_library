@@ -13,7 +13,9 @@
 -export([
 	test/0,
 	get_out/3,
-	check/2,check/3
+	check/2,check/3,
+	clear_duplicates/1,
+	find_members/2
 ]).
 
 %% Module Include Start
@@ -27,6 +29,59 @@
 
 test() -> ok.
 
+
+%% ----------------------------
+%% @doc Find members of list from another list
+-spec find_members(Members,List) -> list()
+	when
+		Members :: list(),
+		List :: list().
+
+find_members(Members_list,List) ->
+	find_members(Members_list,List,[]).
+
+
+%% ----------------------------
+%% @doc Find members of list from another list
+-spec find_members(Members,List,Output) -> list()
+	when
+		Members :: list(),
+		List :: list(),
+		Output :: list().
+
+find_members([],_,Output) -> Output;
+find_members([Member|Members],List,Output) ->
+	find_members(Members,List,
+		case lists:member(Member,List) of
+			true -> lists:append(Output,[Member]);
+			false -> Output
+		end
+	).
+
+
+%% ----------------------------
+%% @doc Clear duplicates from defined list
+-spec clear_duplicates(List::list()) -> list().
+
+clear_duplicates(List) -> clear_duplicates(List,[]).
+
+
+%% ----------------------------
+%% @doc Clear duplicates from defined list
+-spec clear_duplicates(List,Output) -> list()
+	when
+		List :: list(),
+		Output :: list().
+
+clear_duplicates([],Output) -> Output;
+clear_duplicates([Element|List],Output) ->
+	clear_duplicates(
+		List,
+		case lists:member(Element,Output) of
+			true -> Output;
+			false -> lists:append(Output,[Element])
+		end
+	).
 
 %% ----------------------------
 %% @doc Wrapper function for check/3, checking list of typed elements
