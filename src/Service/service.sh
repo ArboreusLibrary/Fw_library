@@ -109,7 +109,11 @@ function compile(){
 				if [ ! -d "$DIR_BIN$RELATIVE_PATH" ]; then
 					mkdir -p ${DIR_BIN}${RELATIVE_PATH};
 				fi
-				erlc -o ${DIR_BIN}${RELATIVE_PATH} ${DIR_SRC}${FILE_PATH};
+				COMPILATION_OUT=$(erlc -W2 -o ${DIR_BIN}${RELATIVE_PATH} ${DIR_SRC}${FILE_PATH} 2>&1);
+				if [ $? -eq "1" ]; then
+					echo "Compilation ERR: $COMPILATION_OUT";
+					exit 2;
+				fi
 				printf "Done! $FILE_PATH\n"
 			fi
 		fi
@@ -156,7 +160,11 @@ function compile_file(){
 	if [ ! -d ${DIR_BIN}${RELATIVE_PATH} ]; then mkdir -p ${DIR_BIN}${RELATIVE_PATH}; fi
 	if [ ! -d ${OLD_BINARY_DIR} ]; then mkdir -p ${OLD_BINARY_DIR}; fi
 	if [ -f ${BINARY_FILE} ]; then mv ${BINARY_FILE} ${OLD_BINARY_FILE}; fi
-	erlc -o ${DIR_BIN}${RELATIVE_PATH} ${FILE_PATH};
+	COMPILATION_OUT=$(erlc -W2 -o ${DIR_BIN}${RELATIVE_PATH} ${DIR_SRC}${FILE_PATH} 2>&1);
+	if [ $? -eq "1" ]; then
+		echo "Compilation ERR: $COMPILATION_OUT";
+		exit 2;
+	fi
 	printf "***\nDone! $FILE_PATH\n\n"
 }
 

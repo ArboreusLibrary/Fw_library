@@ -15,7 +15,8 @@
 	get_out/3,
 	check/2,check/3,
 	clear_duplicates/1,
-	find_members/2
+	find_members/2,
+	compare_members/2
 ]).
 
 %% Module Include Start
@@ -31,6 +32,37 @@ test() -> ok.
 
 
 %% ----------------------------
+%% @doc Compare members in two lists within checking length
+-spec compare_members(List1,List2) -> boolean()
+	when
+		List1 :: list(),
+		List2 :: list().
+
+compare_members(List1,List2) ->
+	Length1 = length(List1),
+	Length2 = length(List2),
+	if
+		Length1 == Length2 -> compare_members_handler(List1,List2);
+		true -> false
+	end.
+
+
+%% ----------------------------
+%% @doc Compare members in two lists
+-spec compare_members_handler(List1,List2) -> boolean()
+	when
+		List1 :: list(),
+		List2 :: list().
+
+compare_members_handler([],_) -> true;
+compare_members_handler([Member|List1],List2) ->
+	case lists:member(Member,List2) of
+		true -> compare_members_handler(List1,List2);
+		_ -> false
+	end.
+
+
+%% ----------------------------
 %% @doc Find members of list from another list
 -spec find_members(Members,List) -> list()
 	when
@@ -38,20 +70,20 @@ test() -> ok.
 		List :: list().
 
 find_members(Members_list,List) ->
-	find_members(Members_list,List,[]).
+	find_members_handler(Members_list,List,[]).
 
 
 %% ----------------------------
 %% @doc Find members of list from another list
--spec find_members(Members,List,Output) -> list()
+-spec find_members_handler(Members,List,Output) -> list()
 	when
 		Members :: list(),
 		List :: list(),
 		Output :: list().
 
-find_members([],_,Output) -> Output;
-find_members([Member|Members],List,Output) ->
-	find_members(Members,List,
+find_members_handler([],_,Output) -> Output;
+find_members_handler([Member|Members],List,Output) ->
+	find_members_handler(Members,List,
 		case lists:member(Member,List) of
 			true -> lists:append(Output,[Member]);
 			false -> Output
@@ -63,19 +95,19 @@ find_members([Member|Members],List,Output) ->
 %% @doc Clear duplicates from defined list
 -spec clear_duplicates(List::list()) -> list().
 
-clear_duplicates(List) -> clear_duplicates(List,[]).
+clear_duplicates(List) -> clear_duplicates_handler(List,[]).
 
 
 %% ----------------------------
 %% @doc Clear duplicates from defined list
--spec clear_duplicates(List,Output) -> list()
+-spec clear_duplicates_handler(List,Output) -> list()
 	when
 		List :: list(),
 		Output :: list().
 
-clear_duplicates([],Output) -> Output;
-clear_duplicates([Element|List],Output) ->
-	clear_duplicates(
+clear_duplicates_handler([],Output) -> Output;
+clear_duplicates_handler([Element|List],Output) ->
+	clear_duplicates_handler(
 		List,
 		case lists:member(Element,Output) of
 			true -> Output;
