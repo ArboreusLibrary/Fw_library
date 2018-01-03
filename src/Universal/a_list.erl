@@ -16,7 +16,8 @@
 	check/2,check/3,
 	clear_duplicates/1,
 	find_members/2,
-	compare_members/2
+	compare_members/2,
+	exclude/2
 ]).
 
 %% Module Include Start
@@ -29,6 +30,36 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc Exclude members of list from another lists and return diff
+-spec exclude(List,Members) -> list()
+	when
+		List :: list(),
+		Members :: list().
+
+exclude(List,Members) ->
+	exclude(List,Members,[]).
+
+
+%% ----------------------------
+%% @doc Aux function for exclude/2
+-spec exclude(List,Members,Output) -> list()
+	when
+		List :: list(),
+		Members :: list(),
+		Output :: list().
+
+exclude([],_,Output) -> Output;
+exclude([Element|List],Members,Output) ->
+	exclude(
+		List,Members,
+		case lists:member(Element,Members) of
+			false -> lists:append(Output,[Element]);
+			_ -> Output
+		end
+	).
 
 
 %% ----------------------------
