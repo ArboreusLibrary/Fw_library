@@ -75,7 +75,7 @@ last_modified({{Year,Month,Day},{Hour,Minute,Second}})
 		a:to_string(a_time:format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}))
 	]}];
 last_modified(current) -> last_modified(erlang:localtime());
-last_modified(_) -> a:error(?FUNCTION_NAME(),a000).
+last_modified(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -102,7 +102,7 @@ expires({{Year,Month,Day},{Hour,Minute,Second}})
 		a:to_string(a_time:format(rfc822,{date_tuple,{{Year,Month,Day},{Hour,Minute,Second}}}))
 	]}];
 expires(current) -> expires(erlang:localtime());
-expires(_) -> a:error(?FUNCTION_NAME(),a000).
+expires(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -117,7 +117,7 @@ cache(no) ->
 		expires(1),
 		last_modified(current)
 	];
-cache(_) -> a:error(?FUNCTION_NAME(),a000).
+cache(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -130,9 +130,9 @@ cache(_) -> a:error(?FUNCTION_NAME(),a000).
 json(Type,File_name) when is_atom(Type) ->
 	case io_lib:char_list(File_name) of
 		true -> json_set(Type,File_name);
-		false -> a:error(?FUNCTION_NAME(),a000)
+		false -> a:error(?NAME_FUNCTION(),a000)
 	end;
-json(_,_) -> a:error(?FUNCTION_NAME(),a000).
+json(_,_) -> a:error(?NAME_FUNCTION(),a000).
 json_set(no_cache,File_name) ->
 	[
 		cache(no),
@@ -143,7 +143,7 @@ json_set(solid,File_name) ->
 		{header,["Content-Type:","application/json; charset=utf-8"]},
 		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
 	];
-json_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
+json_set(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -156,9 +156,9 @@ json_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
 csv(Type,File_name) when is_atom(Type) ->
 	case io_lib:char_list(File_name) of
 		true -> csv_set(Type,File_name);
-		false -> a:error(?FUNCTION_NAME(),a000)
+		false -> a:error(?NAME_FUNCTION(),a000)
 	end;
-csv(_,_) -> a:error(?FUNCTION_NAME(),a000).
+csv(_,_) -> a:error(?NAME_FUNCTION(),a000).
 csv_set(no_cache,File_name) ->
 	[
 		cache(no),
@@ -169,7 +169,7 @@ csv_set(solid,File_name) ->
 		{header,["Content-Type:","text/csv; charset=utf-8"]},
 		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
 	];
-csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
+csv_set(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -182,9 +182,9 @@ csv_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
 xml(Type,File_name) when is_atom(Type) ->
 	case io_lib:char_list(File_name) of
 		true -> xml_set(Type,File_name);
-		false -> a:error(?FUNCTION_NAME(),a000)
+		false -> a:error(?NAME_FUNCTION(),a000)
 	end;
-xml(_,_) -> a:error(?FUNCTION_NAME(),a000).
+xml(_,_) -> a:error(?NAME_FUNCTION(),a000).
 xml_set(text,File_name) ->
 	[
 		{header,["Content-Type:","text/xml; charset=utf-8"]},
@@ -197,4 +197,4 @@ xml_set(application,File_name) ->
 		{header,["Content-Disposition:",lists:concat(["attachment; filename=",File_name])]}
 	];
 xml_set(application_no_cache,File_name) -> [cache(no),xml_set(application,File_name)];
-xml_set(_,_) -> a:error(?FUNCTION_NAME(),a000).
+xml_set(_,_) -> a:error(?NAME_FUNCTION(),a000).

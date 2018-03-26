@@ -40,11 +40,11 @@ test() -> ok.
 
 check(user_defined,Parameter,[Module,Function,Arguments]) ->
 	try apply(Module,Function,[Parameter,Arguments])
-	catch _:_ -> a:error(?FUNCTION_NAME(),m003_002) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),m003_002) end;
 check(Type,Parameter,Type_properties) ->
 	case io_lib:char_list(Parameter) of
 		true -> parameter_value(Type,Parameter,Type_properties);
-		false -> a:error(?FUNCTION_NAME(),a014)
+		false -> a:error(?NAME_FUNCTION(),a014)
 	end.
 
 
@@ -149,7 +149,7 @@ parameter_value(ranged_integer,Parameter,[Minor,Major]) ->
 							end;
 						true -> nomatch
 					end;
-				true -> a:error(?FUNCTION_NAME(),a000)
+				true -> a:error(?NAME_FUNCTION(),a000)
 			end
 	end;
 %% Integer from list
@@ -253,7 +253,7 @@ parameter_value(base64,Parameter,[typified,Type,Type_properties]) ->
 %% Id
 parameter_value(id,Parameter,[Length,Output]) ->
 	case is_integer(Length) of
-		false -> a:error(?FUNCTION_NAME(),a000);
+		false -> a:error(?NAME_FUNCTION(),a000);
 		_ ->
 			if
 				Length > 0 ->
@@ -267,10 +267,10 @@ parameter_value(id,Parameter,[Length,Output]) ->
 							case Output of
 								binary -> Parameter_binary;
 								string -> binary_to_list(Parameter_binary);
-								_ -> a:error(?FUNCTION_NAME(),a012)
+								_ -> a:error(?NAME_FUNCTION(),a012)
 							end
 					end;
-				true -> a:error(?FUNCTION_NAME(),a000)
+				true -> a:error(?NAME_FUNCTION(),a000)
 			end
 	end;
 %% IP regex rule ^([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})$
@@ -283,7 +283,7 @@ parameter_value(ipv4,Parameter,[Output_type]) ->
 			list -> tuple_to_list(Ip_tuple);
 			tuple -> Ip_tuple;
 			integer -> a_net:ipv4_to_integer(Ip_tuple);
-			_ -> a:error(?FUNCTION_NAME(),m003_003)
+			_ -> a:error(?NAME_FUNCTION(),m003_003)
 		end
 	catch _:_ -> nomatch end;
 %% Ip_range rule ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\/([0-9]{1,3})$
@@ -322,7 +322,7 @@ parameter_value(ipv6,Parameter,[Output_type]) ->
 			list -> tuple_to_list(Ip_tuple);
 			tuple -> Ip_tuple;
 			integer -> a_net:ipv6_to_integer(Parameter);
-			_ -> a:error(?FUNCTION_NAME(),m003_003)
+			_ -> a:error(?NAME_FUNCTION(),m003_003)
 		end
 	catch _:_ -> nomatch end;
 %% FQDN regex rule
@@ -395,7 +395,7 @@ parameter_value(unicode_binary,Parameter,[free,{less_equal,Length}]) ->
 				byte_size(Binary) =< Length -> Binary;
 				true -> nomatch
 			end;
-		true -> a:error(?FUNCTION_NAME(),a003)
+		true -> a:error(?NAME_FUNCTION(),a003)
 	end;
 parameter_value(unicode_binary,Parameter,[free,{size,Length}]) ->
 	if
@@ -405,7 +405,7 @@ parameter_value(unicode_binary,Parameter,[free,{size,Length}]) ->
 				byte_size(Binary) == Length -> Binary;
 				true -> nomatch
 			end;
-		true -> a:error(?FUNCTION_NAME(),a003)
+		true -> a:error(?NAME_FUNCTION(),a003)
 	end;
 parameter_value(unicode_binary,Parameter,[free,{range,Minor_length,Major_length}]) ->
 	if
@@ -417,7 +417,7 @@ parameter_value(unicode_binary,Parameter,[free,{range,Minor_length,Major_length}
 				Size >= Minor_length, Size =< Major_length -> Binary;
 				true -> nomatch
 			end;
-		true -> a:error(?FUNCTION_NAME(),a003)
+		true -> a:error(?NAME_FUNCTION(),a003)
 	end;
 parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type]) ->
 	case io_lib:char_list(Exception_chars) of
@@ -434,7 +434,7 @@ parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type])
 								<<("^((?![")/utf8,(Exception)/binary,
 									("]).){1,")/utf8,(integer_to_binary(Length))/binary,
 									("}$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end;
 					{size,Length} ->
 						if
@@ -442,7 +442,7 @@ parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type])
 								<<("^((?![")/utf8,(Exception)/binary,
 									("]).){")/utf8,(integer_to_binary(Length))/binary,
 									("}$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end;
 					{range,Minor_length,Major_length} ->
 						if
@@ -452,7 +452,7 @@ parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type])
 									("]).){")/utf8,(integer_to_binary(Minor_length))/binary,
 									(",")/utf8,(integer_to_binary(Major_length))/binary,
 									("}$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end
 				end
 			end,
@@ -464,7 +464,7 @@ parameter_value(unicode_binary,Parameter,[{except,Exception_chars},Length_type])
 						{match,_} -> Binary
 					end
 			end;
-		false -> a:error(?FUNCTION_NAME(),a014)
+		false -> a:error(?NAME_FUNCTION(),a014)
 	end;
 %% Unicode binary_wrapped, regex rule ^(<<"){1}((?!">>|[t1j]).){1,}(">>)$
 parameter_value(unicode_binary_wrapped,Parameter,[free]) ->
@@ -509,7 +509,7 @@ parameter_value(unicode_binary_wrapped,Parameter,[free,{range,Minor_length,Major
 						true -> nomatch
 					end
 			end;
-		true -> a:error(?FUNCTION_NAME(),a003)
+		true -> a:error(?NAME_FUNCTION(),a003)
 	end;
 parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Length_type]) ->
 	case io_lib:char_list(Exception_chars) of
@@ -526,7 +526,7 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 								<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,
 									("]).){1,")/utf8,(integer_to_binary(Length))/binary,
 									("}(\">>)$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end;
 					{size,Length} ->
 						if
@@ -534,7 +534,7 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 								<<("^(<<\"){1}((?!\">>|[")/utf8,(Exception)/binary,
 									("]).){")/utf8,(integer_to_binary(Length))/binary,
 									("}(\">>)$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end;
 					{range,Minor_length,Major_length} ->
 						if
@@ -544,7 +544,7 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 									("]).){")/utf8,(integer_to_binary(Minor_length))/binary,
 									(",")/utf8,(integer_to_binary(Major_length))/binary,
 									("}(\">>)$")/utf8>>;
-							true -> a:error(?FUNCTION_NAME(),a003)
+							true -> a:error(?NAME_FUNCTION(),a003)
 						end
 				end
 			end,
@@ -558,7 +558,7 @@ parameter_value(unicode_binary_wrapped,Parameter,[{except,Exception_chars},Lengt
 							binary:part(Binary,3,Size-6)
 					end
 			end;
-		false -> a:error(?FUNCTION_NAME(),a014)
+		false -> a:error(?NAME_FUNCTION(),a014)
 	end;
 %% Formatted time checking
 parameter_value(time,Parameter,[Format_type,Output_type]) ->
@@ -686,8 +686,8 @@ parameter_value(by_pattern,Parameter,[Pattern,Output_type])
 	end;
 
 
-parameter_value(Type,_,_) when is_atom(Type) -> a:error(?FUNCTION_NAME(),m003_001);
-parameter_value(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+parameter_value(Type,_,_) when is_atom(Type) -> a:error(?NAME_FUNCTION(),m003_001);
+parameter_value(_,_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %% ----------------------------

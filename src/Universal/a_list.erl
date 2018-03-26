@@ -192,7 +192,7 @@ check([Element|List],{Type,Type_parameters},Output) ->
 get_out(value,Key,List) ->
 	Value = proplists:get_value(Key,List),
 	case Value of
-		undefined -> a:error(?FUNCTION_NAME(),m004_001);
+		undefined -> a:error(?NAME_FUNCTION(),m004_001);
 		_ ->
 			List_out = proplists:delete(Key,List),
 			[Value,List_out]
@@ -200,9 +200,9 @@ get_out(value,Key,List) ->
 get_out(pair,Key,List) ->
 	Value = proplists:get_value(Key,List),
 	case Value of
-		undefined -> a:error(?FUNCTION_NAME(),m004_001);
+		undefined -> a:error(?NAME_FUNCTION(),m004_001);
 		_ ->
 			List_out = proplists:delete(Key,List),
 			[{Key,Value},List_out]
 	end;
-get_out(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+get_out(_,_,_) -> a:error(?NAME_FUNCTION(),a000).

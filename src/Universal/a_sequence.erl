@@ -44,7 +44,7 @@ dictionaries() ->
 
 make_dictionary(Schema) when is_list(Schema) == true ->
 	make_dictionary(Schema,<<>>);
-make_dictionary(_) -> a:error(?FUNCTION_NAME(),a014).
+make_dictionary(_) -> a:error(?NAME_FUNCTION(),a014).
 
 %%-----------------------------------
 %% @spec make_dictionary(Schema,Dictionary) -> byte() | {error,_Reason}
@@ -60,11 +60,11 @@ make_dictionary([Head|Tail],Dictionary) when is_binary(Dictionary) ->
 	Part = proplists:get_value(Head,dictionaries()),
 	case Part of
 		undefined ->
-			a:error(?FUNCTION_NAME(),m001_001);
+			a:error(?NAME_FUNCTION(),m001_001);
 		_ ->
 			make_dictionary(Tail,<<Part/binary,Dictionary/binary>>)
 	end;
-make_dictionary(_,_) -> a:error(?FUNCTION_NAME(),a000).
+make_dictionary(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %%-----------------------------------
 %% @spec random_seed()
@@ -93,11 +93,11 @@ random(Dictionary_schema,Length)
 	Dictionary = make_dictionary(Dictionary_schema),
 	case Dictionary of
 		{error,_} ->
-			a:error(?FUNCTION_NAME(),m001_002);
+			a:error(?NAME_FUNCTION(),m001_002);
 		_ ->
 			make_random(Dictionary,Length)
 	end;
-random(_,_) -> a:error(?FUNCTION_NAME(),a000).
+random(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %%-----------------------------------
 %% @spec random(number,Minor,Major) = integer | {error,Reason}
@@ -114,8 +114,8 @@ random(number,Minor,Major)
 		is_integer(Major) == true, Major > Minor ->
 	random_seed(),
 	random:uniform(Major-Minor)+Minor;
-random(number,_,_) -> a:error(?FUNCTION_NAME(),m001_003);
-random(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+random(number,_,_) -> a:error(?NAME_FUNCTION(),m001_003);
+random(_,_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %%-----------------------------------
 %% @spec make_random(Dictionary,Length) -> byte() | {error,_Reason}
@@ -157,7 +157,7 @@ md(Object,Type)
 	(md_hex(A21)), (md_hex(A22)), (md_hex(A23)), (md_hex(A24)),
 	(md_hex(A25)), (md_hex(A26)), (md_hex(A27)), (md_hex(A28)),
 	(md_hex(A29)), (md_hex(A30)), (md_hex(A31)), (md_hex(A32)) >>;
-md(_,_) -> a:error(?FUNCTION_NAME(),a000).
+md(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 md_hex(X) ->
 	element(X+1,{$0,$1,$2,$3,$4,$5,$6,$7,$8,$9,$a,$b,$c,$d,$e,$f}).

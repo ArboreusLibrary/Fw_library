@@ -28,6 +28,7 @@
 
 %% Module Include Start
 -include("../Handler/a.hrl").
+-include("../Handler/types_time.hrl").
 %% Module Include End
 
 
@@ -37,31 +38,32 @@
 
 %%-----------------------------------
 %% @doc Return a Date() within a tuple() :: {Year,Month,Day}, the part of erlang:localtime()
--spec current_date() -> tuple().
+-spec current_date() -> a_date().
 
 current_date() -> {Date,_}=erlang:localtime(), Date.
 
 
 %%-----------------------------------
 %% @doc Return a Year :: integer(), the part of erlang:localtime()
--spec current_year(Output_type) -> integer() | {error,_Error_notice} when
-	Output_type :: full | short .
+-spec current_year(Output_type) -> year() | year_short() | {error,_Error_notice}
+	when
+		Output_type :: full | short .
 
 current_year(full) -> {Year,_,_} = current_date(), Year;
 current_year(short) -> current_year(full) - trunc(current_year(full)/100)*100;
-current_year(_) -> a:error(?FUNCTION_NAME(),a011).
+current_year(_) -> a:error(?NAME_FUNCTION(),a011).
 
 
 %%-----------------------------------
 %% @doc Return a Month() = integer(), the part of erlang:localtime()
--spec current_month() -> integer().
+-spec current_month() -> month().
 
 current_month() -> {_,Month,_} = current_date(), Month.
 
 
 %%-----------------------------------
 %% @doc Return a Day :: integer(), the part of erlang:localtime()
--spec current_day() -> integer().
+-spec current_day() -> day().
 
 current_day() -> {_,_,Day} = current_date(), Day.
 
@@ -69,7 +71,8 @@ current_day() -> {_,_,Day} = current_date(), Day.
 %%-----------------------------------
 %% @doc Return the current day of the week within binaries
 -spec current_dow(View) -> byte() | {error,_Reason}
-	when View :: full | alpha2 | alpha3.
+	when
+		View :: full | alpha2 | alpha3.
 
 current_dow(View)
 	when
@@ -77,7 +80,7 @@ current_dow(View)
 		View == alpha2;
 		View == alpha3 ->
 	dow(calendar:day_of_the_week(current_date()),View);
-current_dow(_) -> a:error(?FUNCTION_NAME(),a012).
+current_dow(_) -> a:error(?NAME_FUNCTION(),a012).
 
 
 %%-----------------------------------
@@ -96,7 +99,7 @@ current() -> {_,Time}=erlang:localtime(), Time.
 current(timestamp) -> timestamp();
 current(Format) ->
 	case format(Format,{date_tuple,erlang:localtime()}) of
-		{error,_} -> a:error(?FUNCTION_NAME(),a012);
+		{error,_} -> a:error(?NAME_FUNCTION(),a012);
 		Current -> Current
 	end.
 
@@ -110,7 +113,7 @@ current(Format) ->
 -spec timestamp(Type::binaries) -> byte() | {error,_Reason}.
 
 timestamp(binaries) -> integer_to_binary(timestamp());
-timestamp(_) -> a:error(?FUNCTION_NAME(),a012).
+timestamp(_) -> a:error(?NAME_FUNCTION(),a012).
 
 
 %%-----------------------------------
@@ -131,7 +134,7 @@ timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 
 	Sec = Timestamp div 1000000 rem 1000000,
 	Micro = Timestamp rem 1000000,
 	{Mega,Sec,Micro};
-timestamp_to_tuple(_) -> a:error(?FUNCTION_NAME(),a009).
+timestamp_to_tuple(_) -> a:error(?NAME_FUNCTION(),a009).
 
 
 %%-----------------------------------
@@ -146,7 +149,7 @@ to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}}) ->
 	(calendar:datetime_to_gregorian_seconds(
 		{{Year,Month,Day},{Hours,Minutes,Seconds}}
 	) - 62167219200) * 1000000;
-to_timestamp(_) -> a:error(?FUNCTION_NAME(),a000).
+to_timestamp(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -160,10 +163,10 @@ from_timestamp(date_tuple,Timestamp) when is_integer(Timestamp), Timestamp >= 1 
 	calendar:gregorian_seconds_to_datetime(Timestamp div 1000000 + 62167219200);
 from_timestamp(Time_format,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
 	case format(Time_format,{date,from_timestamp(date_tuple,Timestamp)}) of
-		{error,_} -> a:error(?FUNCTION_NAME(),a000);
+		{error,_} -> a:error(?NAME_FUNCTION(),a000);
 		Formated_time -> Formated_time
 	end;
-from_timestamp(_,_) -> a:error(?FUNCTION_NAME(),a000).
+from_timestamp(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %% ------------------------------------------------
 %% Time
@@ -190,19 +193,19 @@ second(Second) when is_binary(Second) ->
 		Second_integer = binary_to_integer(Second),
 		if
 			Second_integer >= 0, Second_integer =< 59 -> Second_integer;
-			true -> a:error(?FUNCTION_NAME(),a000)
+			true -> a:error(?NAME_FUNCTION(),a000)
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
 second(Second) when is_list(Second) ->
 	case io_lib:char_list(Second) of
 		true ->
 			Second_integer = list_to_integer(Second),
 			if
 				Second_integer >= 0, Second_integer =< 59 -> Second_integer;
-				true -> a:error(?FUNCTION_NAME(),a000)
+				true -> a:error(?NAME_FUNCTION(),a000)
 			end
 	end;
-second(_) -> a:error(?FUNCTION_NAME(),a000).
+second(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -235,19 +238,19 @@ hour(Hour) when is_binary(Hour) ->
 		Hour_integer = binary_to_integer(Hour),
 		if
 			Hour_integer >= 0, Hour_integer =< 23 -> Hour_integer;
-			true -> a:error(?FUNCTION_NAME(),a000)
+			true -> a:error(?NAME_FUNCTION(),a000)
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
 hour(Hour) when is_list(Hour) ->
 	case io_lib:char_list(Hour) of
 		true ->
 			Hour_integer = list_to_integer(Hour),
 			if
 				Hour_integer >= 1, Hour_integer =< 31 -> Hour_integer;
-				true -> a:error(?FUNCTION_NAME(),a000)
+				true -> a:error(?NAME_FUNCTION(),a000)
 			end
 	end;
-hour(_) -> a:error(?FUNCTION_NAME(),a000).
+hour(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -270,19 +273,19 @@ day(Day) when is_binary(Day) ->
 	    Day_integer = binary_to_integer(Day),
 		if
 			Day_integer >= 1, Day_integer =< 31 -> Day_integer;
-			true -> a:error(?FUNCTION_NAME(),a000)
+			true -> a:error(?NAME_FUNCTION(),a000)
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
 day(Day) when is_list(Day) ->
 	case io_lib:char_list(Day) of
 		true ->
 			Day_integer = list_to_integer(Day),
 			if
 				Day_integer >= 1, Day_integer =< 31 -> Day_integer;
-				true -> a:error(?FUNCTION_NAME(),a000)
+				true -> a:error(?NAME_FUNCTION(),a000)
 			end
 	end;
-day(_) -> a:error(?FUNCTION_NAME(),a000).
+day(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %% ------------------------------------------------
@@ -328,7 +331,7 @@ dow(Dow)
 		Dow == <<"7">>, Dow == <<"07">>, Dow == "7", Dow == "07",
 		Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">>,
 		Dow == "Sunday"; Dow == "Sun"; Dow == "Su" -> 7;
-dow(_) -> a:error(?FUNCTION_NAME(),a000).
+dow(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -350,7 +353,7 @@ dow(1,alpha2) -> <<"Mo">>; dow(2,alpha2) -> <<"Tu">>; dow(3,alpha2) -> <<"Wd">>;
 dow(4,alpha2) -> <<"Th">>; dow(5,alpha2) -> <<"Fr">>; dow(6,alpha2) -> <<"Sa">>;
 dow(7,alpha2) -> <<"Su">>;
 
-dow(_,_) -> a:error(?FUNCTION_NAME(),a000).
+dow(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %% ------------------------------------------------
@@ -422,7 +425,7 @@ month(Month)
 		Month == <<"12">>, Month == "12",
 		Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">>,
 		Month == "December"; Month == "Dec"; Month == "De" -> 12;
-month(_) -> a:error(?FUNCTION_NAME(),a000).
+month(_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -447,7 +450,7 @@ month(4,alpha2) -> <<"Ap">>; month(5,alpha2) -> <<"Ma">>; month(6,alpha2) -> <<"
 month(7,alpha2) -> <<"Jl">>; month(8,alpha2) -> <<"Au">>; month(9,alpha2) -> <<"Se">>;
 month(10,alpha2) -> <<"Oc">>; month(11,alpha2) -> <<"No">>; month(12,alpha2) -> <<"De">>;
 
-month(_,_) -> a:error(?FUNCTION_NAME(),a000).
+month(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %% ------------------------------------------------
 %% Year
@@ -466,14 +469,14 @@ year(to_string,Year) ->
 			{error,Reason} -> {error,Reason};
 			Year_binary -> Year_binary
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
 year(to_binary,Year) ->
 	try
 		case a:to_binary(Year) of
 			{error,Reason} -> {error,Reason};
 			Year_binary -> Year_binary
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a000) end;
+	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
 year(to_integer,Year) ->
 	try
 		Year_integer = a:to_integer(Year),
@@ -482,11 +485,11 @@ year(to_integer,Year) ->
 			_ ->
 				if
 					Year_integer > 0 -> Year_integer;
-					true -> a:error(?FUNCTION_NAME(),a000)
+					true -> a:error(?NAME_FUNCTION(),a000)
 				end
 		end
-	catch _:_ -> a:error(?FUNCTION_NAME(),a010) end;
-year(_,_) -> a:error(?FUNCTION_NAME(),a000).
+	catch _:_ -> a:error(?NAME_FUNCTION(),a010) end;
+year(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 %% ------------------------------------------------
 %% Format
@@ -665,7 +668,7 @@ format({iso8601,"DD Month YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
 		(month(Month,full))/binary,(" ")/utf8,
 		(format_element(year,Year))/binary>>;
 
-format(_,_) -> a:error(?FUNCTION_NAME(),a000).
+format(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -698,28 +701,28 @@ format_element(Measure,9)
 
 format_element(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
 	<<(integer_to_binary(Day))/binary>>;
-format_element(day,_) -> a:error(?FUNCTION_NAME(),a009);
+format_element(day,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
 	<<(integer_to_binary(Month))/binary>>;
-format_element(month,_) -> a:error(?FUNCTION_NAME(),a009);
+format_element(month,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
 	<<(integer_to_binary(Hours))/binary>>;
-format_element(hour,_) -> a:error(?FUNCTION_NAME(),a009);
+format_element(hour,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
 	<<(integer_to_binary(Minutes))/binary>>;
-format_element(min,_) -> a:error(?FUNCTION_NAME(),a009);
+format_element(min,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
 	<<(integer_to_binary(Seconds))/binary>>;
-format_element(sec,_) -> a:error(?FUNCTION_NAME(),a009);
+format_element(sec,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(year,Year) -> a:to_binary(Year);
 format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2);
 
-format_element(_,_) -> a:error(?FUNCTION_NAME(),a000).
+format_element(_,_) -> a:error(?NAME_FUNCTION(),a000).
 
 
 %%-----------------------------------
@@ -733,7 +736,7 @@ format_element(_,_) -> a:error(?FUNCTION_NAME(),a000).
 from_formated(Format_type,Time_source,Output_type) when is_list(Time_source) ->
 	case io_lib:char_list(Time_source) of
 		true -> from_formated(Format_type,unicode:characters_to_binary(Time_source),Output_type);
-		_ -> a:error(?FUNCTION_NAME(),a000)
+		_ -> a:error(?NAME_FUNCTION(),a000)
 	end;
 from_formated(ansi,Time_source,Output_type) when is_binary(Time_source) ->
 	Pattern = <<"^([A-Za-z]{3}) ([A-Za-z]{3}) ([0-9]{2}) ([0-9]{2})\:([0-9]{2})\:([0-9]{2}) ([0-9]{4})$">>,
@@ -764,6 +767,6 @@ from_formated(date_tuple,{{Year,Month,Day},{Hours,Minutes,Seconds}},Output_type)
 		tuple -> {{Year,Month,Day},{Hours,Minutes,Seconds}};
 		seconds -> calendar:datetime_to_gregorian_seconds({{Year,Month,Day},{Hours,Minutes,Seconds}});
 		timestamp -> to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}});
-		_ -> a:error(?FUNCTION_NAME(),a012)
+		_ -> a:error(?NAME_FUNCTION(),a012)
 	end;
-from_formated(_,_,_) -> a:error(?FUNCTION_NAME(),a000).
+from_formated(_,_,_) -> a:error(?NAME_FUNCTION(),a000).

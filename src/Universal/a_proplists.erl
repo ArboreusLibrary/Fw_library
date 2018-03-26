@@ -33,7 +33,7 @@ from_record(Data_module,Record_src) when is_tuple(Record_src) ->
 		{error,Reason} -> {error,Reason};
 		Record_info -> lists:zip(Record_info,Record)
 	end;
-from_record(_,_) -> a:error(?FUNCTION_NAME(),a014).
+from_record(_,_) -> a:error(?NAME_FUNCTION(),a014).
 
 
 %% ----------------------------

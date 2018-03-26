@@ -55,13 +55,13 @@ var_dump(Path,Variable) ->
 to_string(String) when is_list(String) ->
 	case io_lib:char_list(String) of
 		true -> String;
-		_ -> a:error(?FUNCTION_NAME(),a013)
+		_ -> a:error(?NAME_FUNCTION(),a013)
 	end;
 to_string(Binary) when is_binary(Binary) -> unicode:characters_to_list(Binary);
 to_string(Atom) when is_atom(Atom) -> atom_to_list(Atom);
 to_string(Integer) when is_integer(Integer) -> integer_to_list(Integer);
 to_string(Float) when is_float(Float) -> float_to_list(Float);
-to_string(_) -> a:error(?FUNCTION_NAME(),a013).
+to_string(_) -> a:error(?NAME_FUNCTION(),a013).
 
 
 %%-----------------------------------
@@ -71,13 +71,13 @@ to_string(_) -> a:error(?FUNCTION_NAME(),a013).
 to_binary(String) when is_list(String) ->
 	case io_lib:char_list(String) of
 		true -> unicode:characters_to_binary(String);
-		_ -> a:error(?FUNCTION_NAME(),a013)
+		_ -> a:error(?NAME_FUNCTION(),a013)
 	end;
 to_binary(Binary) when is_binary(Binary) -> Binary;
 to_binary(Atom) when is_atom(Atom) -> atom_to_binary(Atom,utf8);
 to_binary(Integer) when is_integer(Integer) -> integer_to_binary(Integer);
 to_binary(Float) when is_float(Float) -> float_to_binary(Float);
-to_binary(_) -> a:error(?FUNCTION_NAME(),a013).
+to_binary(_) -> a:error(?NAME_FUNCTION(),a013).
 
 
 %%-----------------------------------
@@ -87,12 +87,12 @@ to_binary(_) -> a:error(?FUNCTION_NAME(),a013).
 to_integer(String) when is_list(String) ->
 	case io_lib:char_list(String) of
 		true -> list_to_integer(String);
-		_ -> a:error(?FUNCTION_NAME(),a013)
+		_ -> a:error(?NAME_FUNCTION(),a013)
 	end;
 to_integer(Integer) when is_integer(Integer) -> Integer;
 to_integer(Float) when is_float(Float) -> list_to_integer(float_to_list(Float,[{decimals,0}]));
 to_integer(Binary) when is_binary(Binary) -> binary_to_integer(Binary);
-to_integer(_) -> a:error(?FUNCTION_NAME(),a013).
+to_integer(_) -> a:error(?NAME_FUNCTION(),a013).
 
 
 %%-----------------------------------
@@ -125,9 +125,9 @@ read_file(Path) when is_list(Path) ->
 				{ok,File} -> File;
 				{error,Reason} -> {error,Reason}
 			end;
-		false -> a:error(?FUNCTION_NAME(),a002)
+		false -> a:error(?NAME_FUNCTION(),a002)
 	end;
-read_file(_) -> a:error(?FUNCTION_NAME(),a002).
+read_file(_) -> a:error(?NAME_FUNCTION(),a002).
 
 
 %%-----------------------------------

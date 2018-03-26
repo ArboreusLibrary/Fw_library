@@ -1,5 +1,5 @@
 %% Getting function name
--define(FUNCTION_NAME(),process_info(self(),current_function)).
+-define(NAME_FUNCTION(),process_info(self(),current_function)).
 
 -type result_of_function() :: any().
 -type callback_module() :: function().

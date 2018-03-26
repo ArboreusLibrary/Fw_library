@@ -35,7 +35,7 @@ select_ordered(Query,Order) ->
 	try
 		Transaction = fun() -> qlc:eval(qlc:sort(Query,[{order,Order}])) end,
 		mnesia:transaction(Transaction)
-	catch _:_ -> a:error(?FUNCTION_NAME(),m005_001) end.
+	catch _:_ -> a:error(?NAME_FUNCTION(),m005_001) end.
 
 
 %%-----------------------------------
@@ -68,5 +68,5 @@ select_paginated(Query,Order,From,To)
 			end
 		end,
 		mnesia:transaction(Transaction)
-	catch _:_ -> a:error(?FUNCTION_NAME(),m005_001) end;
-select_paginated(_,_,_,_) -> a:error(?FUNCTION_NAME(),a009).
+	catch _:_ -> a:error(?NAME_FUNCTION(),m005_001) end;
+select_paginated(_,_,_,_) -> a:error(?NAME_FUNCTION(),a009).
