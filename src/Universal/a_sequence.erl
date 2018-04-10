@@ -1,26 +1,32 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV (http://alexandr.kirilov.me)
 %%% @copyright (C) 2015, Arboreus, (http://arboreus.systems)
-%%% @doc
+%%% @doc Sequesnce handler
 %%%
 %%% @end
 %%% Created : 30. Jul 2015 1:27
 %%%-------------------------------------------------------------------
 -module(a_sequence).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.4.235").
 
 %% Module API
--export([dictionaries/0]).
--export([make_dictionary/1]).
--export([random_seed/0]).
--export([random/2,random/3]).
--export([md/2]).
--export([unique/1]).
+-export([
+	test/0,
+	dictionaries/0,
+	make_dictionary/1,
+	random_seed/0,
+	random/2,random/3,
+	md/2,
+	unique/1
+]).
 
-%% Module Include Start
--include("../Handler/a.hrl").
-%% Module Include End
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
+
 
 %%-----------------------------------
 %% @spec dictionaries() -> list()
@@ -34,109 +40,86 @@ dictionaries() ->
 		{alpha_upper,<<("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/utf8>>}
 	].
 
-%%-----------------------------------
-%% @spec make_dictionary(Schema) -> byte() | {error,_Reason}
-%% where
-%%      Schema :: list().
-%% @doc Return a binary within a dictionary
--spec make_dictionary(Schema) -> byte() | {error,_Reason}
-	when Schema :: list().
-
-make_dictionary(Schema) when is_list(Schema) == true ->
-	make_dictionary(Schema,<<>>);
-make_dictionary(_) -> a:error(?NAME_FUNCTION(),a014).
 
 %%-----------------------------------
-%% @spec make_dictionary(Schema,Dictionary) -> byte() | {error,_Reason}
-%% where
-%%      Schema = list()
-%%      Dictionary = binary()
 %% @doc Return a binary within a dictionary
--spec make_dictionary(Schema,Dictionary) -> byte() | {error,_Reason}
-	when Schema :: list(), Dictionary :: byte().
+-spec make_dictionary(Schema) -> byte()
+	when
+	Schema :: list().
+
+make_dictionary(Schema) when is_list(Schema) ->
+	make_dictionary(Schema,<<>>).
+
+
+%%-----------------------------------
+%% @doc Return a binary within a dictionary
+-spec make_dictionary(Schema,Dictionary) -> byte()
+	when
+	Schema :: list(),
+	Dictionary :: byte().
 
 make_dictionary([],Dictionary) when is_binary(Dictionary) -> Dictionary;
 make_dictionary([Head|Tail],Dictionary) when is_binary(Dictionary) ->
 	Part = proplists:get_value(Head,dictionaries()),
-	case Part of
-		undefined ->
-			a:error(?NAME_FUNCTION(),m001_001);
-		_ ->
-			make_dictionary(Tail,<<Part/binary,Dictionary/binary>>)
-	end;
-make_dictionary(_,_) -> a:error(?NAME_FUNCTION(),a000).
+	make_dictionary(Tail,<<Part/binary,Dictionary/binary>>).
+
 
 %%-----------------------------------
-%% @spec random_seed()
-%% @doc Seeding rundom generator
+%% @doc Seeding random generator
 -spec random_seed() -> tuple().
 
 random_seed() ->
 	Integer1 = erlang:phash2([node()]),
 	Integer2 = erlang:unique_integer()*(-1),
 	Integer3 = erlang:monotonic_time()*(-1),
-	random:seed(Integer1,Integer2,Integer3).
+	rand:seed(exs64,{Integer1,Integer2,Integer3}).
+
 
 %%-----------------------------------
-%% @spec random(Dictionary_schema,Length) -> binary() | {error,Reason}
-%% where
-%%      Dictionary_schema :: list(),
-%%      Length :: pos_integer().
 %% @doc Return a binary within sequence
--spec random(Dictionary_schema,Length) -> byte() | {error,_Reason}
+-spec random(Dictionary_schema,Length) -> byte()
 	when Dictionary_schema :: list(), Length :: pos_integer().
 
 random(Dictionary_schema,Length)
 	when
-		is_list(Dictionary_schema) == true,
-		is_integer(Length) == true, Length > 0 ->
-	Dictionary = make_dictionary(Dictionary_schema),
-	case Dictionary of
-		{error,_} ->
-			a:error(?NAME_FUNCTION(),m001_002);
-		_ ->
-			make_random(Dictionary,Length)
-	end;
-random(_,_) -> a:error(?NAME_FUNCTION(),a000).
+	is_list(Dictionary_schema),
+	is_integer(Length),
+	Length > 0 ->
+	make_random(make_dictionary(Dictionary_schema),Length).
+
 
 %%-----------------------------------
-%% @spec random(number,Minor,Major) = integer | {error,Reason}
-%% where
-%%      Minor :: pos_integer(),
-%%      Major :: pos_integer().
 %% @doc Return random value from range between Minor and Major
--spec random(number,Minor,Major) -> integer() | {error,_Reason}
-	when Minor :: pos_integer(), Major :: pos_integer().
+-spec random(number,Minor,Major) -> integer()
+	when
+	Minor :: pos_integer(),
+	Major :: pos_integer().
 
 random(number,Minor,Major)
 	when
-		is_integer(Minor) == true, Minor >= 0,
-		is_integer(Major) == true, Major > Minor ->
+	is_integer(Minor), Minor >= 0,
+	is_integer(Major), Major > Minor ->
 	random_seed(),
-	random:uniform(Major-Minor)+Minor;
-random(number,_,_) -> a:error(?NAME_FUNCTION(),m001_003);
-random(_,_,_) -> a:error(?NAME_FUNCTION(),a000).
+	rand:uniform(Major - Minor) + Minor.
+
 
 %%-----------------------------------
-%% @spec make_random(Dictionary,Length) -> byte() | {error,_Reason}
-%% where
-%%      Dictionary :: list()
-%%      Length :: integer().
 %% @doc Return a binary within sequense by the Dictionary
--spec make_random(Dictionary,Length) -> byte() | {error,_Reason}
-	when Dictionary :: list(), Length :: integer().
+-spec make_random(Dictionary,Length) -> byte()
+	when
+	Dictionary :: list(),
+	Length :: integer().
 
-make_random(Dictionary,Length) -> make_random(Dictionary,Length,<<>>).
-make_random(_,0,Sequence) -> Sequence;
+make_random(Dictionary,Length) ->
+	make_random(Dictionary,Length,<<>>).
+make_random(_,0,Sequence) ->
+	Sequence;
 make_random(Dictionary,Length,Sequence) ->
 	Random_byte = binary:part(Dictionary,{random(number,0,byte_size(Dictionary))-1,1}),
 	make_random(Dictionary,Length-1,<<Random_byte/binary,Sequence/binary>>).
 
+
 %%-----------------------------------
-%% @spec md(Object,Type) -> byte() | {error,_Reason}
-%% where
-%%      Object :: any(),
-%%      Type :: md4 | md5.
 %% @doc Return a binary within a hash from object
 -spec md(Object,Type) -> byte() | {error,_Reason}
 	when Object :: any(), Type :: md4 | md5.
@@ -156,18 +139,17 @@ md(Object,Type)
 	(md_hex(A17)), (md_hex(A18)), (md_hex(A19)), (md_hex(A20)),
 	(md_hex(A21)), (md_hex(A22)), (md_hex(A23)), (md_hex(A24)),
 	(md_hex(A25)), (md_hex(A26)), (md_hex(A27)), (md_hex(A28)),
-	(md_hex(A29)), (md_hex(A30)), (md_hex(A31)), (md_hex(A32)) >>;
-md(_,_) -> a:error(?NAME_FUNCTION(),a000).
+	(md_hex(A29)), (md_hex(A30)), (md_hex(A31)), (md_hex(A32)) >>.
 
 md_hex(X) ->
 	element(X+1,{$0,$1,$2,$3,$4,$5,$6,$7,$8,$9,$a,$b,$c,$d,$e,$f}).
 
+
 %%-----------------------------------
-%% @spec unique(Source) -> byte()
-%% where
-%%      Source :: time | any().
 %% @doc Return a binary within random unique sequence
--spec unique(Source) -> byte() when Source :: time | any().
+-spec unique(Source) -> byte()
+	when
+	Source :: time | any().
 
 unique(time) ->
 	Time = a:to_binary(a_time:timestamp()),

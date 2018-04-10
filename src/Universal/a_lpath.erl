@@ -1,13 +1,16 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc Lpath (List path) handler
 %%%
 %%% @end
 %%% Created : 06. Май 2016 21:19
 %%%-------------------------------------------------------------------
 -module(a_lpath).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
+
+%% System include
+-include("../data_models/types_general.hrl").
 
 %% API
 -export([
@@ -28,8 +31,8 @@ test() -> ok.
 % @doc Compute the Lpath from proplist
 -spec get(Lpath,Proplist) -> any() | false
 	when
-		Lpath :: list(),
-		Proplist :: proplists:proplist().
+	Lpath :: list(),
+	Proplist :: proplists:proplist().
 
 get([],Value) -> {ok,Value};
 get([Point|Path],Proplist) ->
@@ -43,9 +46,9 @@ get([Point|Path],Proplist) ->
 % @doc Set new pair by passing through the defined path
 -spec set(Value,Path,Proplist) -> proplists:proplist() | {error,_Reason}
 	when
-		Value :: any(),
-		Path :: list(),
-		Proplist :: proplists:proplist().
+	Value :: any(),
+	Path :: list(),
+	Proplist :: proplists:proplist().
 
 set(Value,Path,Proplist) ->
 	case expand(Path,Proplist,[]) of
@@ -63,9 +66,9 @@ set(Value,Path,Proplist) ->
 % @doc Condense the original proplist within included new pair
 -spec compose(Cache_list,Pair,Reversed_path) -> proplists:proplist()
 	when
-		Cache_list :: list(),
-		Pair :: tuple(),
-		Reversed_path :: list().
+	Cache_list :: list(),
+	Pair :: tuple(),
+	Reversed_path :: list().
 
 compose([],Proplist,[]) -> Proplist;
 compose([List|Cache_list],Pair,[Point|Path]) ->
@@ -80,9 +83,9 @@ compose([List|Cache_list],Pair,[Point|Path]) ->
 % @doc Make separated by path cache of list, secondary function for set/3
 -spec expand(Path,Proplist,Cache_list) -> list() | {error,_Reason}
 	when
-		Path :: list(),
-		Proplist :: proplists:proplist(),
-		Cache_list :: list().
+	Path :: list(),
+	Proplist :: proplists:proplist(),
+	Cache_list :: list().
 
 expand([],_,List_cache) -> List_cache;
 expand([Point|Path],Proplist,List_cache) ->

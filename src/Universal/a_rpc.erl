@@ -16,9 +16,6 @@
 	call/4
 ]).
 
-%% Module Include Start
--include("../Handler/a.hrl").
-%% Module Include End
 
 
 %% ----------------------------
@@ -32,10 +29,10 @@ test() -> ok.
 %% @doc Make asynchronous call on defined node
 -spec call(Node_name,Module,Function,Arguments) -> any()
 	when
-		Node_name :: atom(),
-		Module :: atom(),
-		Function :: atom(),
-		Arguments :: list().
+	Node_name :: atom(),
+	Module :: atom(),
+	Function :: atom(),
+	Arguments :: list().
 
 call(Node_name,Module,Function,Arguments) ->
 	rpc:call(Node_name,Module,Function,Arguments).
@@ -45,10 +42,10 @@ call(Node_name,Module,Function,Arguments) ->
 %% @doc Make asynchronous call on defined node
 -spec async_call(Node_name,Module,Function,Arguments) -> any()
 	when
-		Node_name :: atom(),
-		Module :: atom(),
-		Function :: atom(),
-		Arguments :: list().
+	Node_name :: atom(),
+	Module :: atom(),
+	Function :: atom(),
+	Arguments :: list().
 
 async_call(Node_name,Module,Function,Arguments) ->
 	rpc:yield(rpc:async_call(Node_name,Module,Function,Arguments)).

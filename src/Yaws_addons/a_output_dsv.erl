@@ -1,22 +1,30 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc Yaws appmode dsv output generator
 %%%
 %%% @end
 %%% Created : 15. Февр. 2016 13:45
 %%%-------------------------------------------------------------------
 -module(a_output_dsv).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.2.214").
 
-%% Module Include Start
--include("../Configuration/configuration.conf.hrl").
+%% System include
+-include("../data_models/types_general.hrl").
+-include("../constants/constants_general.hrl").
 
 %% API
 -export([
+	test/0,
 	make/4
 ]).
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %% ----------------------------
@@ -24,10 +32,10 @@
 %% DSV formated information from Mnesia DB
 -spec make(Datum,Data_module,Output_type,Output_file_name) -> list()
 	when
-		Datum :: list() | tuple(),
-		Data_module :: atom(),
-		Output_type :: atom(),
-		Output_file_name :: string().
+	Datum :: list() | tuple(),
+	Data_module :: atom(),
+	Output_type :: atom(),
+	Output_file_name :: string().
 
 make({atomic,[]},_,_,_) ->
 	[
@@ -69,9 +77,9 @@ make(_,_,_,_) ->
 %% @doc Return binary within datum in CSV fromat from list of records
 -spec dsv(Data_module,List_of_records,Output) -> byte()
 	when
-		Data_module :: atom(),
-		List_of_records :: list(),
-		Output :: byte().
+	Data_module :: atom(),
+	List_of_records :: list(),
+	Output :: byte().
 
 dsv(Data_module,{_,Records},_) -> dsv(first_line,Records,Data_module);
 dsv(first_line,Records,Data_module) ->
@@ -117,8 +125,8 @@ make_row([Field_value|List_from_record],Output) ->
 %% @doc Return binary within datum schema from record
 -spec data_schema(Schema,Output) -> Output
 	when
-		Schema :: list(),
-		Output :: byte().
+	Schema :: list(),
+	Output :: byte().
 
 data_schema([],Output) -> Output;
 data_schema([Field|Schema],Output) ->

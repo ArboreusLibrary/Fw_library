@@ -1,13 +1,16 @@
 %%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV (http://alexandr.kirilov.me)
 %%% @copyright (C) 2015, Arboreus, (http://arboreus.systems)
-%%% @doc
+%%% @doc Arboreus lists handler
 %%%
 %%% @end
 %%% Created : 21. Jul 2015 21:55
 %%%-------------------------------------------------------------------
 -module(a_list).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
+
+%% System include
+-include("../data_models/types_general.hrl").
 
 %% API
 -export([
@@ -19,10 +22,6 @@
 	compare_members/2,
 	exclude/2
 ]).
-
-%% Module Include Start
--include("../Handler/a.hrl").
-%% Module Include End
 
 
 %% ----------------------------
@@ -36,24 +35,24 @@ test() -> ok.
 %% @doc Exclude members of list from another lists and return diff
 -spec exclude(List,Members) -> list()
 	when
-		List :: list(),
-		Members :: list().
+	List :: list(),
+	Members :: list().
 
 exclude(List,Members) ->
-	exclude(List,Members,[]).
+	exclude_handler(List,Members,[]).
 
 
 %% ----------------------------
 %% @doc Aux function for exclude/2
--spec exclude(List,Members,Output) -> list()
+-spec exclude_handler(List,Members,Output) -> list()
 	when
-		List :: list(),
-		Members :: list(),
-		Output :: list().
+	List :: list(),
+	Members :: list(),
+	Output :: list().
 
-exclude([],_,Output) -> Output;
-exclude([Element|List],Members,Output) ->
-	exclude(
+exclude_handler([],_,Output) -> Output;
+exclude_handler([Element|List],Members,Output) ->
+	exclude_handler(
 		List,Members,
 		case lists:member(Element,Members) of
 			false -> lists:append(Output,[Element]);
@@ -66,8 +65,8 @@ exclude([Element|List],Members,Output) ->
 %% @doc Compare members in two lists within checking length
 -spec compare_members(List1,List2) -> boolean()
 	when
-		List1 :: list(),
-		List2 :: list().
+	List1 :: list(),
+	List2 :: list().
 
 compare_members(List1,List2) ->
 	Length1 = length(List1),
@@ -82,8 +81,8 @@ compare_members(List1,List2) ->
 %% @doc Compare members in two lists
 -spec compare_members_handler(List1,List2) -> boolean()
 	when
-		List1 :: list(),
-		List2 :: list().
+	List1 :: list(),
+	List2 :: list().
 
 compare_members_handler([],_) -> true;
 compare_members_handler([Member|List1],List2) ->
@@ -97,8 +96,8 @@ compare_members_handler([Member|List1],List2) ->
 %% @doc Find members of list from another list
 -spec find_members(Members,List) -> list()
 	when
-		Members :: list(),
-		List :: list().
+	Members :: list(),
+	List :: list().
 
 find_members(Members_list,List) ->
 	find_members_handler(Members_list,List,[]).
@@ -108,9 +107,9 @@ find_members(Members_list,List) ->
 %% @doc Find members of list from another list
 -spec find_members_handler(Members,List,Output) -> list()
 	when
-		Members :: list(),
-		List :: list(),
-		Output :: list().
+	Members :: list(),
+	List :: list(),
+	Output :: list().
 
 find_members_handler([],_,Output) -> Output;
 find_members_handler([Member|Members],List,Output) ->
@@ -133,8 +132,8 @@ clear_duplicates(List) -> clear_duplicates_handler(List,[]).
 %% @doc Clear duplicates from defined list
 -spec clear_duplicates_handler(List,Output) -> list()
 	when
-		List :: list(),
-		Output :: list().
+	List :: list(),
+	Output :: list().
 
 clear_duplicates_handler([],Output) -> Output;
 clear_duplicates_handler([Element|List],Output) ->
@@ -150,10 +149,10 @@ clear_duplicates_handler([Element|List],Output) ->
 %% @doc Wrapper function for check/3, checking list of typed elements
 -spec check(List,Type_properties) -> list() | nomatch
 	when
-		List :: list(),
-		Type_properties :: {Type,Type_parameters},
-		Type :: atom(),
-		Type_parameters :: list().
+	List :: list(),
+	Type_properties :: {Type,Type_parameters},
+	Type :: atom(),
+	Type_parameters :: list().
 
 check(List,Type_properties) -> check(List,Type_properties,[]).
 
@@ -162,11 +161,11 @@ check(List,Type_properties) -> check(List,Type_properties,[]).
 %% @doc Checking list of typed elements
 -spec check(List,Type_properties,Output) -> list() | nomatch
 	when
-		List :: list(),
-		Type_properties :: {Type,Type_parameters},
-		Type :: atom(),
-		Type_parameters :: list(),
-		Output :: list().
+	List :: list(),
+	Type_properties :: {Type,Type_parameters},
+	Type :: atom(),
+	Type_parameters :: list(),
+	Output :: list().
 
 check([],_,Output) -> Output;
 check([Element|List],{Type,Type_parameters},Output) ->
@@ -184,25 +183,22 @@ check([Element|List],{Type,Type_parameters},Output) ->
 %% @doc Get out key-value pair and return cleared List and value
 -spec get_out(Type,Key,List) -> Result | {error,_Reason}
 	when
-		Type :: value | pair,
-		Key :: atom(),
-		List :: list(),
-		Result :: list().
+	Type :: value | pair,
+	Key :: atom(),
+	List :: list(),
+	Result :: list().
 
 get_out(value,Key,List) ->
-	Value = proplists:get_value(Key,List),
-	case Value of
-		undefined -> a:error(?NAME_FUNCTION(),m004_001);
-		_ ->
+	case proplists:get_value(Key,List) of
+		undefined -> undefined;
+		Value ->
 			List_out = proplists:delete(Key,List),
 			[Value,List_out]
 	end;
 get_out(pair,Key,List) ->
-	Value = proplists:get_value(Key,List),
-	case Value of
-		undefined -> a:error(?NAME_FUNCTION(),m004_001);
-		_ ->
+	case proplists:get_value(Key,List) of
+		undefined -> undefined;
+		Value ->
 			List_out = proplists:delete(Key,List),
 			[{Key,Value},List_out]
-	end;
-get_out(_,_,_) -> a:error(?NAME_FUNCTION(),a000).
+	end.

@@ -1,20 +1,28 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc Data types for Arboreus library: Basic types
+%%% @doc The data types definitions
 %%%
 %%% @end
-%%% Created : 07. Янв. 2018 22:22
+%%% Created : 10. Апр. 2018 14:32
 %%%-------------------------------------------------------------------
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("389").
 
-%% ------------------------------------------
-%% Basic types
-%% ------------------------------------------
 
--type unix_path() :: string().
+-type unix_path() :: unix_path_binary() | unix_path_string().
+-type unix_path_string() :: unicode:charlist().
 -type unix_path_binary() :: unicode:unicode_binary().
+
+-type utf_text() :: utf_text_binary() | utf_text_string().
+-type utf_text_string() :: unicode:charlist().
+-type utf_text_binary() :: unicode:unicode_binary().
+
+-type record() :: tuple().
+
+-type list_of_properties() :: [any()].
+-type list_of_records() :: [record()].
+-type list_of_integers() :: [integer()].
+-type list_of_atoms() :: [atom()].
 
 -type a_byte_8() :: 0..255.
 -type a_byte_16() :: 0..16#ffffff.

@@ -1,13 +1,14 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc General libraray data types definition
+%%% @doc General constants for library
 %%%
 %%% @end
-%%% Created : 02. Февр. 2018 17:59
+%%% Created : 10. Апр. 2018 15:54
 %%%-------------------------------------------------------------------
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
 
 
--type unix_path_string() :: unicode:chardata().
--type unix_path_binary() :: unicode:unicode_binary().
+-define(APPLICATION_NAME,"Arboreus Library").
+-define(APPLICATION_HEADER_OK,{header,["Appplication:","ok"]}).
+-define(APPLICATION_HEADER_ERROR,fun(X) -> {header,["Appplication:",X]} end).

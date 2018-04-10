@@ -1,22 +1,30 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc Yaws appmode xml output generator
 %%%
 %%% @end
 %%% Created : 12. Февр. 2016 18:07
 %%%-------------------------------------------------------------------
 -module(a_output_xml).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.2.213").
 
-%% Module Include Start
--include("../Configuration/configuration.conf.hrl").
+%% System include
+-include("../data_models/types_general.hrl").
+-include("../constants/constants_general.hrl").
 
 %% API
 -export([
+	test/0,
 	make/4
 ]).
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %% ----------------------------
@@ -24,10 +32,10 @@
 %% XML formated information from Mnesia DB
 -spec make(Datum,Data_module,Output_type,Output_file_name) -> list()
 	when
-		Datum :: list() | tuple(),
-		Data_module :: atom(),
-		Output_type :: atom(),
-		Output_file_name :: string().
+	Datum :: list() | tuple(),
+	Data_module :: atom(),
+	Output_type :: atom(),
+	Output_file_name :: string().
 
 make({atomic,[]},_,_,_) ->
 	[
@@ -82,9 +90,9 @@ make(_,_,_,_) ->
 %% @doc Return binary data within XML element content from proplist
 -spec from_proplist(Name,Proplist,Output) -> byte()
 	when
-		Name :: atom(),
-		Proplist :: proplists:proplist(),
-		Output :: byte().
+	Name :: atom(),
+	Proplist :: proplists:proplist(),
+	Output :: byte().
 
 from_proplist(Name,[],Output) ->
 	Tag_name = atom_to_binary(Name,utf8),
@@ -103,8 +111,8 @@ from_proplist(Name,[{Key_in,Value_in}|List],Output) ->
 %% @doc Return binary data within XML element content from record
 -spec from_record(Data_module,Record_source) -> byte()
 	when
-		Data_module :: atom(),
-		Record_source::tuple().
+	Data_module :: atom(),
+	Record_source::tuple().
 
 from_record(Data_module,Record_source) ->
 	Proplist = a_proplists:from_record(Data_module,Record_source),
@@ -115,9 +123,9 @@ from_record(Data_module,Record_source) ->
 %% @doc Return binary within XML
 -spec xml(Data_module,Records,Output) -> byte()
 	when
-		Data_module :: atom(),
-		Records :: list() | tuple(),
-		Output :: byte().
+	Data_module :: atom(),
+	Records :: list() | tuple(),
+	Output :: byte().
 
 xml(Data_module,{_,Records},Output) ->
 	xml(Data_module,Records,Output);

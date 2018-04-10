@@ -1,17 +1,20 @@
 %%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV (http://alexandr.kirilov.me)
 %%% @copyright (C) 2015, Arboreus, (http://arboreus.systems)
-%%% @doc
+%%% @doc Time handler
 %%%
 %%% @end
 %%% Created : 21. Jul 2015 21:55
 %%%-------------------------------------------------------------------
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
--vsn("0.0.19.284").
+
+-include("../data_models/types_general.hrl").
+-include("../data_models/types_time.hrl").
 
 %% Module API
 -export([
+	test/0,
 	current_date/0,current_year/1,current_month/0,current_day/0,current_dow/1,
 	current/0,current/1,
 	timestamp/0,timestamp/1,timestamp_to_tuple/1,from_timestamp/2,
@@ -26,94 +29,91 @@
 	from_formated/3
 ]).
 
-%% Module Include Start
--include("../Handler/a.hrl").
--include("../Handler/types_time.hrl").
-%% Module Include End
 
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
 
-%% ------------------------------------------------
-%% Current
-%% ------------------------------------------------
+test() -> ok.
+
 
 %%-----------------------------------
 %% @doc Return a Date() within a tuple() :: {Year,Month,Day}, the part of erlang:localtime()
 -spec current_date() -> a_date().
 
-current_date() -> {Date,_}=erlang:localtime(), Date.
+current_date() ->
+	{Date,_}=erlang:localtime(),
+	Date.
 
 
 %%-----------------------------------
 %% @doc Return a Year :: integer(), the part of erlang:localtime()
 -spec current_year(Output_type) -> year() | year_short() | {error,_Error_notice}
 	when
-		Output_type :: full | short .
+	Output_type :: full | short .
 
-current_year(full) -> {Year,_,_} = current_date(), Year;
-current_year(short) -> current_year(full) - trunc(current_year(full)/100)*100;
-current_year(_) -> a:error(?NAME_FUNCTION(),a011).
+current_year(full) ->
+	{Year,_,_} = current_date(), Year;
+current_year(short) ->
+	current_year(full) - trunc(current_year(full)/100)*100.
 
 
 %%-----------------------------------
 %% @doc Return a Month() = integer(), the part of erlang:localtime()
 -spec current_month() -> month().
 
-current_month() -> {_,Month,_} = current_date(), Month.
+current_month() ->
+	{_,Month,_} = current_date(),
+	Month.
 
 
 %%-----------------------------------
 %% @doc Return a Day :: integer(), the part of erlang:localtime()
 -spec current_day() -> day().
 
-current_day() -> {_,_,Day} = current_date(), Day.
+current_day() ->
+	{_,_,Day} = current_date(),
+	Day.
 
 
 %%-----------------------------------
 %% @doc Return the current day of the week within binaries
 -spec current_dow(View) -> byte() | {error,_Reason}
 	when
-		View :: full | alpha2 | alpha3.
+	View :: full | alpha2 | alpha3.
 
 current_dow(View)
 	when
-		View == full;
-		View == alpha2;
-		View == alpha3 ->
-	dow(calendar:day_of_the_week(current_date()),View);
-current_dow(_) -> a:error(?NAME_FUNCTION(),a012).
+	View == full;
+	View == alpha2;
+	View == alpha3 ->
+	dow(calendar:day_of_the_week(current_date()),View).
 
 
 %%-----------------------------------
 %% @doc Return a Time() within a tuple() = {Hours,Minutes,Seconds}, the part of erlang:localtime()
 -spec current() -> tuple().
 
-current() -> {_,Time}=erlang:localtime(), Time.
+current() ->
+	{_,Time}=erlang:localtime(),
+	Time.
 
 
 %%-----------------------------------
 %% @doc Return a binary within the current time formated by the Format()::atom() from the list
 -spec current(Format) -> binary() | {error,_Reason}
 	when
-		Format :: atom() | tuple().
+	Format :: atom() | tuple().
 
 current(timestamp) -> timestamp();
-current(Format) ->
-	case format(Format,{date_tuple,erlang:localtime()}) of
-		{error,_} -> a:error(?NAME_FUNCTION(),a012);
-		Current -> Current
-	end.
+current(Format) -> format(Format,{date_tuple,erlang:localtime()}).
 
-
-%% ------------------------------------------------
-%% Timestamp
-%% ------------------------------------------------
 
 %%-----------------------------------
 %% @doc Return difned format value of current timestamp
--spec timestamp(Type::binaries) -> byte() | {error,_Reason}.
+-spec timestamp(Type::binaries) -> byte().
 
-timestamp(binaries) -> integer_to_binary(timestamp());
-timestamp(_) -> a:error(?NAME_FUNCTION(),a012).
+timestamp(binaries) -> integer_to_binary(timestamp()).
 
 
 %%-----------------------------------
@@ -127,56 +127,47 @@ timestamp() ->
 
 %%-----------------------------------
 %% @doc Return a tuple within converted Timestamp from integer
--spec timestamp_to_tuple(Timestamp::integer()) -> tuple() | {error,_Reason}.
+-spec timestamp_to_tuple(Timestamp::integer()) -> tuple().
 
 timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 ->
 	Mega = Timestamp div 1000000000000,
 	Sec = Timestamp div 1000000 rem 1000000,
 	Micro = Timestamp rem 1000000,
-	{Mega,Sec,Micro};
-timestamp_to_tuple(_) -> a:error(?NAME_FUNCTION(),a009).
+	{Mega,Sec,Micro}.
 
 
 %%-----------------------------------
 %% @doc return integer within timestamp from fromated date tuple
--spec to_timestamp(Data) -> integer() | {error,_Reason}
+-spec to_timestamp(Data) -> integer()
 	when
-		Data :: {{Year,Month,Day},{Hours,Minutes,Seconds}},
-		Year :: integer(), Month :: integer(), Day :: integer(),
-		Hours :: integer(), Minutes :: integer(), Seconds :: integer().
+	Data :: {{Year,Month,Day},{Hours,Minutes,Seconds}},
+	Year :: integer(), Month :: integer(), Day :: integer(),
+	Hours :: integer(), Minutes :: integer(), Seconds :: integer().
 
 to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}}) ->
 	(calendar:datetime_to_gregorian_seconds(
 		{{Year,Month,Day},{Hours,Minutes,Seconds}}
-	) - 62167219200) * 1000000;
-to_timestamp(_) -> a:error(?NAME_FUNCTION(),a000).
+	) - 62167219200) * 1000000.
 
 
 %%-----------------------------------
 %% @doc Return formated time from timestamp
--spec from_timestamp(Time_format,Timestamp) -> unicode:latin1_binary()| {error,_Reason}
+-spec from_timestamp(Time_format,Timestamp) -> unicode:latin1_binary()
 	when
-		Time_format :: atom(),
-		Timestamp :: integer().
+	Time_format :: atom(),
+	Timestamp :: integer().
 
 from_timestamp(date_tuple,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
 	calendar:gregorian_seconds_to_datetime(Timestamp div 1000000 + 62167219200);
 from_timestamp(Time_format,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
-	case format(Time_format,{date,from_timestamp(date_tuple,Timestamp)}) of
-		{error,_} -> a:error(?NAME_FUNCTION(),a000);
-		Formated_time -> Formated_time
-	end;
-from_timestamp(_,_) -> a:error(?NAME_FUNCTION(),a000).
+	format(Time_format,{date,from_timestamp(date_tuple,Timestamp)}).
 
-%% ------------------------------------------------
-%% Time
-%% ------------------------------------------------
 
 %%-----------------------------------
 %% @doc
 -spec second(Second) -> integer() | {error,_Reason}
 	when
-		Second :: string() | unicode:latin1_binary().
+	Second :: string() | unicode:latin1_binary().
 
 second(Second) when Second == <<"0">>, Second == <<"00">>, Second == "0", Second == "00" -> 0;
 second(Second) when Second == <<"1">>, Second == <<"01">>, Second == "1", Second == "01" -> 1;
@@ -188,31 +179,14 @@ second(Second) when Second == <<"6">>, Second == <<"06">>, Second == "6", Second
 second(Second) when Second == <<"7">>, Second == <<"07">>, Second == "7", Second == "07" -> 7;
 second(Second) when Second == <<"8">>, Second == <<"08">>, Second == "8", Second == "08" -> 8;
 second(Second) when Second == <<"9">>, Second == <<"09">>, Second == "9", Second == "09" -> 9;
-second(Second) when is_binary(Second) ->
-	try
-		Second_integer = binary_to_integer(Second),
-		if
-			Second_integer >= 0, Second_integer =< 59 -> Second_integer;
-			true -> a:error(?NAME_FUNCTION(),a000)
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
-second(Second) when is_list(Second) ->
-	case io_lib:char_list(Second) of
-		true ->
-			Second_integer = list_to_integer(Second),
-			if
-				Second_integer >= 0, Second_integer =< 59 -> Second_integer;
-				true -> a:error(?NAME_FUNCTION(),a000)
-			end
-	end;
-second(_) -> a:error(?NAME_FUNCTION(),a000).
+second(Second) -> a_var:to_integer(Second).
 
 
 %%-----------------------------------
 %% @doc Return integer from formated minute
--spec minute(Minute) -> integer() | {error,_Reason}
+-spec minute(Minute) -> integer()
 	when
-		Minute :: string() | unicode:latin1_binary().
+	Minute :: string() | unicode:latin1_binary().
 
 minute(Minute) -> second(Minute).
 
@@ -221,7 +195,7 @@ minute(Minute) -> second(Minute).
 %% @doc Return integer from formated hour
 -spec hour(Hour) -> integer() | {error,_Reason}
 	when
-		Hour :: string() | unicode:latin1_binary().
+	Hour :: string() | unicode:latin1_binary().
 
 hour(Hour) when Hour == <<"0">>, Hour == <<"00">>, Hour == "0", Hour == "00" -> 0;
 hour(Hour) when Hour == <<"1">>, Hour == <<"01">>, Hour == "1", Hour == "01" -> 1;
@@ -233,31 +207,14 @@ hour(Hour) when Hour == <<"6">>, Hour == <<"06">>, Hour == "6", Hour == "06" -> 
 hour(Hour) when Hour == <<"7">>, Hour == <<"07">>, Hour == "7", Hour == "07" -> 7;
 hour(Hour) when Hour == <<"8">>, Hour == <<"08">>, Hour == "8", Hour == "08" -> 8;
 hour(Hour) when Hour == <<"9">>, Hour == <<"09">>, Hour == "9", Hour == "09" -> 9;
-hour(Hour) when is_binary(Hour) ->
-	try
-		Hour_integer = binary_to_integer(Hour),
-		if
-			Hour_integer >= 0, Hour_integer =< 23 -> Hour_integer;
-			true -> a:error(?NAME_FUNCTION(),a000)
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
-hour(Hour) when is_list(Hour) ->
-	case io_lib:char_list(Hour) of
-		true ->
-			Hour_integer = list_to_integer(Hour),
-			if
-				Hour_integer >= 1, Hour_integer =< 31 -> Hour_integer;
-				true -> a:error(?NAME_FUNCTION(),a000)
-			end
-	end;
-hour(_) -> a:error(?NAME_FUNCTION(),a000).
+hour(Hour) -> a_var:to_integer(Hour).
 
 
 %%-----------------------------------
 %% @doc Return integer within converted day
--spec day(Day) -> integer() | {error,_Reason}
+-spec day(Day) -> integer()
 	when
-		Day :: string() | unicode:latin1_binary().
+	Day :: string() | unicode:latin1_binary().
 
 day(Day) when Day == <<"1">>, Day == <<"01">>, Day == "1", Day == "01" -> 1;
 day(Day) when Day == <<"2">>, Day == <<"02">>, Day == "2", Day == "02" -> 2;
@@ -268,33 +225,12 @@ day(Day) when Day == <<"6">>, Day == <<"06">>, Day == "6", Day == "06" -> 6;
 day(Day) when Day == <<"7">>, Day == <<"07">>, Day == "7", Day == "07" -> 7;
 day(Day) when Day == <<"8">>, Day == <<"08">>, Day == "8", Day == "08" -> 8;
 day(Day) when Day == <<"9">>, Day == <<"09">>, Day == "9", Day == "09" -> 9;
-day(Day) when is_binary(Day) ->
-	try
-	    Day_integer = binary_to_integer(Day),
-		if
-			Day_integer >= 1, Day_integer =< 31 -> Day_integer;
-			true -> a:error(?NAME_FUNCTION(),a000)
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
-day(Day) when is_list(Day) ->
-	case io_lib:char_list(Day) of
-		true ->
-			Day_integer = list_to_integer(Day),
-			if
-				Day_integer >= 1, Day_integer =< 31 -> Day_integer;
-				true -> a:error(?NAME_FUNCTION(),a000)
-			end
-	end;
-day(_) -> a:error(?NAME_FUNCTION(),a000).
+day(Day) -> a_var:to_integer(Day).
 
-
-%% ------------------------------------------------
-%% Day of the week
-%% ------------------------------------------------
 
 %%-----------------------------------
 %% @doc Return integer within number of day the week
--spec dow(Dow::unicode:latin1_binary()) -> integer() | {error,_Reason}.
+-spec dow(Dow::unicode:latin1_binary()) -> integer().
 
 dow(Dow)
 	when
@@ -330,16 +266,15 @@ dow(Dow)
 	when
 		Dow == <<"7">>, Dow == <<"07">>, Dow == "7", Dow == "07",
 		Dow == <<"Sunday">>; Dow == <<"Sun">>; Dow == <<"Su">>,
-		Dow == "Sunday"; Dow == "Sun"; Dow == "Su" -> 7;
-dow(_) -> a:error(?NAME_FUNCTION(),a000).
+		Dow == "Sunday"; Dow == "Sun"; Dow == "Su" -> 7.
 
 
 %%-----------------------------------
 %% @doc Return a binary within day of the week name in defined view
--spec dow(Day_number,View) -> byte() | {error,_Reason}
+-spec dow(Day_number,View) -> byte()
 	when
-		Day_number :: pos_integer(),
-		View :: full | alpha2 | alpha3.
+	Day_number :: pos_integer(),
+	View :: full | alpha2 | alpha3.
 
 dow(1,full) -> <<"Monday">>; dow(2,full) -> <<"Tuesday">>; dow(3,full) -> <<"Wednesday">>;
 dow(4,full) -> <<"Thursday">>; dow(5,full) -> <<"Friday">>; dow(6,full) -> <<"Saturday">>;
@@ -351,19 +286,12 @@ dow(7,alpha3) -> <<"Sun">>;
 
 dow(1,alpha2) -> <<"Mo">>; dow(2,alpha2) -> <<"Tu">>; dow(3,alpha2) -> <<"Wd">>;
 dow(4,alpha2) -> <<"Th">>; dow(5,alpha2) -> <<"Fr">>; dow(6,alpha2) -> <<"Sa">>;
-dow(7,alpha2) -> <<"Su">>;
-
-dow(_,_) -> a:error(?NAME_FUNCTION(),a000).
-
-
-%% ------------------------------------------------
-%% Month
-%% ------------------------------------------------
+dow(7,alpha2) -> <<"Su">>.
 
 
 %%-----------------------------------
 %% @doc Return integer within month number from unicode binary
--spec month(Month::unicode:latin1_binary()) -> integer() | {error,_Reason}.
+-spec month(Month::unicode:latin1_binary()) -> integer().
 
 month(Month)
 	when
@@ -424,16 +352,15 @@ month(Month)
 	when
 		Month == <<"12">>, Month == "12",
 		Month == <<"December">>; Month == <<"Dec">>; Month == <<"De">>,
-		Month == "December"; Month == "Dec"; Month == "De" -> 12;
-month(_) -> a:error(?NAME_FUNCTION(),a000).
+		Month == "December"; Month == "Dec"; Month == "De" -> 12.
 
 
 %%-----------------------------------
 %% @doc Return binary within month name in defined view
--spec month(Month_number,View) -> byte() | {error,_Reason}
+-spec month(Month_number,View) -> byte()
 	when
-		Month_number :: pos_integer(),
-		View :: full | alpha2 | alpha3.
+	Month_number :: pos_integer(),
+	View :: full | alpha2 | alpha3.
 
 month(1,full) -> <<"January">>; month(2,full) -> <<"February">>; month(3,full) -> <<"March">>;
 month(4,full) -> <<"April">>; month(5,full) -> <<"May">>; month(6,full) -> <<"June">>;
@@ -448,59 +375,27 @@ month(10,alpha3) -> <<"Oct">>; month(11,alpha3) -> <<"Nov">>; month(12,alpha3) -
 month(1,alpha2) -> <<"Ja">>; month(2,alpha2) -> <<"Fe">>; month(3,alpha2) -> <<"Mr">>;
 month(4,alpha2) -> <<"Ap">>; month(5,alpha2) -> <<"Ma">>; month(6,alpha2) -> <<"Jn">>;
 month(7,alpha2) -> <<"Jl">>; month(8,alpha2) -> <<"Au">>; month(9,alpha2) -> <<"Se">>;
-month(10,alpha2) -> <<"Oc">>; month(11,alpha2) -> <<"No">>; month(12,alpha2) -> <<"De">>;
+month(10,alpha2) -> <<"Oc">>; month(11,alpha2) -> <<"No">>; month(12,alpha2) -> <<"De">>.
 
-month(_,_) -> a:error(?NAME_FUNCTION(),a000).
-
-%% ------------------------------------------------
-%% Year
-%% ------------------------------------------------
 
 %%-----------------------------------
 %% @doc Return integer from unicode binary chars
--spec year(Type,Year) -> integer() | {error,_Reason}
+-spec year(Type,Year) -> integer() | byte() | string()
 	when
-		Type :: to_string | to_binary | to_integer,
-		Year :: any().
+	Type :: to_string | to_binary | to_integer,
+	Year :: any().
 
-year(to_string,Year) ->
-	try
-		case a:to_string(Year) of
-			{error,Reason} -> {error,Reason};
-			Year_binary -> Year_binary
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
-year(to_binary,Year) ->
-	try
-		case a:to_binary(Year) of
-			{error,Reason} -> {error,Reason};
-			Year_binary -> Year_binary
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a000) end;
-year(to_integer,Year) ->
-	try
-		Year_integer = a:to_integer(Year),
-		case Year_integer of
-			{error,Reason} -> {error,Reason};
-			_ ->
-				if
-					Year_integer > 0 -> Year_integer;
-					true -> a:error(?NAME_FUNCTION(),a000)
-				end
-		end
-	catch _:_ -> a:error(?NAME_FUNCTION(),a010) end;
-year(_,_) -> a:error(?NAME_FUNCTION(),a000).
+year(to_string,Year) -> a_var:to_string(Year);
+year(to_binary,Year) -> a_var:to_binary(Year);
+year(to_integer,Year) -> a_var:to_integer(Year).
 
-%% ------------------------------------------------
-%% Format
-%% ------------------------------------------------
 
 %%-----------------------------------
 %% @doc Return a binary within a formated time
--spec format(View,Time_in) -> byte() | {error,_Reason}
+-spec format(View,Time_in) -> byte()
 	when
-		View :: atom() | tuple(),
-		Time_in :: tuple() | integer().
+	View :: atom() | tuple(),
+	Time_in :: tuple() | integer().
 
 format(View,{timestamp,Timestamp})
 	when is_integer(Timestamp),Timestamp >= 1 ->
@@ -666,17 +561,15 @@ format({iso8601,"DD Month YYYY HH:MM:SS"},{date_tuple,{{Year,Month,Day},{Hour,Mi
 format({iso8601,"DD Month YYYY"},{date_tuple,{{Year,Month,Day},{_,_,_}}}) ->
 	<<(format_element(day,Day))/binary,(" ")/utf8,
 		(month(Month,full))/binary,(" ")/utf8,
-		(format_element(year,Year))/binary>>;
-
-format(_,_) -> a:error(?NAME_FUNCTION(),a000).
+		(format_element(year,Year))/binary>>.
 
 
 %%-----------------------------------
 %% @doc Return formated day
 -spec format_element(Measure,Value) -> byte() | {error,_Reason}
 	when
-		Measure :: atom(),
-		Value :: integer().
+	Measure :: atom(),
+	Value :: integer().
 
 format_element(Measure,0)
 	when Measure == hour; Measure == min; Measure == sec -> <<"00">>;
@@ -701,43 +594,33 @@ format_element(Measure,9)
 
 format_element(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
 	<<(integer_to_binary(Day))/binary>>;
-format_element(day,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
 	<<(integer_to_binary(Month))/binary>>;
-format_element(month,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
 	<<(integer_to_binary(Hours))/binary>>;
-format_element(hour,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
 	<<(integer_to_binary(Minutes))/binary>>;
-format_element(min,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
 	<<(integer_to_binary(Seconds))/binary>>;
-format_element(sec,_) -> a:error(?NAME_FUNCTION(),a009);
 
 format_element(year,Year) -> a:to_binary(Year);
-format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2);
-
-format_element(_,_) -> a:error(?NAME_FUNCTION(),a000).
+format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2).
 
 
 %%-----------------------------------
 %% @doc Return timestamp/data()/seconds from formated time
 -spec from_formated(Format_type,Time_source,Output_type) -> tuple() | integer() | false | {error,_Reason}
 	when
-		Format_type :: atom(),
-		Time_source :: string() | unicode:latin1_binary() | tuple(),
-		Output_type :: tuple | seconds | timestamp.
+	Format_type :: atom(),
+	Time_source :: string() | unicode:latin1_binary() | tuple(),
+	Output_type :: tuple | seconds | timestamp.
 
 from_formated(Format_type,Time_source,Output_type) when is_list(Time_source) ->
-	case io_lib:char_list(Time_source) of
-		true -> from_formated(Format_type,unicode:characters_to_binary(Time_source),Output_type);
-		_ -> a:error(?NAME_FUNCTION(),a000)
-	end;
+	from_formated(Format_type,unicode:characters_to_binary(Time_source),Output_type);
 from_formated(ansi,Time_source,Output_type) when is_binary(Time_source) ->
 	Pattern = <<"^([A-Za-z]{3}) ([A-Za-z]{3}) ([0-9]{2}) ([0-9]{2})\:([0-9]{2})\:([0-9]{2}) ([0-9]{4})$">>,
 	case re:split(Time_source,Pattern,[{return,list}]) of
@@ -766,7 +649,5 @@ from_formated(date_tuple,{{Year,Month,Day},{Hours,Minutes,Seconds}},Output_type)
 	case Output_type of
 		tuple -> {{Year,Month,Day},{Hours,Minutes,Seconds}};
 		seconds -> calendar:datetime_to_gregorian_seconds({{Year,Month,Day},{Hours,Minutes,Seconds}});
-		timestamp -> to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}});
-		_ -> a:error(?NAME_FUNCTION(),a012)
-	end;
-from_formated(_,_,_) -> a:error(?NAME_FUNCTION(),a000).
+		_ -> to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}})
+	end.

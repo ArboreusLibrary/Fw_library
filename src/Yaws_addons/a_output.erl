@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc The output handler
 %%%
 %%% @end
 %%% Created : 12. Февр. 2016 15:00

@@ -1,17 +1,13 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc The prolists handler
 %%%
 %%% @end
 %%% Created : 12. Февр. 2016 21:22
 %%%-------------------------------------------------------------------
 -module(a_proplists).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.1.210").
-
-%% Module Include Start
--include("../Handler/a.hrl").
 
 %% API
 -export([
@@ -22,26 +18,25 @@
 
 %% ----------------------------
 %% @doc Return proplist from record by record information
--spec from_record(Data_module,Record_source) -> proplists:proplist() | {error,_Reason}
+-spec from_record(Data_module,Record_source) -> proplists:proplist()
 	when
-		Data_module :: atom(),
-		Record_source :: term().
+	Data_module :: atom(),
+	Record_source :: term().
 
 from_record(Data_module,Record_src) when is_tuple(Record_src) ->
 	[Record_name|Record] = tuple_to_list(Record_src),
 	case apply(Data_module,rec_info,[Record_name]) of
 		{error,Reason} -> {error,Reason};
 		Record_info -> lists:zip(Record_info,Record)
-	end;
-from_record(_,_) -> a:error(?NAME_FUNCTION(),a014).
+	end.
 
 
 %% ----------------------------
 %% @doc Wrapper function for group_by_value/2 and group_by_key/2
 -spec group(Action_type,Proplist) -> proplists:proplist()
 	when
-		Action_type :: by_value | by_key,
-		Proplist :: proplists:proplist().
+	Action_type :: by_value | by_key,
+	Proplist :: proplists:proplist().
 
 group(by_value,Proplist) -> group_by_value(Proplist,[]);
 group(by_key,Proplist) -> group_by_key(Proplist,[]).

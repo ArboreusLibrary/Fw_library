@@ -9,14 +9,14 @@
 -module(a_file).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
 
+%% System include
+-include("../data_models/types_general.hrl").
+
 %% API
 -export([
 	test/0,
 	do_line/2,do_line/4
 ]).
-
-%% Module Include Start
--include("../types/a_type_general.hrl").
 
 
 %% ----------------------------
@@ -30,8 +30,8 @@ test() -> ok.
 %% @doc Do the function for the line from requested file
 -spec do_line(File_path,Function) -> ok | {error,_Reason}
 	when
-		File_path :: unix_path_string(),
-		Function :: function().
+	File_path :: unix_path_string(),
+	Function :: function().
 
 do_line(File_path,Function) ->
 	{ok,File} = file:open(File_path,read),
@@ -42,8 +42,8 @@ do_line(File_path,Function) ->
 %% @doc The do_line/2 handler
 -spec do_line_handler(File,Function) -> ok | {error,_Reason}
 	when
-		File :: io:device(),
-		Function :: function().
+	File :: io:device(),
+	Function :: function().
 
 do_line_handler(File,Function) ->
 	case io:get_line(File,'') of
@@ -59,10 +59,10 @@ do_line_handler(File,Function) ->
 %% @doc Do the defined function in module for the line from file
 -spec do_line(File_path,Module,Function,Arguments) -> ok | {error,_Reason}
 	when
-		File_path :: unix_path_string(),
-		Module :: atom(),
-		Function :: atom(),
-		Arguments :: list().
+	File_path :: unix_path_string(),
+	Module :: atom(),
+	Function :: atom(),
+	Arguments :: list().
 
 do_line(File_path,Module,Function,Arguments) ->
 	{ok,File} = file:open(File_path,read),
@@ -73,10 +73,10 @@ do_line(File_path,Module,Function,Arguments) ->
 %% @doc The do_line/4 handler
 -spec do_line_handler(File,Module,Function,Arguments) -> ok | {error,_Reason}
 	when
-		File :: io:device(),
-		Module :: atom(),
-		Function :: atom(),
-		Arguments :: atom().
+	File :: io:device(),
+	Module :: atom(),
+	Function :: atom(),
+	Arguments :: list_of_properties().
 
 do_line_handler(File,Module,Function,Arguments) ->
 	case io:get_line(File,'') of

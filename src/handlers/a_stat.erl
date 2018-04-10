@@ -11,9 +11,17 @@
 
 %% API
 -export([
+	test/0,
 	execution_time/1,
 	execution_time/2
 ]).
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %% ----------------------------
@@ -36,8 +44,8 @@ execution_time(Function) when is_function(Function) ->
 %% @doc Return the value of run function by Count times
 -spec execution_time(Function,Count) -> list()
 	when
-		Function :: function(),
-		Count :: integer().
+	Function :: function(),
+	Count :: integer().
 
 execution_time(Function,Count) when is_function(Function) ->
 	Start_time = os:system_time(),
@@ -56,8 +64,8 @@ execution_time(Function,Count) when is_function(Function) ->
 %% @doc Function handler for execution_time/2
 -spec execution_time_handler(Function,Count) -> list()
 	when
-		Function :: function(),
-		Count :: integer().
+	Function :: function(),
+	Count :: integer().
 
 execution_time_handler(_,0) -> ok;
 execution_time_handler(Function,Count) ->

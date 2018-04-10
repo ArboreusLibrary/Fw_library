@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc
+%%% @doc Text handler
 %%%
 %%% @end
 %%% Created : 26. Март 2018 14:02

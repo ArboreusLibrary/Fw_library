@@ -8,7 +8,9 @@
 %%%-------------------------------------------------------------------
 -module(a_code).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("389").
+
+%% System include
+-include("../data_models/types_general.hrl").
 
 %% API
 -export([
@@ -17,19 +19,12 @@
 ]).
 
 
-
-%% ----------------------------
-%% Includes
-
--include("../Handler/types_basic.hrl").
-
-
 %% ----------------------------
 %% @doc Check the module for presence in the Erlang environment.
 -spec is_module(Module) -> {Module,Path} | false
 	when
-		Module :: module(),
-		Path :: unix_path().
+	Module :: module(),
+	Path :: unix_path_string().
 
 is_module(Module) ->
 	lists:keyfind(Module,1,code:all_loaded()).
@@ -37,7 +32,7 @@ is_module(Module) ->
 
 %% ----------------------------
 %% @doc Check the path for presence in the Erlang environment.
--spec is_path(Path::unix_path()) -> boolean().
+-spec is_path(Path::unix_path_string()) -> boolean().
 
 is_path(Path) ->
 	lists:member(Path,code:get_path()).

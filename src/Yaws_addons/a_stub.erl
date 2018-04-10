@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc The HTML stub reply for Yaws appmode
 %%%
 %%% @end
 %%% Created : 06. Янв. 2016 13:22
@@ -14,8 +14,17 @@
 
 %% API
 -export([
+	test/0,
 	set/1
 ]).
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
+
 
 %% ----------------------------
 %% @doc return a list within prepeared stub page for Yaws appmod

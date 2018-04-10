@@ -1,25 +1,30 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2016, http://arboreus.system
-%%% @doc
+%%% @doc Yaws appmode json output generator
 %%%
 %%% @end
 %%% Created : 13. Февр. 2016 14:36
 %%%-------------------------------------------------------------------
 -module(a_output_json).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("0.0.1.215").
 
-%% Module Include Start
--include("../Configuration/configuration.conf.hrl").
-
-%% System includes
--include_lib("stdlib/include/qlc.hrl").
+%% System include
+-include("../data_models/types_general.hrl").
+-include("../constants/constants_general.hrl").
 
 %% API
 -export([
+	test/0,
 	make/4
 ]).
+
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %% ----------------------------
@@ -27,10 +32,10 @@
 %% XML formated information from Mnesia DB
 -spec make(Datum,Data_module,Output_type,Output_file_name) -> list()
 	when
-		Datum :: list() | tuple(),
-		Data_module :: atom(),
-		Output_type :: atom(),
-		Output_file_name :: string().
+	Datum :: list() | tuple(),
+	Data_module :: atom(),
+	Output_type :: atom(),
+	Output_file_name :: string().
 
 make({atomic,[]},_,_,_) ->
 	[
@@ -84,10 +89,10 @@ make(_,_,_,_) ->
 %% @doc Return unicode binary within JSON-object from record transformed to proplist
 -spec json_from_proplist([{Key_in,Value_in}|List],Json_inner) -> unicode:chardata() | {error,_Reason}
 	when
-		Key_in :: atom(),
-		Value_in :: atom() | integer() | unicode:chardata() | byte(),
-		List :: list(),
-		Json_inner :: byte().
+	Key_in :: atom(),
+	Value_in :: atom() | integer() | unicode:chardata() | byte(),
+	List :: list(),
+	Json_inner :: byte().
 
 json_from_proplist([],Json_inner) -> <<"{",Json_inner/binary,"}">>;
 json_from_proplist([{Key_in,Value_in}|List],Json_inner) when is_atom(Key_in) ->
@@ -110,9 +115,9 @@ json_from_proplist(_,_) -> {error,badarg}.
 %% @doc Return unicode binary within JSON-object from proplist of records
 -spec json(Data_module,Records,Json_binary) -> unicode:chardata() | {error,_Reason}
 	when
-		Data_module :: atom(),
-		Records :: {_,Record_list::list()},
-		Json_binary :: byte().
+	Data_module :: atom(),
+	Records :: {_,Record_list::list()},
+	Json_binary :: byte().
 
 json(Data_module,{_,Row_list},Json_binary) -> json(Data_module,Row_list,Json_binary);
 json(_,[],Json_binary) -> Json_binary;

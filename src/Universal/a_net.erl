@@ -8,67 +8,65 @@
 %%%-------------------------------------------------------------------
 -module(a_net).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
--vsn("388").
+
+%% System include
+-include("../data_models/types_general.hrl").
+-include("../data_models/types_network.hrl").
 
 %% API
 -export([
+	test/0,
 	ipv4_to_integer/1,
 	ipv6_to_integer/1,
 	integer_to_ipv4/2
 ]).
 
-%% Module Include Start
--include("../Handler/a.hrl").
--include("../Handler/types_network.hrl").
-%% Module Include End
+
+%% ----------------------------
+%% @doc Module test function
+-spec test() -> ok.
+
+test() -> ok.
 
 
 %%-----------------------------------
 %% @doc Return integer from IPv4
--spec ipv4_to_integer(Ip) -> ipv4_integer() | {error,_Reason}
+-spec ipv4_to_integer(Ip) -> ipv4_integer()
 	when
-		Ip :: ipv4_tuple() | ipv4_list() | ipv4_string().
+	Ip :: ipv4_tuple() | ipv4_list() | ipv4_string().
 
-ipv4_to_integer({A,B,C,D}) -> ipv4_to_integer([A,B,C,D]);
+ipv4_to_integer({A,B,C,D}) ->
+	ipv4_to_integer([A,B,C,D]);
 ipv4_to_integer([A,B,C,D])
 	when
-		is_integer(A),is_integer(B),
-		is_integer(C),is_integer(D),
-		A >= 0, A =< 255, B >= 0, B =< 255,
-		C >= 0, C =< 255, D >= 0, D =< 255 ->
+	is_integer(A),is_integer(B),
+	is_integer(C),is_integer(D),
+	A >= 0, A =< 255, B >= 0, B =< 255,
+	C >= 0, C =< 255, D >= 0, D =< 255 ->
 	(A*16777216)+(B*65536)+(C*256)+(D);
 ipv4_to_integer(Ip_string) when is_list(Ip_string) ->
-	case io_lib:char_list(Ip_string) of
-		true ->
-			try
-				{ok,Ip_tuple} = inet:parse_ipv4_address(Ip_string),
-				ipv4_to_integer(Ip_tuple)
-			catch _:_ -> a:error(?NAME_FUNCTION(),a018) end;
-		_ -> a:error(?NAME_FUNCTION(),a003)
-	end;
-ipv4_to_integer(_) -> a:error(?NAME_FUNCTION(),a003).
+	{ok,Ip_tuple} = inet:parse_ipv4_address(Ip_string),
+	ipv4_to_integer(Ip_tuple).
 
 
 %%-----------------------------------
 %% @doc Return integer from IPv6
 -spec ipv6_to_integer(Ip) -> ipv4_integer() | {error,_Reason}
 	when
-		Ip :: ipv6_string().
+	Ip :: ipv6_string().
 
 ipv6_to_integer(Ip_string) ->
-	case inet:parse_ipv6_address(Ip_string) of
-		{ok,_} -> list_to_integer(re:replace(Ip_string,":","",[global,{return,list}]),16);
-		_ -> a:error(?NAME_FUNCTION(),a018)
-	end.
+	{ok,_} = inet:parse_ipv6_address(Ip_string),
+	list_to_integer(re:replace(Ip_string,":","",[global,{return,list}]),16).
 
 
 %%-----------------------------------
 %% @doc Return formatted Ip address from integer
 -spec integer_to_ipv4(Integer,Output_type) ->
-	ipv4_tuple() | ipv4_list() | ipv4_binary() | ipv4_string() | {error,_Reason}
+	ipv4_tuple() | ipv4_list() | ipv4_binary() | ipv4_string() | wrong_integer
 	when
-		Integer :: ipv4_integer(),
-		Output_type :: tuple | list | binary | string.
+	Integer :: ipv4_integer(),
+	Output_type :: tuple | list | binary | string.
 
 integer_to_ipv4(Integer,Output_type) when is_integer(Integer), Integer >= 0 ->
 	A = Integer div 16777216, After_A = Integer-A*16777216,
@@ -76,10 +74,8 @@ integer_to_ipv4(Integer,Output_type) when is_integer(Integer), Integer >= 0 ->
 	C = After_B div 256,
 	D = After_B-C*256,
 	if
-		A > 255 -> a:error(?NAME_FUNCTION(),a009);
-		B > 255 -> a:error(?NAME_FUNCTION(),a009);
-		C > 255 -> a:error(?NAME_FUNCTION(),a009);
-		D > 255 -> a:error(?NAME_FUNCTION(),a009);
+		A > 255; B > 255; C > 255; D > 255 ->
+			wrong_integer;
 		true ->
 			case Output_type of
 				tuple -> {A,B,C,D};
