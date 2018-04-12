@@ -20,5 +20,9 @@ publish:
 	echo "DONE! Syncronisation sources finished.\n"; \
 	cd $(GITHUB_DIR); \
 	git add -A; \
+	echo "Enter the commit message: "; \
 	read MESSAGE; \
-	git commit -m "$MESSAGE";
+	git commit -m "$MESSAGE"; \
+	git push; \
+	echo "*** -----------------"; \
+    echo "DONE! Publishing to Github finished.\n";
