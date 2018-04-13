@@ -34,3 +34,5 @@
 -type hour() :: 0..23.
 -type minute() :: 0..59.
 -type second() :: 0..59.
+
+-type process_id() :: any().

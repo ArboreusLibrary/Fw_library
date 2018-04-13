@@ -20,6 +20,7 @@ GITHUB_DIR = $(PWD)/../../Github/Fw_library
 MODULES += universal
 MODULES += yaws_addons
 MODULES += handlers
+MODULES += behaviours
 
 # Environment variables
 ERLANG_SETTINGS_FILE = ~/.erlang
