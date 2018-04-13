@@ -49,18 +49,18 @@ g_call(Process_id,Message) ->
 	Arguments :: term().
 
 g_start_link(Process_id,Module,Arguments) ->
-	gen_server:start_link({global,Process_id},Module,Arguments).
+	gen_server:start_link({global,Process_id},Module,Arguments,[]).
 
 
 %% ----------------------------
 %% @doc Apply the gen_server global spawn link
--spec g_start_link(Process_id,Module,Arguments,Option) ->
+-spec g_start_link(Process_id,Module,Arguments,Options) ->
 	{ok,_Pid} | ignore | {error,_Error}
 	when
 	Process_id :: process_id(),
 	Module :: atom(),
 	Arguments :: term(),
-	Option :: [_Option].
+	Options :: [_Option].
 
-g_start_link(Process_id,Module,Arguments,Option) ->
-	gen_server:start_link({global,Process_id},Module,Arguments,Option).
+g_start_link(Process_id,Module,Arguments,Options) ->
+	gen_server:start_link({global,Process_id},Module,Arguments,Options).
