@@ -18,6 +18,7 @@
 -type utf_text_binary() :: unicode:unicode_binary().
 
 -type record() :: tuple().
+-type state() :: term().
 
 -type list_of_properties() :: [any()].
 -type list_of_records() :: [record()].

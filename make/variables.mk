@@ -21,6 +21,8 @@ MODULES += universal
 MODULES += yaws_addons
 MODULES += handlers
 MODULES += behaviours
+MODULES += a_loger
+MODULES += a_structure_tree
 
 # Environment variables
 ERLANG_SETTINGS_FILE = ~/.erlang

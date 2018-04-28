@@ -9,8 +9,8 @@
 -module(a_time).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
 
--include("../data_models/types_general.hrl").
--include("../data_models/types_time.hrl").
+-include("../data_models/types/types_general.hrl").
+-include("../data_models/types/types_time.hrl").
 
 %% Module API
 -export([
@@ -42,7 +42,7 @@ test() -> ok.
 -spec current_date() -> a_date().
 
 current_date() ->
-	{Date,_}=erlang:localtime(),
+	{Date,_} = erlang:localtime(),
 	Date.
 
 
@@ -82,11 +82,7 @@ current_day() ->
 	when
 	View :: full | alpha2 | alpha3.
 
-current_dow(View)
-	when
-	View == full;
-	View == alpha2;
-	View == alpha3 ->
+current_dow(View) when View == full; View == alpha2; View == alpha3 ->
 	dow(calendar:day_of_the_week(current_date()),View).
 
 
@@ -95,13 +91,13 @@ current_dow(View)
 -spec current() -> tuple().
 
 current() ->
-	{_,Time}=erlang:localtime(),
+	{_,Time} = erlang:localtime(),
 	Time.
 
 
 %%-----------------------------------
 %% @doc Return a binary within the current time formated by the Format()::atom() from the list
--spec current(Format) -> binary() | {error,_Reason}
+-spec current(Format) -> pos_integer() | binary() | {error,_Reason}
 	when
 	Format :: atom() | tuple().
 
@@ -110,7 +106,7 @@ current(Format) -> format(Format,{date_tuple,erlang:localtime()}).
 
 
 %%-----------------------------------
-%% @doc Return difned format value of current timestamp
+%% @doc Return defined format value of current timestamp
 -spec timestamp(Type::binaries) -> byte().
 
 timestamp(binaries) -> integer_to_binary(timestamp()).
@@ -127,9 +123,9 @@ timestamp() ->
 
 %%-----------------------------------
 %% @doc Return a tuple within converted Timestamp from integer
--spec timestamp_to_tuple(Timestamp::integer()) -> tuple().
+-spec timestamp_to_tuple(Timestamp::pos_integer()) -> tuple().
 
-timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 ->
+timestamp_to_tuple(Timestamp) when is_integer(Timestamp), Timestamp > 0 ->
 	Mega = Timestamp div 1000000000000,
 	Sec = Timestamp div 1000000 rem 1000000,
 	Micro = Timestamp rem 1000000,
@@ -138,7 +134,7 @@ timestamp_to_tuple(Timestamp) when is_integer(Timestamp) == true, Timestamp > 0 
 
 %%-----------------------------------
 %% @doc return integer within timestamp from fromated date tuple
--spec to_timestamp(Data) -> integer()
+-spec to_timestamp(Data) -> pos_integer()
 	when
 	Data :: {{Year,Month,Day},{Hours,Minutes,Seconds}},
 	Year :: integer(), Month :: integer(), Day :: integer(),
@@ -155,7 +151,7 @@ to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}}) ->
 -spec from_timestamp(Time_format,Timestamp) -> unicode:latin1_binary()
 	when
 	Time_format :: atom(),
-	Timestamp :: integer().
+	Timestamp :: pos_integer().
 
 from_timestamp(date_tuple,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
 	calendar:gregorian_seconds_to_datetime(Timestamp div 1000000 + 62167219200);
@@ -165,7 +161,7 @@ from_timestamp(Time_format,Timestamp) when is_integer(Timestamp), Timestamp >= 1
 
 %%-----------------------------------
 %% @doc
--spec second(Second) -> integer() | {error,_Reason}
+-spec second(Second) -> pos_integer() | {error,_Reason}
 	when
 	Second :: string() | unicode:latin1_binary().
 
@@ -183,8 +179,8 @@ second(Second) -> a_var:to_integer(Second).
 
 
 %%-----------------------------------
-%% @doc Return integer from formated minute
--spec minute(Minute) -> integer()
+%% @doc Return integer from formatted minute
+-spec minute(Minute) -> pos_integer()
 	when
 	Minute :: string() | unicode:latin1_binary().
 
@@ -192,8 +188,8 @@ minute(Minute) -> second(Minute).
 
 
 %%-----------------------------------
-%% @doc Return integer from formated hour
--spec hour(Hour) -> integer() | {error,_Reason}
+%% @doc Return integer from formatted hour
+-spec hour(Hour) -> pos_integer() | {error,_Reason}
 	when
 	Hour :: string() | unicode:latin1_binary().
 
@@ -212,7 +208,7 @@ hour(Hour) -> a_var:to_integer(Hour).
 
 %%-----------------------------------
 %% @doc Return integer within converted day
--spec day(Day) -> integer()
+-spec day(Day) -> pos_integer()
 	when
 	Day :: string() | unicode:latin1_binary().
 
@@ -230,7 +226,7 @@ day(Day) -> a_var:to_integer(Day).
 
 %%-----------------------------------
 %% @doc Return integer within number of day the week
--spec dow(Dow::unicode:latin1_binary()) -> integer().
+-spec dow(Dow::unicode:latin1_binary()) -> pos_integer().
 
 dow(Dow)
 	when
@@ -271,7 +267,7 @@ dow(Dow)
 
 %%-----------------------------------
 %% @doc Return a binary within day of the week name in defined view
--spec dow(Day_number,View) -> byte()
+-spec dow(Day_number,View) -> unicode:latin1_binary()
 	when
 	Day_number :: pos_integer(),
 	View :: full | alpha2 | alpha3.
@@ -291,7 +287,7 @@ dow(7,alpha2) -> <<"Su">>.
 
 %%-----------------------------------
 %% @doc Return integer within month number from unicode binary
--spec month(Month::unicode:latin1_binary()) -> integer().
+-spec month(Month::unicode:latin1_binary()) -> pos_integer().
 
 month(Month)
 	when
@@ -357,7 +353,7 @@ month(Month)
 
 %%-----------------------------------
 %% @doc Return binary within month name in defined view
--spec month(Month_number,View) -> byte()
+-spec month(Month_number,View) -> unicode:latin1_binary()
 	when
 	Month_number :: pos_integer(),
 	View :: full | alpha2 | alpha3.
@@ -595,19 +591,19 @@ format_element(Measure,9)
 format_element(day,Day) when is_integer(Day) == true, Day >9, Day =< 31 ->
 	<<(integer_to_binary(Day))/binary>>;
 
-format_element(month,Month) when is_integer(Month) == true, Month > 9, Month =< 12 ->
+format_element(month,Month) when is_integer(Month), Month > 9, Month =< 12 ->
 	<<(integer_to_binary(Month))/binary>>;
 
-format_element(hour,Hours) when is_integer(Hours) == true, Hours > 9, Hours =< 23 ->
+format_element(hour,Hours) when is_integer(Hours), Hours > 9, Hours =< 23 ->
 	<<(integer_to_binary(Hours))/binary>>;
 
-format_element(min,Minutes) when is_integer(Minutes) == true, Minutes > 9, Minutes =< 59 ->
+format_element(min,Minutes) when is_integer(Minutes), Minutes > 9, Minutes =< 59 ->
 	<<(integer_to_binary(Minutes))/binary>>;
 
-format_element(sec,Seconds) when is_integer(Seconds) == true, Seconds > 9, Seconds =< 59 ->
+format_element(sec,Seconds) when is_integer(Seconds), Seconds > 9, Seconds =< 59 ->
 	<<(integer_to_binary(Seconds))/binary>>;
 
-format_element(year,Year) -> a:to_binary(Year);
+format_element(year,Year) -> a_var:to_binary(Year);
 format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2).
 
 
