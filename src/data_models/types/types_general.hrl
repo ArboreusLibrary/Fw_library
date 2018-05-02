@@ -17,6 +17,10 @@
 -type utf_text_string() :: unicode:charlist().
 -type utf_text_binary() :: unicode:unicode_binary().
 
+-type md5() :: md5_binary() | md5_string().
+-type md5_binary() :: <<_:32>>.
+-type md5_string() :: utf_text_string().
+
 -type record() :: tuple().
 -type state() :: term().
 

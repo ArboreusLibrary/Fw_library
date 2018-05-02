@@ -10,6 +10,7 @@
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
 
 %% Data types
+-include("../data_models/types/types_general.hrl").
 -include("../data_models/types/types_a_structure_tree.hrl").
 
 %% Data models
@@ -55,14 +56,23 @@ create_schema(Nodes) ->
 %% @doc Create data models
 
 create_data_model(Nodes) ->
-	{atomic,ok} = mnesia:create_table(astr_tree,[
-		{attributes,record_info(fields,astr_tree)},
-		{type,ordered_set},{index,[twig,parent]},
+	{atomic,ok} = mnesia:create_table(astr_point,[
+		{attributes,record_info(fields,astr_point)},
+		{type,ordered_set},{index,[twig,kind]},
 		{disc_copies,Nodes}
 	]),
 	{atomic,ok} = mnesia:create_table(astr_link,[
 		{attributes,record_info(fields,astr_link)},
-		{type,bag},{index,[point_b]},
+		{type,ordered_set},{index,[point_a,point_b]},
 		{disc_copies,Nodes}
+	]),
+	{atomic,ok} = mnesia:create_table(astr_alias,[
+		{attributes,record_info(fields,astr_alias)},
+		{type,ordered_set},{index,[point]},
+		{disc_copies,Nodes}
+	]),
+	{atomic,ok} = mnesia:create_table(astr_twig,[
+		{attributes,record_info(fields,astr_twig)},
+		{type,ordered_set},{disc_copies,Nodes}
 	]),
 	ok.
