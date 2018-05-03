@@ -17,17 +17,16 @@
 -include("../data_models/records/records_a_structure_tree.hrl").
 
 %% Constants
--define(ALIAS_TABLE_NAME,?MODULE).
--define(POINTS_TABLE_NAME,astr_point).
--define(MODEL_NAME,?MODULE).
+-include("astr_constants.hrl").
+-define(MODEL_NAME,?NAME_LINK).
 
 %% API
 -export([
 	test/0,
 	create/1,
 	read/1,
-	select/3,dirty_select/3,
-	generate_id/2
+	update_strength/2,
+	select/3,dirty_select/3
 ]).
 
 
@@ -52,8 +51,25 @@ test() ->
 
 
 %% ----------------------------
-%% @doc
+%% @doc Transactional select from DB
+-spec select(Kind,Properties,Return_mode) ->
+	{ok,_Datum} | {norow,Properties} | {aborted,_Reason}
+	when
+	Kind :: by_point | by_points,
+	Properties :: list_of_properties(),
+	Return_mode :: return_id | return_ids | return_record | return_records.
 
+select(by_point,[Point],Return_mode) ->
+	Match_head = #astr_link{point_a = '$1',point_b = '$2',_ = '_'},
+	Guard = {'or',{'==','$1',Point},{'==','$2',Point}},
+	Result = '$_',
+	case mnesia:select(
+		?MODEL_NAME,[{Match_head,[Guard],[Result]}]
+	) of
+		[] -> {norow,[Point]};
+		{aborted,Reason} -> {aborted,Reason};
+		Records -> select_return(Return_mode,Records)
+	end;
 select(by_points,[Point_a,Point_b],Return_mode) ->
 	Match_head = #astr_link{point_a = '$1',point_b = '$2',_ = '_'},
 	Guard = {'or',
@@ -71,7 +87,13 @@ select(by_points,[Point_a,Point_b],Return_mode) ->
 
 
 %% ----------------------------
-%% @doc
+%% @doc Dirty select links from DB
+-spec dirty_select(Kind,Properties,Return_mode) ->
+	{ok,_Datum} | {norow,Properties} | {aborted,_Reason}
+	when
+	Kind :: by_point | by_points,
+	Properties :: list_of_properties(),
+	Return_mode :: return_id | return_ids | return_record | return_records.
 
 dirty_select(by_point,[Point],Return_mode) ->
 	Match_head = #astr_link{point_a = '$1',point_b = '$2',_ = '_'},
@@ -115,6 +137,36 @@ select_return(_,Datum) -> {ok,Datum}.
 
 
 %% ----------------------------
+%% @doc Update the link's strength
+-spec update_strength(Strength,Properties) ->
+	{ok,Astr_link_id} | {norow,Astr_link_id} | {error,_Reason}
+	when
+	Strength :: astr_link_strength(),
+	Properties :: list_of_properties() | astr_link() | astr_link_id(),
+	Astr_link_id :: astr_link_id().
+
+update_strength(Strength,[Point_a,Point_b]) ->
+	case dirty_select(by_points,[Point_a,Point_b],return_record) of
+		{ok,Astr_link} -> update_strength(Strength,Astr_link#astr_link.id);
+		{aborted,Reason} -> {error,Reason};
+		Reply -> Reply
+	end;
+update_strength(Strength,Astr_link) when is_record(Astr_link,astr_link) ->
+	update_strength(Strength,Astr_link#astr_link.id);
+update_strength(Strength,Astr_link_id) ->
+	case read(Astr_link_id) of
+		{ok,Astr_link} ->
+			case mnesia:transaction(fun() ->
+				mnesia:write(Astr_link#astr_link{strength = Strength})
+			end) of
+				{atomic,_} -> {ok,Astr_link_id};
+				Reply -> {error,Reply}
+			end;
+		Reply -> Reply
+	end.
+
+
+%% ----------------------------
 %% @doc Read link by ID
 -spec read(Astr_link_id) ->
 	{norow,Astr_link_id} | {ok,Astr_link} | {error,Astr_link_id}
@@ -131,12 +183,17 @@ read(Astr_link_id) ->
 	
 
 %% ----------------------------
-%% @doc
+%% @doc Create new link between points
+-spec create(Record) ->
+	{ok,Astr_link_id} | {existed,Astr_link_id} | {error,Record}
+	when
+	Record :: astr_link(),
+	Astr_link_id :: astr_link_id().
 
 create(Record) when is_record(Record,astr_link) ->
 	case mnesia:transaction(fun() ->
 		Astr_link_id = generate_id(Record#astr_link.point_a,Record#astr_link.point_b),
-		case mnesia:read(?ALIAS_TABLE_NAME,Astr_link_id) of
+		case mnesia:read(?NAME_ALIAS,Astr_link_id) of
 			[] ->
 				mnesia:write(Record#astr_link{id = Astr_link_id}),
 				Astr_link_id;

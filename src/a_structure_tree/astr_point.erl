@@ -17,15 +17,15 @@
 -include("../data_models/records/records_a_structure_tree.hrl").
 
 %% Constants
--define(ALIAS_TABLE_NAME,?MODULE).
--define(POINTS_TABLE_NAME,astr_point).
--define(MODEL_NAME,?MODULE).
+-include("astr_constants.hrl").
+-define(MODEL_NAME,?NAME_POINT).
 
 %% API
 -export([
 	test/0,
 	create/1,
-	read/1
+	read/1,
+	update/2,update_container/2,update_kind/2,update_weight/2
 ]).
 
 
@@ -34,6 +34,78 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc Update point's weight
+-spec update_weight(Weight,Point) ->
+	{ok,_Astr_point_id} | {norow,_Astr_point_id} | {error,_Reason}
+	when
+	Weight :: astr_point_weight(),
+	Point :: astr_point() | astr_point_id().
+
+update_weight(Weight,Point) ->
+	update([{weight,Weight}],Point).
+
+
+%% ----------------------------
+%% @doc Update point's kind
+-spec update_kind(Kind,Point) ->
+	{ok,_Astr_point_id} | {norow,_Astr_point_id} | {error,_Reason}
+	when
+	Kind :: astr_point_kind(),
+	Point :: astr_point() | astr_point_id().
+
+update_kind(Kind,Point) ->
+	update([{kind,Kind}],Point).
+
+
+%% ----------------------------
+%% @doc Updat container for point
+-spec update_container(Container,Point) ->
+	{ok,_Astr_point_id} | {norow,_Astr_point_id} | {error,_Reason}
+	when
+	Container :: astr_point_container(),
+	Point :: astr_point() | astr_point_id().
+
+update_container(Container,Point) ->
+	update([{container,Container}],Point).
+
+
+%% ----------------------------
+%% @doc Update point in the DB
+-spec update(Values,Point) ->
+	{ok,Astr_point_id} | {norow,Astr_point_id} | {error,_Reason}
+	when
+	Values :: proplists:proplist(),
+	Point :: astr_point() | astr_point_id(),
+	Astr_point_id :: astr_point_id().
+
+update(Values,Astr_point) when is_record(Astr_point,astr_point) ->
+	case mnesia:transaction(fun() ->
+		mnesia:write(Astr_point#astr_point{
+			weight = case proplists:get_value(weight,Values) of
+				undefined -> Astr_point#astr_point.weight;
+				Weight -> Weight
+			end,
+			kind = case proplists:get_value(kind,Values) of
+				undefined -> Astr_point#astr_point.kind;
+				Kind -> Kind
+			end,
+			container = case proplists:get_value(container,Values) of
+				undefined -> Astr_point#astr_point.container;
+				Container -> Container
+			end
+		})
+	end) of
+		{atomic} -> {ok,Astr_point#astr_point.id};
+		Reply -> {error,Reply}
+	end;
+update(Values,Astr_point_id) ->
+	case read(Astr_point_id) of
+		{ok,Astr_point} -> update(Values,Astr_point);
+		Reply -> Reply
+	end.
 
 
 %% ----------------------------

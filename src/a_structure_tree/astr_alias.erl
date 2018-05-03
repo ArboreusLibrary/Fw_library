@@ -17,8 +17,8 @@
 -include("../data_models/records/records_a_structure_tree.hrl").
 
 %% Constants
--define(ALIAS_TABLE_NAME,?MODULE).
--define(POINTS_TABLE_NAME,astr_point).
+-include("astr_constants.hrl").
+-define(MODEL_NAME,?NAME_ALIAS).
 
 %% API
 -export([
@@ -95,7 +95,7 @@ update(Values,Record) when is_record(Record,astr_alias) ->
 			point = case proplists:get_value(point,Values) of
 				undefined -> Record#astr_alias.point;
 				Point ->
-					case mnesia:read(?POINTS_TABLE_NAME,Point) of
+					case mnesia:read(?NAME_POINT,Point) of
 						[] -> mnesia:abort({nopoint,Point});
 						[_Astr_points] -> Point
 					end
@@ -121,7 +121,7 @@ update(Values,Record) when is_record(Record,astr_alias) ->
 	Astr_alias :: astr_alias().
 
 read(Astr_alias_id) ->
-	case mnesia:dirty_read(?ALIAS_TABLE_NAME,Astr_alias_id) of
+	case mnesia:dirty_read(?MODEL_NAME,Astr_alias_id) of
 		[] -> {norow,Astr_alias_id};
 		[Astr_alias] -> {ok,Astr_alias};
 		_ -> {error,Astr_alias_id}
@@ -138,9 +138,9 @@ read(Astr_alias_id) ->
 
 create(Record) when is_record(Record,astr_alias) ->
 	case mnesia:transaction(fun() ->
-		case mnesia:read(?POINTS_TABLE_NAME,Record#astr_alias.point) of
+		case mnesia:read(?NAME_POINT,Record#astr_alias.point) of
 			[_Astr_tree_point] ->
-				case mnesia:read(?ALIAS_TABLE_NAME,Record#astr_alias.alias) of
+				case mnesia:read(?MODEL_NAME,Record#astr_alias.alias) of
 					[] ->
 						case mnesia:write(Record) of
 							ok -> ok;
