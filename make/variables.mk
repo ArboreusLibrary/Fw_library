@@ -23,6 +23,7 @@ MODULES += handlers
 MODULES += behaviours
 MODULES += a_loger
 MODULES += a_structure_tree
+MODULES += a_event_storage
 
 # Environment variables
 ERLANG_SETTINGS_FILE = ~/.erlang
