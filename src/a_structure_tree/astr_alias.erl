@@ -26,7 +26,8 @@
 	create/1,
 	read/1,
 	update/2,update_point/2,update_description/2,
-	delete/1
+	delete/1,
+	select/3,dirty_select/3
 ]).
 
 
@@ -34,7 +35,96 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() -> ok.
+test() ->
+	Alias1 = #astr_alias{alias = <<("test")/utf8>>,point = "test",description = "test"},
+	{nopoint,_} = create(Alias1),
+	Point1 = #astr_point{weight = 1, twig = "test",kind = "test",container = "test"},
+	{ok,Point_id1} = astr_point:create(Point1),
+	{ok,Point_id2} = astr_point:create(Point1),
+	{ok,Alias_id} = create(Alias1#astr_alias{point = Point_id1}),
+	{existed,_} = create(Alias1#astr_alias{point = Point_id1}),
+	io:format("Ok. Creating test aliases finished ~n"),
+	{ok,_} = read(Alias_id),
+	io:format("Ok. Reading test aliases finished ~n"),
+	{atomic,{ok,[#astr_alias{point = Point_id1,alias = Alias_id}]}} =
+		mnesia:transaction(fun() ->
+			select(by_point,[Point_id1],return_record)
+		end),
+	{ok,[#astr_alias{point = Point_id1,alias = Alias_id}]} =
+		dirty_select(
+			by_point,[Point_id1],return_record
+		),
+	io:format("Ok. Selecting test aliases finished ~n"),
+	{ok,Alias_id} = update_point(Point_id2,Alias_id),
+	{ok,Astr_alias} = read(Alias_id),
+	#astr_alias{point = Point_id2} = Astr_alias,
+	{nopoint,_} = update_point(nopoint,Alias_id),
+	io:format("Ok. Updating test aliases finished ~n"),
+	{ok,_} = delete(Astr_alias),
+	{ok,_} = astr_point:delete(Point_id1),
+	{ok,_} = astr_point:delete(Point_id2),
+	io:format("Ok. Deleting test aliases finished ~n"),
+	ok.
+
+
+%% ----------------------------
+%% @doc Dirty alternative for select/3
+-spec dirty_select(Kind,Properties,Return_mode) ->
+	{ok,_Datum} | {norow,Properties} | {aborted,_Reason}
+	when
+	Kind :: by_point,
+	Properties :: list_of_properties(),
+	Return_mode :: return_ids | return_records | return_record.
+
+dirty_select(run,[Properties,Match_head,Guard,Result],Return_mode) ->
+	case mnesia:dirty_select(
+		?MODEL_NAME,[{Match_head,Guard,Result}]
+	) of
+		[] -> {norow,Properties};
+		{aborted,Reason} -> {aborted,Reason};
+		Records -> select_return(Return_mode,Records)
+	end;
+dirty_select(by_point,[Point],Return_mode) ->
+	Match_head = #astr_alias{point = '$1',_ = '_'},
+	Guard = [{'==','$1',Point}],
+	Result = ['$_'],
+	dirty_select(run,[[Point],Match_head,Guard,Result],Return_mode).
+
+
+%% ----------------------------
+%% @doc Do selection from Db by defined parameters
+-spec select(Kind,Properties,Return_mode) ->
+	{ok,_Datum} | {norow,Properties} | {aborted,_Reason}
+	when
+	Kind :: by_point,
+	Properties :: list_of_properties(),
+	Return_mode :: return_ids | return_records | return_record.
+
+select(run,[Properties,Match_head,Guard,Result],Return_mode) ->
+	case mnesia:select(
+		?MODEL_NAME,[{Match_head,Guard,Result}]
+	) of
+		[] -> {norow,Properties};
+		{aborted,Reason} -> {aborted,Reason};
+		Records -> select_return(Return_mode,Records)
+	end;
+select(by_point,[Point],Return_mode) ->
+	Match_head = #astr_alias{point = '$1',_ = '_'},
+	Guard = [{'==','$1',Point}],
+	Result = ['$_'],
+	select(run,[[Point],Match_head,Guard,Result],Return_mode).
+
+
+%% ----------------------------
+%% @doc Select datum from record by defined field, additional for select/3
+-spec select_return(Datum,Return_mode) -> {ok,_Datum}
+	when
+	Datum :: astr_alias() | list_of_records(),
+	Return_mode :: return_ids | return_records | return_record.
+
+select_return(return_ids,Records) ->
+	{ok,[Record#astr_point.id || Record <- Records]};
+select_return(_,Datum) -> {ok,Datum}.
 
 
 %% ----------------------------
@@ -48,14 +138,16 @@ delete(Record) when is_record(Record,astr_alias) ->
 	delete(Record#astr_alias.alias);
 delete(Astr_alias_id) ->
 	case mnesia:transaction(fun() ->
-		case mnesia:read(Astr_alias_id) of
+		case mnesia:read(?MODEL_NAME,Astr_alias_id) of
 			[] -> mnesia:abort({norow,Astr_alias_id});
-			[Astr_alias] -> mnesia:delete_object(Astr_alias)
+			[_Astr_alias] -> mnesia:delete({?MODEL_NAME,Astr_alias_id})
 		end
 	end) of
-		{atomic,_ResultOfFun} -> {ok,Astr_alias_id};
-		{aborted,{norow,Astr_alias_id}} -> {norow,Astr_alias_id};
-		_ -> {error,Astr_alias_id}
+		{atomic,_} ->
+			case read(Astr_alias_id) of
+				{norow,_} -> {ok,Astr_alias_id};
+				_ -> {error,Astr_alias_id}
+			end
 	end.
 
 
@@ -83,11 +175,11 @@ update_point(Point,Record) -> update([{point,Point}],Record).
 
 %% ----------------------------
 %% @doc Update alias in the DB
--spec update(Values,Record) ->
-	{ok,astr_alias_id()} | {nopoint,astr_point_id()} | {error,astr_alias_id()}
+-spec update(Values,Astr_alias) ->
+	{ok,astr_alias_id()} | {nopoint,astr_point_id()} | {error,astr_alias_id()} | {norow,astr_alias_id()}
 	when
 	Values :: proplists:proplist(),
-	Record :: astr_alias().
+	Astr_alias :: astr_alias() | astr_alias_id().
 
 update(Values,Record) when is_record(Record,astr_alias) ->
 	case mnesia:transaction(fun() ->
@@ -109,6 +201,11 @@ update(Values,Record) when is_record(Record,astr_alias) ->
 		{atomic,_ResultOfFun} -> {ok,Record#astr_alias.alias};
 		{aborted,{nopoint,Point}} -> {nopoint,Point};
 		_ -> {error,Record#astr_alias.alias}
+	end;
+update(Values,Astr_alias_id) ->
+	case read(Astr_alias_id) of
+		{ok,Astr_alias} -> update(Values,Astr_alias);
+		Reply -> Reply
 	end.
 
 
@@ -155,5 +252,6 @@ create(Record) when is_record(Record,astr_alias) ->
 	end) of
 		{atomic,_ResultOfFun} -> {ok,Record#astr_alias.alias};
 		{aborted,{existed,Astr_alias}} -> {existed,Astr_alias};
+		{aborted,{nopoint,Point}} -> {nopoint,Point};
 		Result_of_transaction -> Result_of_transaction
 	end.

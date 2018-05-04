@@ -26,6 +26,7 @@
 	create/1,
 	read/1,
 	update_strength/2,
+	delete/1,
 	select/3,dirty_select/3
 ]).
 
@@ -35,18 +36,55 @@
 -spec test() -> ok.
 
 test() ->
-	Link1 = #astr_link{point_a = 1,point_b = 2},
-	Link2 = #astr_link{point_a = 2,point_b = 3},
-	Link3 = #astr_link{point_a = 1,point_b = 3},
-	Link4 = #astr_link{point_a = 2,point_b = 4},
-	{ok,Id1} = create(Link1),
-	{ok,_} = create(Link2),
-	{ok,_} = create(Link3),
-	{existed,_} = create(Link3),
-	{ok,_} = create(Link4),
-	io:format("Ok. Creating test users finished ~n"),
-	{ok,#astr_link{point_a = 1,point_b = 2}} = read(Id1),
-	io:format("Ok. reading test user finished ~n"),
+	{equalpoints,_} = create(#astr_link{point_a = 0,point_b = 0}),
+	Point = #astr_point{weight = 1,twig = 1,kind = 1,container = 1},
+	{ok,Point_id1} = astr_point:create(Point),
+	{ok,Point_id2} = astr_point:create(Point),
+	{ok,Point_id3} = astr_point:create(Point),
+	{ok,Point_id4} = astr_point:create(Point),
+	Link1_income = #astr_link{point_a = Point_id1,point_b = Point_id2},
+	Link2_income = #astr_link{point_a = Point_id2,point_b = Point_id3},
+	Link3_income = #astr_link{point_a = Point_id1,point_b = Point_id3},
+	Link4_income = #astr_link{point_a = Point_id2,point_b = Point_id4},
+	{ok,Id1} = create(Link1_income),
+	{ok,Id2} = create(Link2_income),
+	{ok,Id3} = create(Link3_income),
+	{ok,Id4} = create(Link4_income),
+	{existed,Id3} = create(Link3_income),
+	io:format("Ok. Creating test links finished ~n"),
+	{ok,Link1} = read(Id1),
+	#astr_link{id = Id1,point_a = Point_id1,point_b = Point_id2} = Link1,
+	{ok,#astr_link{id = Id2,point_a = Point_id2,point_b = Point_id3}} = read(Id2),
+	{ok,#astr_link{id = Id3,point_a = Point_id1,point_b = Point_id3}} = read(Id3),
+	{ok,#astr_link{id = Id4,point_a = Point_id2,point_b = Point_id4}} = read(Id4),
+	io:format("Ok. Reading test links finished ~n"),
+	{ok,[#astr_link{id = Id1}]} = dirty_select(by_points,[Point_id1,Point_id2],return_record),
+	{ok,[#astr_link{id = Id4}]} = dirty_select(by_point,[Point_id4],return_record),
+	{atomic,{ok,[#astr_link{id = Id4}]}} = mnesia:transaction(fun() ->
+		select(by_point,[Point_id4],return_record)
+	end),
+	{atomic,{ok,[#astr_link{id = Id2}]}} = mnesia:transaction(fun() ->
+		select(by_points,[Point_id2,Point_id3],return_record)
+	end),
+	io:format("Ok. Selecting test links finished ~n"),
+	Strength1 = 100, Strength2 = 200, Strength3 = 300,
+	{ok,Id1} = update_strength(Strength1,Id1),
+	{ok,#astr_link{id = Id1,strength = Strength1}} = read(Id1),
+	{ok,Id1} = update_strength(Strength2,Link1),
+	{ok,#astr_link{id = Id1,strength = Strength2}} = read(Id1),
+	{ok,Id1} = update_strength(Strength3,[Point_id1,Point_id2]),
+	{ok,Link1_fo_delete} = read(Id1),
+	#astr_link{id = Id1,strength = Strength3} = Link1_fo_delete,
+	io:format("Ok. Updating test links finished ~n"),
+	{ok,Id1} = delete(Link1_fo_delete),
+	{ok,Id2} = delete(Id2),
+	{ok,Id3} = delete([Point_id1,Point_id3]),
+	{ok,Id4} = delete(Id4),
+	{ok,_} = astr_point:delete(Point_id1),
+	{ok,_} = astr_point:delete(Point_id2),
+	{ok,_} = astr_point:delete(Point_id3),
+	{ok,_} = astr_point:delete(Point_id4),
+	io:format("Ok. Deleting test links finished ~n"),
 	ok.
 
 
@@ -137,6 +175,37 @@ select_return(_,Datum) -> {ok,Datum}.
 
 
 %% ----------------------------
+%% @doc Delete link between points
+-spec delete(Link) ->
+	{ok,Astr_link_id} | {norow,Astr_link_id} | {error,_Reason}
+	when
+	Link :: astr_link() | astr_link_id() | astr_link_points(),
+	Astr_link_id :: astr_link_id().
+
+delete([Point_a,Point_b]) ->
+	case dirty_select(by_points,[Point_a,Point_b],return_record) of
+		{ok,[Astr_link]} ->
+			case mnesia:transaction(fun() -> mnesia:delete_object(Astr_link) end) of
+				{atomic,_} -> {ok,Astr_link#astr_link.id};
+				Reply -> {error,Reply}
+			end;
+		{aborted,Reason} -> {error,Reason};
+		Reply -> Reply
+	end;
+delete(Astr_link) when is_record(Astr_link,astr_link) ->
+	delete(Astr_link#astr_link.id);
+delete(Astr_link_id) ->
+	case read(Astr_link_id) of
+		{ok,Astr_link} ->
+			case mnesia:transaction(fun() -> mnesia:delete_object(Astr_link) end) of
+				{atomic,_} -> {ok,Astr_link#astr_link.id};
+				Reply -> {error,Reply}
+			end;
+		Reply -> Reply
+	end.
+
+
+%% ----------------------------
 %% @doc Update the link's strength
 -spec update_strength(Strength,Properties) ->
 	{ok,Astr_link_id} | {norow,Astr_link_id} | {error,_Reason}
@@ -147,21 +216,20 @@ select_return(_,Datum) -> {ok,Datum}.
 
 update_strength(Strength,[Point_a,Point_b]) ->
 	case dirty_select(by_points,[Point_a,Point_b],return_record) of
-		{ok,Astr_link} -> update_strength(Strength,Astr_link#astr_link.id);
+		{ok,[Astr_link]} -> update_strength(Strength,Astr_link);
 		{aborted,Reason} -> {error,Reason};
 		Reply -> Reply
 	end;
 update_strength(Strength,Astr_link) when is_record(Astr_link,astr_link) ->
-	update_strength(Strength,Astr_link#astr_link.id);
+	case mnesia:transaction(fun() ->
+		mnesia:write(Astr_link#astr_link{strength = Strength})
+	end) of
+		{atomic,_} -> {ok,Astr_link#astr_link.id};
+		Reply -> {error,Reply}
+	end;
 update_strength(Strength,Astr_link_id) ->
 	case read(Astr_link_id) of
-		{ok,Astr_link} ->
-			case mnesia:transaction(fun() ->
-				mnesia:write(Astr_link#astr_link{strength = Strength})
-			end) of
-				{atomic,_} -> {ok,Astr_link_id};
-				Reply -> {error,Reply}
-			end;
+		{ok,Astr_link} -> update_strength(Strength,Astr_link);
 		Reply -> Reply
 	end.
 
@@ -185,24 +253,41 @@ read(Astr_link_id) ->
 %% ----------------------------
 %% @doc Create new link between points
 -spec create(Record) ->
-	{ok,Astr_link_id} | {existed,Astr_link_id} | {error,Record}
+	{ok,astr_link_id()} | {existed,astr_link_id()} | {nopoint,astr_point_id()} |
+	{error,Record} | {equalpoints,[astr_point_id()|astr_point_id()]}
 	when
-	Record :: astr_link(),
-	Astr_link_id :: astr_link_id().
+	Record :: astr_link().
 
 create(Record) when is_record(Record,astr_link) ->
 	case mnesia:transaction(fun() ->
 		Astr_link_id = generate_id(Record#astr_link.point_a,Record#astr_link.point_b),
-		case mnesia:read(?NAME_ALIAS,Astr_link_id) of
+		case mnesia:read(?MODEL_NAME,Astr_link_id) of
 			[] ->
-				mnesia:write(Record#astr_link{id = Astr_link_id}),
-				Astr_link_id;
+				if
+					Record#astr_link.point_a == Record#astr_link.point_b ->
+						mnesia:abort({equalpoints,[
+							Record#astr_link.point_a,Record#astr_link.point_b
+						]});
+					true ->
+						case astr_point:read(Record#astr_link.point_a) of
+							{ok,_} -> ok;
+							_ -> mnesia:abort({nopoint,Record#astr_link.point_a})
+						end,
+						case astr_point:read(Record#astr_link.point_b) of
+							{ok,_} -> ok;
+							_ -> mnesia:abort({nopoint,Record#astr_link.point_b})
+						end,
+						mnesia:write(Record#astr_link{id = Astr_link_id}),
+						Astr_link_id
+				end;
 			[Astr_link] ->
 				mnesia:abort({existed,Astr_link#astr_link.id})
 		end
 	end) of
 		{atomic,Astr_link_id} -> {ok,Astr_link_id};
 		{aborted,{existed,Astr_link_id}} -> {existed,Astr_link_id};
+		{aborted,{nopoint,Point}} -> {nopoint,Point};
+		{aborted,{equalpoints,Points}} -> {equalpoints,Points};
 		_ -> {error,Record}
 	end.
 

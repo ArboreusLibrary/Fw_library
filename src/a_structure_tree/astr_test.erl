@@ -11,7 +11,8 @@
 
 %% API
 -export([
-	test/0
+	test/0,
+	run/1
 ]).
 
 
@@ -29,5 +30,19 @@ run(init) ->
 	astr_mdb:init([node()]),
 	run(body);
 run(body) ->
+	io:format(
+		"~nA_structure_tree modules started at:~n ~p (~p)~n",
+		[a_time:current(rfc850), a_time:current(timestamp)]
+	),
+	io:format("~n*** Test for astr_link data model ~n"),
+	ok = astr_link:test(),
+	io:format("~n*** Test for astr_alias data model ~n"),
+	ok = astr_alias:test(),
+	io:format("~n*** Test for astr_point data model ~n"),
+	ok = astr_point:test(),
+	io:format(
+		"~nA_structure_tree modules finished at:~n ~p (~p)~n",
+		[a_time:current(rfc850), a_time:current(timestamp)]
+	),
 	ok.
 	

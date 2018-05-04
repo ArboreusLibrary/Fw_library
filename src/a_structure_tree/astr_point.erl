@@ -25,7 +25,8 @@
 	test/0,
 	create/1,
 	read/1,
-	update/2,update_container/2,update_kind/2,update_weight/2
+	update/2,update_container/2,update_kind/2,update_weight/2,
+	delete/1
 ]).
 
 
@@ -33,7 +34,65 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() -> ok.
+test() ->
+	Point = #astr_point{weight = 1,twig = 1,kind = 1,container = 1},
+	{ok,Astr_point_id1} = create(Point),
+	{ok,Astr_point_id2} = create(Point),
+	io:format("Ok. Creating test point finished ~n"),
+	{ok,#astr_point{id = Astr_point_id1}} = read(Astr_point_id1),
+	io:format("Ok. Reading test point finished ~n"),
+	{ok,Astr_point_id1} = update_container(2,Astr_point_id1),
+	{ok,#astr_point{id = Astr_point_id1,container = 2}} = read(Astr_point_id1),
+	{ok,Astr_point_id1} = update_weight(2,Astr_point_id1),
+	{ok,#astr_point{id = Astr_point_id1,weight = 2}} = read(Astr_point_id1),
+	{ok,Astr_point_id1} = update_kind(2,Astr_point_id1),
+	{ok,#astr_point{id = Astr_point_id1,kind = 2}} = read(Astr_point_id1),
+	io:format("Ok. Reading test point finished ~n"),
+	{ok,Alias_id} = astr_alias:create(#astr_alias{point = Astr_point_id1}),
+	{ok,#astr_alias{point = Astr_point_id1}} = astr_alias:read(Alias_id),
+	{ok,Link_id} = astr_link:create(#astr_link{point_b = Astr_point_id1,point_a = Astr_point_id2}),
+	{ok,#astr_link{id = Link_id}} = astr_link:read(Link_id),
+	{ok,Astr_point_id1} = delete(Astr_point_id1),
+	{ok,Astr_point_id2} = delete(Astr_point_id2),
+	{norow,_} = astr_alias:read(Alias_id),
+	{norow,_} = astr_link:read(Link_id),
+	io:format("Ok. Deleting test points finished ~n").
+
+
+%% ----------------------------
+%% @doc Delete point from DB
+-spec delete(Point) ->
+	{ok,astr_point_id()} | {norow,astr_point_id()} | {error,_Reason}
+	when
+	Point :: astr_point() | astr_point_id().
+
+delete(Astr_point) when is_record(Astr_point,astr_point) ->
+	delete(Astr_point#astr_point.id);
+delete(Astr_point_id) ->
+	case read(Astr_point_id) of
+		{ok,Astr_point} ->
+			case mnesia:transaction(fun() ->
+				case astr_link:select(
+					by_point,[Astr_point#astr_point.id],return_records
+				) of
+					{ok,Links} ->
+						lists:foreach(fun(Link) -> mnesia:delete_object(Link) end,Links);
+					_ -> ok
+				end,
+				case astr_alias:select(
+					by_point,[Astr_point#astr_point.id],return_records
+				) of
+					{ok,Aliases} ->
+						lists:foreach(fun(Alias) -> mnesia:delete_object(Alias) end,Aliases);
+					_ -> ok
+				end,
+				mnesia:delete_object(Astr_point)
+			end) of
+				{atomic,_} -> {ok,Astr_point_id};
+				Reply -> {error,Reply}
+			end;
+		Reply -> Reply
+	end.
 
 
 %% ----------------------------
@@ -98,7 +157,7 @@ update(Values,Astr_point) when is_record(Astr_point,astr_point) ->
 			end
 		})
 	end) of
-		{atomic} -> {ok,Astr_point#astr_point.id};
+		{atomic,_} -> {ok,Astr_point#astr_point.id};
 		Reply -> {error,Reply}
 	end;
 update(Values,Astr_point_id) ->
