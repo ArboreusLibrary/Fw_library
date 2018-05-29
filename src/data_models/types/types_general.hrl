@@ -24,6 +24,7 @@
 -type record() :: tuple().
 -type state() :: term().
 
+-type list_of_options() :: list_of_properties().
 -type list_of_properties() :: [any()].
 -type list_of_records() :: [record()].
 -type list_of_integers() :: [integer()].
