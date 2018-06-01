@@ -4,7 +4,7 @@
 %%% @doc The Arboreus templates: OTP Gen_server
 %%%
 %%% @end
-%%% Created : 29. Май 2018 17:17
+%%% Created : 29/05/2018 at 17:17
 %%%-------------------------------------------------------------------
 -module(otp_gen_server).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").

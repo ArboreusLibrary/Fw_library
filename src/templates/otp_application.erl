@@ -4,7 +4,7 @@
 %%% @doc The Arboreus templates: OTP Application
 %%%
 %%% @end
-%%% Created : 29. Май 2018 17:20
+%%% Created : 05/29/2018 at 17:20
 %%%-------------------------------------------------------------------
 -module(otp_application).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
@@ -22,6 +22,7 @@
 -export([
 	test/0,
 	start/2,
+	start_phase/3,
 	stop/1
 ]).
 
@@ -31,6 +32,18 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc Application start phases handler
+-spec start_phase(Phase,Type,Arguments) -> any()
+	when
+	Phase :: term(),
+	Type :: normal,
+	Arguments :: list().
+
+start_phase(Phase,Type,Arguments) ->
+	io:format("start_phase(~p,~p,~p).~n",[Phase,Type,Arguments]).
 
 
 %% ----------------------------

@@ -4,7 +4,7 @@
 %%% @doc The Arboreus templates: OTP Supervisor
 %%%
 %%% @end
-%%% Created : 08. Март 2018 18:37
+%%% Created : 08/03/2018 at 18:37
 %%%-------------------------------------------------------------------
 -module(otp_supervisor).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
