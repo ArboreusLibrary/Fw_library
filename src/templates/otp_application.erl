@@ -16,8 +16,6 @@
 
 %% Data models
 
-%% Data models
-
 %% Application callbacks
 -export([
 	test/0,
