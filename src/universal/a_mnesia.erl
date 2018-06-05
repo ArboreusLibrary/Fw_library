@@ -17,8 +17,10 @@
 	test/0,
 	create_schema/1,
 	create/1,transaction_create/1,dirty_create/1,
-	read_by_ids/2,transaction_read_by_ids/2,dirty_read_by_ids/2,
-	select_all/1,transaction_select_all/1,dirty_select_all/1
+	dirty_read/2,read_by_ids/2,transaction_read_by_ids/2,dirty_read_by_ids/2,
+	select_all/1,transaction_select_all/1,dirty_select_all/1,
+	delete/2,transaction_delete/2,dirty_delete/2,
+	generate_id/4
 ]).
 
 
@@ -28,6 +30,98 @@
 
 test() -> ok.
 
+
+%% ----------------------------
+%% @doc Delete objects transaction
+-spec transaction_delete(Table,Key) -> {ok,Key} | {norow,Key} | {error,_Reason}
+	when
+	Table :: atom(),
+	Key :: any().
+
+transaction_delete(Table,Key) ->
+	case mnesia:transaction(fun() ->
+		case delete(Table,Key) of
+			{ok,_} -> ok;
+			{norow,_} -> norow;
+			_ -> error
+		end
+	end) of
+		{atomic,ok} -> {ok,Key};
+		{atomic,norow} -> {norow,Key};
+		Transaction_result -> {error,Transaction_result}
+	end.
+
+
+%% ----------------------------
+%% @doc Transactional delete objects by key
+-spec delete(Table,Key) -> {norow,Key} | {ok,Key}
+	when
+	Table :: atom(),
+	Key :: any().
+
+delete(Table,Key) ->
+	case mnesia:read(Table,Key) of
+		[] -> {norow,Key};
+		Records ->
+			{lists:foreach(fun(Record) ->
+				mnesia:delete_object(Record)
+			end,Records),Key}
+	end.
+
+
+%% ----------------------------
+%% @doc Dirty delete equivalent of transaction_delete\2
+-spec dirty_delete(Table,Key) -> {norow,Key} | {ok,Key}
+	when
+	Table :: atom(),
+	Key :: any().
+
+dirty_delete(Table,Key) ->
+	case mnesia:dirty_read(Table,Key) of
+		[] -> {norow,Key};
+		Records ->
+			{lists:foreach(fun(Record) ->
+				mnesia:dirty_delete_object(Record)
+			end,Records),Key}
+	end.
+
+
+%% ----------------------------
+%% @doc Generate validated row ID
+-spec generate_id(Kind,Table,Dictionaries,Length) -> id()
+	when
+	Kind :: transactional | dirty,
+	Table :: atom(),
+	Dictionaries :: list_of_atoms(),
+	Length :: pos_integer().
+
+generate_id(transactional,Table,Dictionaries,Length) ->
+	Id = a_sequence:random(Dictionaries,Length),
+	case mnesia:read(Table,Id) of
+		[] -> Id;
+		_ -> generate_id(transactional,Table,Dictionaries,Length)
+	end;
+generate_id(dirty,Table,Dictionaries,Length) ->
+	Id = a_sequence:random(Dictionaries,Length),
+	case mnesia:dirty_read(Table,Id) of
+		[] -> Id;
+		_ -> generate_id(dirty,Table,Dictionaries,Length)
+	end.
+
+
+%% ----------------------------
+%% @doc Mnesia dirty_read equivalent
+-spec dirty_read(Table,Key) -> {norow,Key} | {ok,record()} | {ok,list_of_records()}
+	when
+	Table :: atom(),
+	Key :: any().
+
+dirty_read(Table,Key) ->
+	case mnesia:dirty_read(Table,Key) of
+		[] -> {norow,Key};
+		[Record] -> {ok,Record};
+		Records -> {ok,Records}
+	end.
 
 %% ----------------------------
 %% @doc Dirty read by Ids from the table handler, wrapper for dirty_read_by_ids_handler/3

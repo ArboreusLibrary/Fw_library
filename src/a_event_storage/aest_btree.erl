@@ -19,7 +19,6 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() ->
-	Tree = gb.
+test() -> ok.
 
 

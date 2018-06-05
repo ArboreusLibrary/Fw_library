@@ -9,11 +9,15 @@
 -module(a_sequence).
 -author("Alexandr KIRILOV (http://alexandr.kirilov.me)").
 
+%% Data types
+-include("../data_models/types/types_general.hrl").
+
 %% Module API
 -export([
 	test/0,
 	dictionaries/0,
 	make_dictionary/1,
+	make_password_hash/3,
 	random_seed/0,
 	random/2,random/3,
 	md/2,
@@ -26,6 +30,27 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc Generate password hash
+-spec make_password_hash(Password,Salt,Encryption_type) -> md()
+	when
+	Password :: utf_text_string() | utf_text_binary(),
+	Salt :: utf_text_string() | utf_text_binary(),
+	Encryption_type :: md5 | md4.
+
+make_password_hash(Password,Salt,Encryption_type) when is_list(Salt) ->
+	make_password_hash(
+		Password,unicode:characters_to_binary(Salt),Encryption_type
+	);
+make_password_hash(Password,Salt,Encryption_type) when is_list(Password) ->
+	make_password_hash(
+		unicode:characters_to_binary(Password),Salt,Encryption_type
+	);
+make_password_hash(Password,Salt,Encryption_type)
+	when is_binary(Password), is_binary(Salt) ->
+	md(<<Password/binary,Salt/binary>>,Encryption_type).
 
 
 %%-----------------------------------
@@ -152,7 +177,7 @@ md_hex(X) ->
 	Source :: time | any().
 
 unique(time) ->
-	Time = a:to_binary(a_time:timestamp()),
+	Time = a_var:to_binary(a_time:timestamp()),
 	Random_value = make_random(make_dictionary([alpha_lower]),64),
 	md(<<Time/binary,Random_value/binary>>,md4);
 unique(Object) ->

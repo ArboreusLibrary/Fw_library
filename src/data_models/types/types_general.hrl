@@ -17,9 +17,24 @@
 -type utf_text_string() :: unicode:charlist().
 -type utf_text_binary() :: unicode:unicode_binary().
 
+-type md() :: md5() | md4().
+-type md_binary() :: md5_binary() | md4_binary().
+-type md_string() :: md5_string() | md4_string().
+
 -type md5() :: md5_binary() | md5_string().
 -type md5_binary() :: <<_:32>>.
 -type md5_string() :: utf_text_string().
+
+-type md4() :: md5_binary() | md5_string().
+-type md4_binary() :: <<_:32>>.
+-type md4_string() :: utf_text_string().
+
+-type id() :: id_8() | id_12() | id_16() | id_24() | id_32().
+-type id_8() :: <<_:8>>.
+-type id_12() :: <<_:12>>.
+-type id_16() :: <<_:16>>.
+-type id_24() :: <<_:25>>.
+-type id_32() :: md5_binary() | md4_binary() | <<_:32>>.
 
 -type record() :: tuple().
 -type state() :: term().

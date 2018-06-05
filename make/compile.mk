@@ -22,6 +22,10 @@ define compile_module
 $(eval MODULE_NAME := $(1))
 cd $(call get_src_dir,$(MODULE_NAME)); \
 $(foreach FILE_NAME,$(shell find $(call get_src_dir,$(MODULE_NAME)) -name '*.erl'),$(call compile_file,$(FILE_NAME),$(MODULE_NAME)))
+if echo "$(MODULE_APP)" | grep -q "$(MODULE_NAME)"; then \
+cp $(call get_src_dir,$(MODULE_NAME))/$(1).app $(call get_ebin_dir,$(MODULE_NAME))/; \
+echo "DONE! Application resource file $(MODULE_NAME).app copied."; \
+fi; \
 echo "*** Module $(1) compilation finished\n";
 endef
 

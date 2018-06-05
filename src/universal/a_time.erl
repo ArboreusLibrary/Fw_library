@@ -26,7 +26,8 @@
 	month/1,month/2,
 	year/2,
 	format/2,
-	from_formated/3
+	from_formated/3,
+	date_to_integer/1
 ]).
 
 
@@ -44,6 +45,26 @@ test() -> ok.
 current_date() ->
 	{Date,_} = erlang:localtime(),
 	Date.
+
+
+%%-----------------------------------
+%% @doc Return date integer from different sources
+-spec date_to_integer(Date) -> pos_integer()
+	when
+	Date :: current | {Type,String} | {Year,Month,Day},
+	Type :: ansi | rfc822 | iso8601,
+	String :: unicode:charlist(),
+	Year :: year(),
+	Month :: month(),
+	Day :: day().
+
+date_to_integer({Type,String}) ->
+	{Date,_} = from_formated(Type,String,tuple),
+	date_to_integer(Date);
+date_to_integer(current) ->
+	date_to_integer(current_date());
+date_to_integer({Year,Month,Day}) ->
+	Year * 10000 + Month * 100 + Day.
 
 
 %%-----------------------------------
@@ -608,7 +629,7 @@ format_element(year_short,Year) -> binary:part(integer_to_binary(Year),2,2).
 
 
 %%-----------------------------------
-%% @doc Return timestamp/data()/seconds from formated time
+%% @doc Return timestamp/data()/seconds from formatted time
 -spec from_formated(Format_type,Time_source,Output_type) -> tuple() | integer() | false | {error,_Reason}
 	when
 	Format_type :: atom(),

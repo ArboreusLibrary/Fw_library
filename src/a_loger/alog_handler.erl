@@ -164,7 +164,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% ----------------------------
 %% @doc Start event manager process, wrapper for gen_event:start/0
--spec start() -> {ok,pid()} | {error,{already_started, pid()}}
+-spec start() -> {ok,pid()} | {error,{already_started, pid()}}.
 
 start() -> gen_event:start().
 
