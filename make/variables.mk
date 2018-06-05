@@ -20,7 +20,6 @@ GITHUB_DIR = $(PWD)/../../Github/Fw_library
 MODULES += universal
 MODULES += yaws_addons
 MODULES += handlers
-MODULES += behaviours
 MODULES += a_loger
 MODULES += a_structure_tree
 MODULES += a_event_storage
