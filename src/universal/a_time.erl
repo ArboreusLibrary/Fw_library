@@ -177,7 +177,7 @@ to_timestamp({{Year,Month,Day},{Hours,Minutes,Seconds}}) ->
 from_timestamp(date_tuple,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
 	calendar:gregorian_seconds_to_datetime(Timestamp div 1000000 + 62167219200);
 from_timestamp(Time_format,Timestamp) when is_integer(Timestamp), Timestamp >= 1 ->
-	format(Time_format,{date,from_timestamp(date_tuple,Timestamp)}).
+	format(Time_format,{date_tuple,from_timestamp(date_tuple,Timestamp)}).
 
 
 %%-----------------------------------

@@ -17,7 +17,11 @@
 	test/0,
 	create_schema/1,
 	create/1,transaction_create/1,dirty_create/1,
-	dirty_read/2,read_by_ids/2,transaction_read_by_ids/2,dirty_read_by_ids/2,
+	create_unique/1,transaction_create_unique/1,
+	generate_unique/3,transaction_generate_unique/3,
+	read/2,transaction_read/2,dirty_read/2,
+	read_by_ids/2,transaction_read_by_ids/2,dirty_read_by_ids/2,
+	update_unique/1,transaction_update_unique/1,
 	select_all/1,transaction_select_all/1,dirty_select_all/1,
 	delete/2,transaction_delete/2,dirty_delete/2,
 	generate_id/4
@@ -110,6 +114,35 @@ generate_id(dirty,Table,Dictionaries,Length) ->
 
 
 %% ----------------------------
+%% @doc Read transaction
+-spec transaction_read(Table,Key) -> {ok,_Result} | {norow,Key} | {aborted,_Reason}
+	when
+	Table :: atom(),
+	Key :: any().
+
+transaction_read(Table,Key) ->
+	case mnesia:transaction(fun() -> read(Table,Key) end) of
+		{atomic,Transaction_result} -> Transaction_result;
+		Result -> Result
+	end.
+
+%% ----------------------------
+%% @doc Mnesia read equivalent
+-spec read(Table,Key) -> {norow,Key} | {ok,Result}
+	when
+	Table :: atom(),
+	Key :: any(),
+	Result :: record() | list_of_records().
+
+read(Table,Key) ->
+	case mnesia:read(Table,Key) of
+		[] -> {norow,Key};
+		[Record] -> {ok,Record};
+		Records -> {ok,Records}
+	end.
+
+
+%% ----------------------------
 %% @doc Mnesia dirty_read equivalent
 -spec dirty_read(Table,Key) -> {norow,Key} | {ok,record()} | {ok,list_of_records()}
 	when
@@ -188,6 +221,62 @@ read_by_ids_handler(Table,[Id|Ids],Output) ->
 
 
 %% ----------------------------
+%% @doc Generate unique transaction
+-spec transaction_generate_unique(Record,Dictionary,Key_length) ->
+	{aborted,_Reason} | {atomic,{ok,_Id}}
+	when
+	Record :: record(),
+	Dictionary :: [Dictionary_name],
+	Dictionary_name :: numeric | alpha_lower | alpha_upper,
+	Key_length :: pos_integer().
+
+transaction_generate_unique(Record,Dictionary,Key_length) ->
+	mnesia:transaction(fun() ->
+		generate_unique(Record,Dictionary,Key_length)
+	end).
+
+
+%% ----------------------------
+%% @doc Transactional generate unique record in DB
+-spec generate_unique(Record,Dictionary,Key_length) -> {ok,_Id}
+	when
+	Record :: record(),
+	Dictionary :: [Dictionary_name],
+	Dictionary_name :: numeric | alpha_lower | alpha_upper,
+	Key_length :: pos_integer().
+
+generate_unique(Record,Dictionary,Key_length) ->
+	Id = a_sequence:random(Dictionary,Key_length),
+	case create_unique(	setelement(2,Record,Id)) of
+		existed -> generate_unique(Record,Dictionary,Key_length);
+		ok -> {ok,Id}
+	end.
+
+
+%% ----------------------------
+%% @doc Create unique transaction
+-spec transaction_create_unique(Record) -> {aborted,_Reason} | {atomic,ok} | {atomic,existed}
+	when
+	Record :: record().
+
+transaction_create_unique(Record) ->
+	mnesia:transaction(fun() -> create_unique(Record) end).
+
+
+%% ----------------------------
+%% @doc Transactional create unique record after checking previous existence
+-spec create_unique(Record) -> ok | existed
+	when
+	Record :: record().
+
+create_unique(Record) ->
+	case mnesia:read(element(1,Record),element(2,Record)) of
+		[] -> mnesia:write(Record);
+		_ -> existed
+	end.
+
+
+%% ----------------------------
 %% @doc Dirty create rows in the table, wrapper for mnesia:dirty_write/1
 -spec dirty_create(Datum) -> ok
 	when
@@ -217,6 +306,30 @@ transaction_create(Datum) ->
 create(Records) when is_list(Records) ->
 	lists:foreach(fun(Record) -> mnesia:write(Record) end,Records);
 create(Record) -> create([Record]).
+
+
+%% ----------------------------
+%% @doc Update unique transaction
+-spec transaction_update_unique(Record) -> {atomic,{norow,_Id}} | {atomic,{ok,_Id}} | {aborted,_Reason}
+	when
+	Record :: record().
+
+transaction_update_unique(Record) ->
+	mnesia:transaction(fun() -> update_unique(Record) end).
+
+
+%% ----------------------------
+%% @doc Transactional update record in DB by new values
+-spec update_unique(Record) -> {norow,_} | {ok,_}
+	when
+	Record :: record().
+
+update_unique(Record) ->
+	Id = element(2,Record),
+	case mnesia:read(element(1,Record),Id) of
+		[] -> {norow,Id};
+		[_|[]] -> {mnesia:write(Record),Id}
+	end.
 
 
 %% ----------------------------

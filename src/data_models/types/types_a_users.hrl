@@ -17,6 +17,14 @@
 	a_user_id(),
 	a_user_password()
 }.
+-type a_user_properties() :: {
+	a_user_properties,
+	a_user_id(),
+	a_user_create_time(),
+	a_user_bd(),
+	a_user_first_name(),
+	a_user_last_name()
+}.
 -type ause_login() :: {
 	ause_login,
 	a_user_login(),
@@ -27,15 +35,7 @@
 	ause_login_kind,
 	ause_login_kind_id(),
 	ause_login_description(),
-	ause_login_regex()
-}.
--type ause_properties() :: {
-	ause_properties,
-	a_user_id(),
-	a_user_create_time(),
-	a_user_bd(),
-	a_user_first_name(),
-	a_user_last_name()
+	ause_login_rule()
 }.
 
 
@@ -51,4 +51,4 @@
 -type a_user_last_name() :: utf_text_binary().
 -type ause_login_kind_id() :: pos_integer().
 -type ause_login_description() :: utf_text_binary().
--type ause_login_regex() :: utf_text_binary().
+-type ause_login_rule() :: utf_text_binary().

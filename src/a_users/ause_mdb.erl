@@ -63,8 +63,8 @@ create_model(Nodes) ->
 		{attributes,record_info(fields,ause_login_kind)},
 		{type,ordered_set},{disc_copies,Nodes}
 	]),
-	{atomic,ok} = mnesia:create_table(ause_properties,[
-		{attributes,record_info(fields,ause_properties)},
+	{atomic,ok} = mnesia:create_table(a_user_properties,[
+		{attributes,record_info(fields,a_user_properties)},
 		{type,ordered_set},{index,[first_name,last_name]},
 		{disc_copies,Nodes}
 	]),

@@ -37,16 +37,15 @@
 -spec test() -> ok.
 
 test() ->
+	Time_start = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
-		"A_user module testing started at:~n~p (~p)~n",
-		[a_time:current(rfc850),a_time:current(timestamp)]
+		"Module (a_user) testing started at:~n~p (~p)~n",
+		[unicode:characters_to_list(a_time:current(rfc850)),Time_start]
 	),
 	Password_string = "test",
 	Password_hash = generate_password_hash(Password_string),
-	{atomic,A_user_id} = mnesia:transaction(fun() ->
-		create(#a_user{password = Password_hash})
-	end),
+	{ok,A_user_id} = create(#a_user{password = Password_hash}),
 	io:format("DONE! User created: ~p~n",[A_user_id]),
 	Fake_user_id = "fake_id",
 	{norow,Fake_user_id} = read(Fake_user_id),
@@ -64,11 +63,13 @@ test() ->
 	{ok,A_user_id} = delete(A_user_id),
 	{norow,A_user_id} = read(A_user_id),
 	io:format("DONE! User deleting finished: ~p~n",[A_user_id]),
+	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
-		"A_user module testing finished at:~n~p (~p)~n",
-		[a_time:current(rfc850),a_time:current(timestamp)]
+		"Module (a_user) testing finished at:~n~p (~p)~n",
+		[unicode:characters_to_list(a_time:current(rfc850)),Time_stop]
 	),
+	io:format("Test time is: ~p~n",[Time_stop - Time_start]),
 	ok.
 
 %% ----------------------------
@@ -123,12 +124,11 @@ update(Record) when is_record(Record,a_user) ->
 
 %% ----------------------------
 %% @doc Read a_user record from db
--spec read(A_user_id) -> {norow,A_user_id} | {ok,a_user()} | {ok,[a_user_id()]}
+-spec read(A_user_id) -> {norow,A_user_id} | {ok,a_user()}
 	when
 	A_user_id :: a_user_id().
 
-read(A_user_id) ->
-	a_mnesia:dirty_read(?TABLE,A_user_id).
+read(A_user_id) -> a_mnesia:dirty_read(?TABLE,A_user_id).
 
 
 %% ----------------------------
@@ -138,19 +138,12 @@ read(A_user_id) ->
 	Record :: a_user().
 
 create(Record) when is_record(Record,a_user) ->
-	Id = generate_id(),
-	mnesia:write(Record#a_user{id = Id}),
-	Id.
-
-
-%% ----------------------------
-%% @doc Generate verified ID for row
--spec generate_id() -> a_user_id().
-
-generate_id() ->
-	a_mnesia:generate_id(
-		transactional,?TABLE,[numeric,alpha_lower,alpha_upper],8
-	).
+	case a_mnesia:transaction_generate_unique(
+		Record,[numeric,alpha_lower,alpha_upper],8
+	) of
+		{atomic,{ok,Id}} -> {ok,Id};
+		Reply -> {error,Reply}
+	end.
 
 
 %% ----------------------------

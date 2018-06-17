@@ -63,11 +63,18 @@ test(normal) ->
 	{ok, Pid} = start(),
 	test(Pid);
 test(Pid) when is_pid(Pid) ->
+	Time_start =  a_time:current(timestamp),
 	io:format("*** -------------------~n"),
-	io:format("Process ~p started at: ~p (~p)~n", [Pid, a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Process ~p started at: ~p (~p)~n", [
+		Pid,a_time:from_timestamp(rfc850,Time_start),Time_start
+	]),
 	io:format("Ok. Process name ~p.~n", [?SERVER]),
+	Time_stop =  a_time:current(timestamp),
 	io:format("*** -------------------~nTest for ~p passed~n", [?SERVER]),
-	io:format("Finished at: ~p (~p)~n", [a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Finished at: ~p (~p)~n", [
+		a_time:from_timestamp(rfc850,Time_stop),Time_stop
+	]),
+	io:format("Test time is: ~p~n",[Time_stop - Time_start]),
 	stop().
 
 
