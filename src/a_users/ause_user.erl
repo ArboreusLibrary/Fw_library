@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc
+%%% @doc Arboreus users: user handler server
 %%%
 %%% @end
-%%% Created : 06/03/2018 at 13:21
+%%% Created : 06/18/2018 at 14:45
 %%%-------------------------------------------------------------------
 -module(ause_user).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
@@ -14,10 +14,12 @@
 -define(SERVER, ?MODULE).
 
 %% Data types
+-include("../data_models/types/types_general.hrl").
+-include("../data_models/types/types_time.hrl").
+-include("../data_models/types/types_a_users.hrl").
 
 %% Data models
-
-%% Data models
+-include("../data_models/records/records_a_users.hrl").
 -record(state, {}).
 
 %% API
@@ -30,6 +32,9 @@
 	stop/0, stop/1,
 	
 	%% Application functionality
+	create/1,
+	delete/1,
+	reset_password/1,
 	
 	%% Gen_server functionality
 	init/1,
@@ -46,7 +51,7 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() -> ok.
+test() -> test(trace).
 
 
 %% ----------------------------
@@ -63,16 +68,41 @@ test(normal) ->
 	{ok, Pid} = start(),
 	test(Pid);
 test(Pid) when is_pid(Pid) ->
+	Time_start = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
-	io:format("Process ~p started at: ~p (~p)~n", [Pid, a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Process ~p started at: ~p (~p)~n", [
+		Pid, a_time:from_timestamp(rfc850, Time_start), Time_start
+	]),
 	io:format("Ok. Process name ~p.~n", [?SERVER]),
+	Password = "test_password",
+	Password_hash = a_user:generate_password_hash(Password),
+	A_user = #a_user{password = Password_hash},
+	{ok,A_user_id} = create(A_user),
+	io:format("DONE! Creating test user finished: ~p~n",[A_user_id]),
+	{ok,New_password} = reset_password(A_user_id),
+	{ok,A_user_id} = a_user:verify_password(A_user_id,New_password),
+	io:format("DONE! Password reset test passed~n"),
+	{ok,A_user_id} = delete(A_user_id),
+	{norow,A_user_id} = delete(A_user_id),
+	io:format("DONE! Creating test user finished: ~p~n",[A_user_id]),
+	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~nTest for ~p passed~n", [?SERVER]),
-	io:format("Finished at: ~p (~p)~n", [a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Finished at: ~p (~p)~n", [
+		a_time:from_timestamp(rfc850, Time_stop), Time_stop
+	]),
+	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	stop().
 
 
 %% ----------------------------
 %% @doc Module api calls
+
+create(User) ->
+	gen_server:call(?SERVER,{create,User}).
+delete(User) ->
+	gen_server:call(?SERVER,{delete,User}).
+reset_password(User) ->
+	gen_server:call(?SERVER,{reset_password,User}).
 
 
 %% ----------------------------
@@ -92,7 +122,13 @@ test(Pid) when is_pid(Pid) ->
 	NewState :: #state{},
 	Reason :: term().
 
-handle_call(_Request, _From, State) -> {reply, ok, State}.
+handle_call({delete,User},_From,State) ->
+	{reply,a_user:delete(User),State};
+handle_call({reset_password,User},_From,State) ->
+	{reply,a_user:reset_password(User),State};
+handle_call({create,User},_From,State) ->
+	{reply,a_user:create(User),State};
+handle_call(_Request,_From,State) -> {reply, ok, State}.
 
 
 %% ----------------------------

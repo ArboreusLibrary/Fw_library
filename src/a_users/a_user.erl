@@ -28,7 +28,9 @@
 	read/1,
 	update/1,
 	delete/1,
-	verify_password/2
+	verify_password/2,
+	reset_password/1,
+	generate_password_hash/1
 ]).
 
 
@@ -60,6 +62,9 @@ test() ->
 	{wrong_password,A_user_id} = verify_password(A_user_id,Password_string),
 	{norow,_} = verify_password(1,1),
 	io:format("DONE! Password verification finished for user: ~p~n",[A_user_id]),
+	{ok,Reset_password} = reset_password(A_user_id),
+	{ok,A_user_id} = verify_password(A_user_id,Reset_password),
+	io:format("DONE! Password reset finished for user: ~p~n",[A_user_id]),
 	{ok,A_user_id} = delete(A_user_id),
 	{norow,A_user_id} = read(A_user_id),
 	io:format("DONE! User deleting finished: ~p~n",[A_user_id]),
@@ -75,7 +80,7 @@ test() ->
 %% ----------------------------
 %% @doc Verify password for user
 -spec verify_password(User,Password) ->
-	{ok,a_user_id()} | {norow,User} | {wrong_password,a_user_id()} | {error,User}
+	{ok,a_user_id()} | {norow,User} | {wrong_password,a_user_id()}
 	when
 	User :: a_user_id(),
 	Password :: utf_text_string().
@@ -88,8 +93,32 @@ verify_password(User,Password) ->
 				Password_hash == A_user#a_user.password -> {ok,A_user#a_user.id};
 				true -> {wrong_password,A_user#a_user.id}
 			end;
-		{norow,User} -> {norow,User};
-		_ -> {error,User}
+		{norow,User} -> {norow,User}
+	end.
+
+
+%% ----------------------------
+%% @doc Reset password for user
+-spec reset_password(User) -> {ok,Password} | {norow,User} | {aborted,_Reason}
+	when
+	User :: a_user_id(),
+	Password :: a_user_password().
+
+reset_password(User) ->
+	case mnesia:transaction(fun() ->
+		case mnesia:read(?TABLE,User) of
+			[A_user] ->
+				New_password = a_sequence:random([numeric],8),
+				mnesia:write(A_user#a_user{
+					password = generate_password_hash(New_password)
+				}),
+				{ok,New_password};
+			[] -> norow
+		end
+	end) of
+		{atomic,{ok,Password}} -> {ok,Password};
+		{atomic,norow} -> {norow,User};
+		Result -> Result
 	end.
 
 
@@ -152,5 +181,5 @@ create(Record) when is_record(Record,a_user) ->
 	when
 	Password :: utf_text_string() | utf_text_binary().
 
-generate_password_hash(Password) when is_list(Password) ->
+generate_password_hash(Password) ->
 	a_sequence:make_password_hash(Password,?SALT,md5).

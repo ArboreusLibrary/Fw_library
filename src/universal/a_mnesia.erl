@@ -247,7 +247,7 @@ transaction_generate_unique(Record,Dictionary,Key_length) ->
 
 generate_unique(Record,Dictionary,Key_length) ->
 	Id = a_sequence:random(Dictionary,Key_length),
-	case create_unique(	setelement(2,Record,Id)) of
+	case create_unique(setelement(2,Record,Id)) of
 		existed -> generate_unique(Record,Dictionary,Key_length);
 		ok -> {ok,Id}
 	end.

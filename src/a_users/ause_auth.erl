@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc
+%%% @doc Arboreus users: user authorisation server
 %%%
 %%% @end
 %%% Created : 06/03/2018 at 13:22
@@ -14,10 +14,12 @@
 -define(SERVER, ?MODULE).
 
 %% Data types
+-include("../data_models/types/types_general.hrl").
+-include("../data_models/types/types_time.hrl").
+-include("../data_models/types/types_a_users.hrl").
 
 %% Data models
-
-%% Data models
+-include("../data_models/records/records_a_users.hrl").
 -record(state, {}).
 
 %% API
@@ -30,6 +32,7 @@
 	stop/0, stop/1,
 	
 	%% Application functionality
+	verify_password/2,
 	
 	%% Gen_server functionality
 	init/1,
@@ -46,7 +49,7 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() -> ok.
+test() -> test(trace).
 
 
 %% ----------------------------
@@ -69,6 +72,18 @@ test(Pid) when is_pid(Pid) ->
 		Pid,a_time:from_timestamp(rfc850,Time_start),Time_start
 	]),
 	io:format("Ok. Process name ~p.~n", [?SERVER]),
+	A_user_password = "test_password",
+	A_user_password_hash = a_user:generate_password_hash(A_user_password),
+	A_user = #a_user{password = A_user_password_hash},
+	{ok,A_user_id} = a_user:create(A_user),
+	io:format("DONE! Test user created: ~p~n",[A_user_id]),
+	{ok,A_user_id} = verify_password(A_user_id,A_user_password),
+	{norow,1} = verify_password(1,A_user_password),
+	{wrong_password,A_user_id} = verify_password(A_user_id,"1"),
+	io:format("DONE! Test user password verification passed.~n"),
+	{ok,A_user_id} = a_user:delete(A_user_id),
+	{norow,A_user_id} = a_user:read(A_user_id),
+	io:format("DONE! Test user deleted: ~p~n",[A_user_id]),
 	Time_stop =  a_time:current(timestamp),
 	io:format("*** -------------------~nTest for ~p passed~n", [?SERVER]),
 	io:format("Finished at: ~p (~p)~n", [
@@ -80,6 +95,9 @@ test(Pid) when is_pid(Pid) ->
 
 %% ----------------------------
 %% @doc Module api calls
+
+verify_password(User,Password) ->
+	gen_server:call(?SERVER,{verify_password,User,Password}).
 
 
 %% ----------------------------
@@ -99,6 +117,8 @@ test(Pid) when is_pid(Pid) ->
 	NewState :: #state{},
 	Reason :: term().
 
+handle_call({verify_password,User,Password},_From,State) ->
+	{reply,a_user:verify_password(User,Password),State};
 handle_call(_Request, _From, State) -> {reply, ok, State}.
 
 

@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @author Alexandr KIRILOV
 %%% @copyright (C) 2018, http://arboreus.system
-%%% @doc
+%%% @doc Arboreus users: user properties handler server
 %%%
 %%% @end
-%%% Created : 06/03/2018 at 13:22
+%%% Created : 06/18/2018 at 15:57
 %%%-------------------------------------------------------------------
 -module(ause_properties).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
@@ -14,10 +14,12 @@
 -define(SERVER, ?MODULE).
 
 %% Data types
+-include("../data_models/types/types_general.hrl").
+-include("../data_models/types/types_time.hrl").
+-include("../data_models/types/types_a_users.hrl").
 
 %% Data models
-
-%% Data models
+-include("../data_models/records/records_a_users.hrl").
 -record(state, {}).
 
 %% API
@@ -30,6 +32,9 @@
 	stop/0, stop/1,
 	
 	%% Application functionality
+	create/1,
+	read/1,
+	delete/1,
 	
 	%% Gen_server functionality
 	init/1,
@@ -46,7 +51,7 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() -> ok.
+test() -> test(trace).
 
 
 %% ----------------------------
@@ -63,17 +68,30 @@ test(normal) ->
 	{ok, Pid} = start(),
 	test(Pid);
 test(Pid) when is_pid(Pid) ->
+	Time_start = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
-	io:format("Process ~p started at: ~p (~p)~n", [Pid, a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Process ~p started at: ~p (~p)~n", [
+		Pid, a_time:from_timestamp(rfc850, Time_start), Time_start
+	]),
 	io:format("Ok. Process name ~p.~n", [?SERVER]),
+	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~nTest for ~p passed~n", [?SERVER]),
-	io:format("Finished at: ~p (~p)~n", [a_time:current(rfc850), a_time:current(timestamp)]),
+	io:format("Finished at: ~p (~p)~n", [
+		a_time:from_timestamp(rfc850, Time_stop), Time_stop
+	]),
+	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	stop().
 
 
 %% ----------------------------
 %% @doc Module api calls
 
+create(A_user_properties) ->
+	gen_server:call(?SERVER,{create,A_user_properties}).
+delete(User) ->
+	gen_server:call(?SERVER,{delete,User}).
+read(User) ->
+	gen_server:call(?SERVER,{read,User}).
 
 %% ----------------------------
 %% @doc Handling call messages
@@ -92,6 +110,12 @@ test(Pid) when is_pid(Pid) ->
 	NewState :: #state{},
 	Reason :: term().
 
+handle_call({delete,User},_From,State) ->
+	{reply,a_user_properties:delete(User),State};
+handle_call({read,User},_From,State) ->
+	{reply,a_user_properties:read(User),State};
+handle_call({create,A_user_properties},_From,State) ->
+	{reply,a_user_properties:create(A_user_properties),State};
 handle_call(_Request, _From, State) -> {reply, ok, State}.
 
 
