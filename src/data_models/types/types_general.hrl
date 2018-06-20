@@ -46,6 +46,7 @@
 -type list_of_atoms() :: [atom()].
 -type list_of_functions() :: [function()].
 -type list_of_lists() :: [list()].
+-type list_of_values() :: [any()].
 
 -type a_byte_8() :: 0..255.
 -type a_byte_16() :: 0..16#ffffff.

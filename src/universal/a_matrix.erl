@@ -20,6 +20,7 @@
 -export([
 	test/0,
 	check_equality/1,
+	sum/1,
 	lesser/1,
 	greater/1,
 	arrange/1
@@ -47,6 +48,8 @@ test() ->
 	false = check_equality(Not_equal_matrices1),
 	false = check_equality(Not_equal_matrices2),
 	io:format("DONE! Fun check_equality/1 test passed~n"),
+	[6,10,8,2] = sum(Matrices),
+	io:format("DONE! Fun sum/1 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -76,6 +79,52 @@ greater(Matrices) when is_list(Matrices) ->
 
 arrange(Matrices) when is_list(Matrices) ->
 	[].
+
+
+%% ----------------------------
+%% @doc Wrapper for sum/2
+-spec sum(Matrices) -> Output
+	when
+	Matrices :: list_of_lists(),
+	Output :: list_of_values().
+
+sum(Matrices) ->
+	[Matrix|_] = Matrices,
+	Structure = [(fun is_number/1) || _ <- Matrix],
+	case check_equality_handler(
+		{structure,Structure},Matrices,return_boolean
+	) of
+		true -> sum(Matrices,[]);
+		_ -> noequality
+	end.
+
+
+%% ----------------------------
+%% @doc Summing up number's matrices
+-spec sum(Matrices,Output) -> Output
+	when
+	Matrices :: list_of_lists(),
+	Output :: list_of_values().
+
+sum([],Output) -> Output;
+sum([Matrix|Matrices],[]) -> sum(Matrices,Matrix);
+sum([Matrix|Matrices],Output) ->
+	sum(Matrices,sum_handler(Matrix,Output,[])).
+
+
+%% ----------------------------
+%% @doc Summing up 2 matrices
+-spec sum_handler(Matrix,Matrix,Output) -> Output
+	when
+	Matrix :: list_of_values(),
+	Output :: Matrix.
+
+sum_handler([],[],Output) -> Output;
+sum_handler([Number1|Matrix1],[Number2|Matrix2],Output) ->
+	sum_handler(
+		Matrix1,Matrix2,
+		lists:append(Output,[Number1 + Number2])
+	).
 
 
 %% ----------------------------
