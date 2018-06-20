@@ -44,6 +44,7 @@
 -type list_of_records() :: [record()].
 -type list_of_integers() :: [integer()].
 -type list_of_atoms() :: [atom()].
+-type list_of_functions() :: [function()].
 
 -type a_byte_8() :: 0..255.
 -type a_byte_16() :: 0..16#ffffff.
