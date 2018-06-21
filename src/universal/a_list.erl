@@ -24,9 +24,7 @@
 	clear_duplicates/1,
 	find_members/2,
 	compare_members/2,
-	exclude/2,
-	get_structure/3,
-	structure_equality/2
+	exclude/2
 ]).
 
 
@@ -35,96 +33,6 @@
 -spec test() -> ok.
 
 test() -> ok.
-
-
-%% ----------------------------
-%% @doc Check the list for euility to structure
--spec structure_equality(List,Structure) -> boolean()
-	when
-	List :: list(),
-	Structure :: list_of_functions().
-
-structure_equality(List,Structure) ->
-	if
-		length(List) == length(Structure) -> structure_equality_handler(List,Structure);
-		true -> false
-	end.
-
-
-%% ----------------------------
-%% @doc Structure equility handler
--spec structure_equality_handler(List,Structure) -> boolean()
-	when
-	List :: list(),
-	Structure :: list_of_functions().
-
-structure_equality_handler([],[]) -> true;
-structure_equality_handler([Element|List],[Function|Structure]) ->
-	case Function(Element) of
-		true -> structure_equality_handler(List,Structure);
-		_ -> false
-	end.
-
-
-%% ----------------------------
-%% @doc Define the data structure of the list
--spec get_structure(Kind,List,Output) -> list_of_functions()
-	when
-	Kind :: verificator | descritpion,
-	List :: list(),
-	Output :: list_of_functions().
-
-get_structure(_,[],Output) ->
-	case lists:member(undefined,Output) of
-		false -> Output;
-		_ -> error
-	end;
-get_structure(verificator,[Element|List],Output) ->
-	get_structure(verificator,List,lists:append(Output,[
-		begin
-			if
-				is_binary(Element) -> (fun is_binary/1);
-				is_integer(Element) -> (fun is_integer/1);
-				is_float(Element) -> (fun is_float/1);
-				is_number(Element) -> (fun is_number/1);
-				is_bitstring(Element) -> (fun is_bitstring/1);
-				is_binary(Element) -> (fun is_binary/1);
-				is_tuple(Element) -> (fun is_tuple/1);
-				is_atom(Element) -> (fun is_atom/1);
-				is_boolean(Element) -> (fun is_boolean/1);
-				is_function(Element) -> (fun is_function/1);
-				is_list(Element) -> (fun is_list/1);
-				is_map(Element) -> (fun is_map/1);
-				is_pid(Element) -> (fun is_pid/1);
-				is_port(Element) -> (fun is_port/1);
-				is_reference(Element) -> (fun is_reference/1);
-				true -> undefined
-			end
-		end
-	]));
-get_structure(description,[Element|List],Output) ->
-	get_structure(description,List,lists:append(Output,[
-		begin
-			if
-				is_binary(Element) -> binary;
-				is_integer(Element) -> integer;
-				is_float(Element) -> float;
-				is_number(Element) -> number;
-				is_bitstring(Element) -> bitstring;
-				is_binary(Element) -> binary;
-				is_tuple(Element) -> tuple;
-				is_atom(Element) -> atom;
-				is_boolean(Element) -> boolean;
-				is_function(Element) -> function;
-				is_list(Element) -> list;
-				is_map(Element) -> map;
-				is_pid(Element) -> pid;
-				is_port(Element) -> port;
-				is_reference(Element) -> reference;
-				true -> undefined
-			end
-		end
-	])).
 
 
 %% ----------------------------

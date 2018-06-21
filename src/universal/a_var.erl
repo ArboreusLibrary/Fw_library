@@ -18,7 +18,8 @@
 	dump/2,
 	to_string/1,
 	to_binary/1,
-	to_integer/1
+	to_integer/1,
+	inspector/1,inspector/2
 ]).
 
 
@@ -27,6 +28,45 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc The data inspector by type of data, return description and inspector
+-spec inspector(Variable) -> {atom,function()}
+	when
+	Variable :: any().
+
+inspector(Variable) when is_function(Variable) -> {function,(fun is_function/1)};
+inspector(Variable) when is_list(Variable) -> {list,(fun is_list/1)};
+inspector(Variable) when is_map(Variable) -> {map,(fun is_map/1)};
+inspector(Variable) when is_pid(Variable) -> {pid,(fun is_pid/1)};
+inspector(Variable) when is_port(Variable) -> {port,(fun is_port/1)};
+inspector(Variable) when is_reference(Variable) -> {reference,(fun is_reference/1)};
+inspector(Variable) when is_bitstring(Variable) -> {bitstring,(fun is_bitstring/1)};
+inspector(Variable) when is_binary(Variable) -> {binary,(fun is_binary/1)};
+inspector(Variable) when is_integer(Variable) -> {integer,(fun is_integer/1)};
+inspector(Variable) when is_float(Variable) -> {float,(fun is_float/1)};
+inspector(Variable) when is_number(Variable) -> {number,(fun is_number/1)};
+inspector(Variable) when is_tuple(Variable) -> {tuple,(fun is_tuple/1)};
+inspector(Variable) when is_boolean(Variable) -> {boolean,(fun is_boolean/1)};
+inspector(Variable) when is_atom(Variable) -> {atom,(fun is_atom/1)}.
+
+
+%% ----------------------------
+%% @doc The data inspector by type of data, return description or inspector
+-spec inspector(Kind,Variable) -> Inspector | Description
+	when
+	Kind :: verificator | description,
+	Variable :: any(),
+	Inspector :: function(),
+	Description :: atom().
+
+inspector(verificator,Variable) ->
+	{_,Inspector} = inspector(Variable),
+	Inspector;
+inspector(description,Variable) ->
+	{Description,_} = inspector(Variable),
+	Description.
 
 
 %%-----------------------------------
@@ -42,7 +82,9 @@ dump(Path,Variable) ->
 
 %%-----------------------------------
 %% @doc Return string converted from binary
--spec to_string(Any::any()) -> utf_text().
+-spec to_string(Variable) -> utf_text()
+	when
+	Variable :: any().
 
 to_string(String) when is_list(String) -> String;
 to_string(Binary) when is_binary(Binary) -> unicode:characters_to_list(Binary);
@@ -53,7 +95,9 @@ to_string(Float) when is_float(Float) -> float_to_list(Float).
 
 %%-----------------------------------
 %% @doc Return binary within converted value, purposed for integer() or string() datatypes
--spec to_binary(Any::any()) -> byte().
+-spec to_binary(Variable) -> byte()
+	when
+	Variable :: any().
 
 to_binary(String) when is_list(String) -> unicode:characters_to_binary(String);
 to_binary(Binary) when is_binary(Binary) -> Binary;
@@ -64,7 +108,9 @@ to_binary(Float) when is_float(Float) -> float_to_binary(Float).
 
 %%-----------------------------------
 %% @doc Return integer
--spec to_integer(Any::any()) -> integer().
+-spec to_integer(Variable) -> integer()
+	when
+	Variable :: any().
 
 to_integer(String) when is_list(String) -> list_to_integer(String);
 to_integer(Integer) when is_integer(Integer) -> Integer;
