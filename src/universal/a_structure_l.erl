@@ -131,10 +131,11 @@ mass_verify_handler([Structure|List_of_structures],Model) ->
 
 %% ----------------------------
 %% @doc List structure verification
--spec verify(Structure,Model,return_boolean) -> boolean() | {true,Structure}
+-spec verify(Structure,Model,Return_mode) -> boolean() | {true,Structure}
 	when
 	Structure :: list_of_values(),
-	Model :: list_of_functions().
+	Model :: list_of_functions(),
+	Return_mode :: return_structure | return_boolean.
 
 verify([],[],_) -> true;
 verify(_,[],_) -> false;
