@@ -48,6 +48,7 @@
 -type list_of_lists() :: [list()].
 -type list_of_values() :: [any()].
 -type list_of_tuples() :: [tuple()].
+-type list_of_maps() :: [map()].
 
 -type a_byte_8() :: 0..255.
 -type a_byte_16() :: 0..16#ffffff.

@@ -75,7 +75,7 @@ test() ->
 -spec model(Kind,Structure) -> tuple()
 	when
 	Kind :: verificator | description,
-	Structure :: tuple().
+	Structure :: record().
 
 model(Kind,Structure) ->
 	if
@@ -108,7 +108,7 @@ model(Kind,Structure) ->
 %% @doc The structures massive verification
 -spec mass_verify(List_of_structures,Model) -> boolean()
 	when
-	List_of_structures :: list_of_tuples(),
+	List_of_structures :: list_of_records(),
 	Model :: tuple().
 
 mass_verify(List_of_structures,Model) ->
@@ -120,7 +120,7 @@ mass_verify(List_of_structures,Model) ->
 -spec mass_verify(List_of_structures,Model,Return_mode) ->
 	{true,List_of_structures} | boolean()
 	when
-	List_of_structures :: list_of_tuples(),
+	List_of_structures :: list_of_records(),
 	Model :: tuple(),
 	Return_mode :: return_list | return_boolean.
 
@@ -132,7 +132,7 @@ mass_verify(List_of_structures,Model,Return_mode) ->
 %% @doc List structure verification
 -spec verify(Structure,Model,Return_mode) -> boolean() | {true,Structure}
 	when
-	Structure :: tuple(),
+	Structure :: record(),
 	Model :: tuple(),
 	Return_mode :: return_structure | return_boolean.
 

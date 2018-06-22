@@ -91,7 +91,7 @@ model(Kind,Structure) ->
 -spec mass_verify(List_of_structures,Model) -> boolean()
 	when
 	List_of_structures :: list_of_lists(),
-	Model :: list_of_functions().
+	Model :: proplists:proplist().
 
 mass_verify([],[]) -> true;
 mass_verify(_,[]) -> false;
@@ -106,7 +106,7 @@ mass_verify(List_of_structures,Model) ->
 	{true,List_of_structures} | boolean()
 	when
 	List_of_structures :: list_of_lists(),
-	Model :: list_of_functions(),
+	Model :: proplists:proplist(),
 	Return_mode :: return_list | return_boolean.
 
 mass_verify([],[],_) -> true;
@@ -126,7 +126,7 @@ mass_verify(List_of_structures,Model,_) ->
 -spec mass_verify_handler(List_of_structures,Model) -> boolean()
 	when
 	List_of_structures :: list_of_lists(),
-	Model :: list_of_functions().
+	Model :: proplists:proplist().
 
 mass_verify_handler([],_) -> true;
 mass_verify_handler([Structure|List_of_structures],Model) ->
@@ -141,7 +141,7 @@ mass_verify_handler([Structure|List_of_structures],Model) ->
 -spec verify(Structure,Model,Return_mode) -> boolean() | {true,Structure}
 	when
 	Structure :: list_of_values(),
-	Model :: list_of_functions(),
+	Model :: proplists:proplist(),
 	Return_mode :: return_structure | return_boolean.
 
 verify([],[],_) -> true;
@@ -163,7 +163,7 @@ verify(Structure,Model,Return_mode) ->
 -spec verify_structure(Structure,Model) -> {true,Structure} | false
 	when
 	Structure :: list_of_values(),
-	Model :: list_of_functions().
+	Model :: proplists:proplist().
 
 verify_structure(Structure,Model) ->
 	case verify_boolean(Structure,Model) of
@@ -177,7 +177,7 @@ verify_structure(Structure,Model) ->
 -spec verify_boolean(Structure,Model) -> boolean()
 	when
 	Structure :: list_of_values(),
-	Model :: list_of_functions().
+	Model :: proplists:proplist().
 
 verify_boolean([],[]) -> true;
 verify_boolean([{Name,Element}|Structure],Model) ->
