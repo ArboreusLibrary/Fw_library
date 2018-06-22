@@ -16,6 +16,7 @@
 
 %% Data models
 -record(test,{one,two,three,four}).
+-record(test1,{one,two,three,four}).
 
 %% API
 -export([
@@ -39,16 +40,18 @@ test() ->
 	),
 	Record1 = #test{one = 1,two = atom,three = 0.1,four = "123"},
 	Record2 = #test{one = 2,two = second_atom,three = 0.2,four = "1234"},
-	Record_wrong = #test{one = one,two = second_atom,three = 0.2,four = "1234"},
+	Record_wrong1 = #test{one = one,two = second_atom,three = 0.2,four = "1234"},
+	Record_wrong2 = #test1{one = 2,two = second_atom,three = 0.2,four = "1234"},
 	Model1 = model(verificator,Record1),
 	{name,integer,atom,float,list} = model(description,Record1),
 	true = verify(Record1,Model1,return_boolean),
 	true = verify(Record2,Model1,return_boolean),
-	false = verify(Record_wrong,Model1,return_boolean),
+	false = verify(Record_wrong1,Model1,return_boolean),
+	false = verify(Record_wrong2,Model1,return_boolean),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	io:format("DONE! Fun model/2 test passed~n"),
 	List_of_structures = [Record1,Record2,Record1],
-	List_of_structures_wrong = [Record1,Record2,Record_wrong],
+	List_of_structures_wrong = [Record1,Record2,Record_wrong1],
 	true = mass_verify(List_of_structures,Model1),
 	false = mass_verify(List_of_structures_wrong,Model1),
 	false = mass_verify([],Model1),
