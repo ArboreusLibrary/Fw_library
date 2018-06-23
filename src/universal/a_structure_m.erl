@@ -45,23 +45,23 @@ test() ->
 		c => (fun is_float/1),
 		d => (fun is_list/1)
 	},
-	true = verify(Map1,Model1,return_boolean),
-	true = verify(Map2,Model1,return_boolean),
-	false = verify(Map_wrong,Model1,return_boolean),
+	true = verify(Model1,return_boolean,Map1),
+	true = verify(Model1,return_boolean,Map2),
+	false = verify(Model1,return_boolean,Map_wrong),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	Model2 = model(verificator,Map1),
 	Model_description = #{a => integer,b => atom,c => float,d => list},
 	Model_description = model(description,Map1),
-	true = verify(Map2,Model2,return_boolean),
-	false = verify(Map_wrong,Model2,return_boolean),
+	true = verify(Model2,return_boolean,Map2),
+	false = verify(Model2,return_boolean,Map_wrong),
 	io:format("DONE! Fun model/2 test passed~n"),
 	List_of_structures = [Map1,Map2,Map1],
 	List_of_structures_wrong = [Map1,Map2,Map_wrong],
-	true = mass_verify(List_of_structures,Model1),
-	false = mass_verify(List_of_structures_wrong,Model1),
+	true = mass_verify(Model1,List_of_structures),
+	false = mass_verify(Model1,List_of_structures_wrong),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(List_of_structures,Model1,return_list),
-	{true,List_of_structures} = mass_verify(List_of_structures,Model2,return_list),
+	{true,List_of_structures} = mass_verify(Model1,return_list,List_of_structures),
+	{true,List_of_structures} = mass_verify(Model2,return_list,List_of_structures),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
@@ -81,104 +81,101 @@ test() ->
 	Structure :: map().
 
 model(Kind,Structure) ->
-	model_handler(Kind,maps:iterator(Structure),#{}).
+	model_handler(Kind,#{},maps:iterator(Structure)).
 
 
 %% ----------------------------
 %% @doc Handler for map/2
--spec model_handler(Kind,Structure,Model) -> map()
+-spec model_handler(Kind,Model,Structure) -> map()
 	when
 	Kind :: verificator | description,
-	Structure :: map(),
-	Model :: map().
+	Model :: map(),
+	Structure :: map().
 
-model_handler(_,none,Model) -> Model;
-model_handler(Kind,Structure,Model) ->
+model_handler(_,Model,none) -> Model;
+model_handler(Kind,Model,Structure) ->
 	{Name,Element,Structure_next} = maps:next(Structure),
 	model_handler(
-		Kind,Structure_next,
-		maps:put(Name,a_var:inspector(Kind,Element),Model)
+		Kind,
+		maps:put(Name,a_var:inspector(Kind,Element),Model),
+		Structure_next
 	).
 
 
 %% ----------------------------
 %% @doc The structures massive verification
--spec mass_verify(List_of_structures,Model) -> boolean()
+-spec mass_verify(Model,List_of_structures) -> boolean()
 	when
-	List_of_structures :: list_of_maps(),
-	Model :: map().
+	Model :: map(),
+	List_of_structures :: list_of_maps().
 
-mass_verify(List_of_structures,Model) ->
-	mass_verify_handler(List_of_structures,Model).
+mass_verify(Model,List_of_structures) ->
+	mass_verify_handler(Model,List_of_structures).
 
 
 %% ----------------------------
 %% @doc The structures massive verification, adjusted return
--spec mass_verify(List_of_structures,Model,Return_mode) ->
+-spec mass_verify(Model,Return_mode,List_of_structures) ->
 	{true,List_of_structures} | boolean()
 	when
-	List_of_structures :: list_of_maps(),
 	Model :: map(),
-	Return_mode :: return_list | return_boolean.
+	Return_mode :: return_list | return_boolean,
+	List_of_structures :: list_of_maps().
 
-mass_verify(List_of_structures,Model,return_list) ->
-	case mass_verify_handler(List_of_structures,Model) of
+mass_verify(Model,return_list,List_of_structures) ->
+	case mass_verify_handler(Model,List_of_structures) of
 		true -> {true,List_of_structures};
 		Verification_result -> Verification_result
 	end;
-mass_verify(List_of_structures,Model,_) ->
-	mass_verify_handler(List_of_structures,Model).
+mass_verify(Model,_,List_of_structures) ->
+	mass_verify_handler(Model,List_of_structures).
 
 
 %% ----------------------------
 %% @doc The structures massive verification handler
--spec mass_verify_handler(List_of_structures,Model) -> boolean()
+-spec mass_verify_handler(Model,List_of_structures) -> boolean()
 	when
-	List_of_structures :: list_of_maps(),
-	Model :: map().
+	Model :: map(),
+	List_of_structures :: list_of_maps().
 
-mass_verify_handler([],_) -> true;
-mass_verify_handler([Structure|List_of_structures],Model) ->
-	case verify(Structure,Model,return_boolean) of
-		true -> mass_verify_handler(List_of_structures,Model);
+mass_verify_handler(_,[]) -> true;
+mass_verify_handler(Model,[Structure|List_of_structures]) ->
+	case verify(Model,return_boolean,Structure) of
+		true -> mass_verify_handler(Model,List_of_structures);
 		Verification_result -> Verification_result
 	end.
 
 
 %% ----------------------------
 %% @doc Structure verification
--spec verify(Structure,Model,Return_mode) -> boolean() | {true,Structure}
+-spec verify(Model,Return_mode,Structure) -> boolean() | {true,Structure}
 	when
-	Structure :: map(),
 	Model :: map(),
-	Return_mode :: return_structure | return_boolean.
+	Return_mode :: return_structure | return_boolean,
+	Structure :: map().
 
-verify(Structure,Model,Return_mode) ->
+verify(Model,Return_mode,Structure) ->
 	if
 		map_size(Structure) == map_size(Model) ->
 			try
 				case Return_mode of
-					return_structure ->
-						verify_structure(Structure,maps:iterator(Model));
-					_ ->
-						verify_boolean(Structure,maps:iterator(Model))
+					return_structure -> verify_structure(maps:iterator(Model),Structure);
+					_ -> verify_boolean(maps:iterator(Model),Structure)
 				end
-			catch
-				_:_ -> false
-			end;
+			catch _:_ -> false end;
 		true -> false
 	end.
 
 
 %% ----------------------------
 %% @doc Structure verification handler, data return mode
--spec verify_structure(Structure,Model) -> {true,Structure} | false
+-spec verify_structure(Model,Structure) -> {true,Structure} | false
 	when
-	Structure :: map(),
-	Model :: map().
+	Model :: map(),
+	Structure :: map().
 
-verify_structure(Structure,Model) ->
-	case verify_boolean(Structure,Model) of
+verify_structure(Model,Structure) ->
+	case verify_boolean(Model,Structure) of
 		true -> {true,Structure};
 		Verification_result -> Verification_result
 	end.
@@ -186,15 +183,15 @@ verify_structure(Structure,Model) ->
 
 %% ----------------------------
 %% @doc Structure verification handler, boolean return mode
--spec verify_boolean(Structure,Model) -> boolean()
+-spec verify_boolean(Model,Structure) -> boolean()
 	when
-	Structure :: map(),
-	Model :: map().
+	Model :: map(),
+	Structure :: map().
 
-verify_boolean(_,none) -> true;
-verify_boolean(Structure,Model) ->
+verify_boolean(none,_) -> true;
+verify_boolean(Model,Structure) ->
 	{Name,Inspector,Next_model} = maps:next(Model),
 	case Inspector(maps:get(Name,Structure)) of
-		true -> verify_boolean(Structure,Next_model);
+		true -> verify_boolean(Next_model,Structure);
 		_ -> false
 	end.

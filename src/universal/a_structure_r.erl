@@ -44,21 +44,21 @@ test() ->
 	Record_wrong2 = #test1{one = 2,two = second_atom,three = 0.2,four = "1234"},
 	Model1 = model(verificator,Record1),
 	{name,integer,atom,float,list} = model(description,Record1),
-	true = verify(Record1,Model1,return_boolean),
-	true = verify(Record2,Model1,return_boolean),
-	false = verify(Record_wrong1,Model1,return_boolean),
-	false = verify(Record_wrong2,Model1,return_boolean),
+	true = verify(Model1,return_boolean,Record1),
+	true = verify(Model1,return_boolean,Record2),
+	false = verify(Model1,return_boolean,Record_wrong1),
+	false = verify(Model1,return_boolean,Record_wrong2),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	io:format("DONE! Fun model/2 test passed~n"),
 	List_of_structures = [Record1,Record2,Record1],
 	List_of_structures_wrong = [Record1,Record2,Record_wrong1],
-	true = mass_verify(List_of_structures,Model1),
-	false = mass_verify(List_of_structures_wrong,Model1),
-	false = mass_verify([],Model1),
+	true = mass_verify(Model1,List_of_structures),
+	false = mass_verify(Model1,List_of_structures_wrong),
+	false = mass_verify(Model1,[]),
 	true = mass_verify([],[]),
-	false = mass_verify(List_of_structures,[]),
+	false = mass_verify([],List_of_structures),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(List_of_structures,Model1,return_list),
+	{true,List_of_structures} = mass_verify(Model1,return_list,List_of_structures),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
@@ -106,35 +106,35 @@ model(Kind,Structure) ->
 
 %% ----------------------------
 %% @doc The structures massive verification
--spec mass_verify(List_of_structures,Model) -> boolean()
+-spec mass_verify(Model,List_of_structures) -> boolean()
 	when
-	List_of_structures :: list_of_records(),
-	Model :: tuple().
+	Model :: tuple(),
+	List_of_structures :: list_of_records().
 
-mass_verify(List_of_structures,Model) ->
-	a_structure_t:mass_verify(List_of_structures,Model).
+mass_verify(Model,List_of_structures) ->
+	a_structure_t:mass_verify(Model,List_of_structures).
 
 
 %% ----------------------------
 %% @doc The structures massive verification, adjusted return
--spec mass_verify(List_of_structures,Model,Return_mode) ->
+-spec mass_verify(Model,Return_mode,List_of_structures) ->
 	{true,List_of_structures} | boolean()
 	when
-	List_of_structures :: list_of_records(),
 	Model :: tuple(),
-	Return_mode :: return_list | return_boolean.
+	Return_mode :: return_list | return_boolean,
+	List_of_structures :: list_of_records().
 
-mass_verify(List_of_structures,Model,Return_mode) ->
-	a_structure_t:mass_verify(List_of_structures,Model,Return_mode).
+mass_verify(Model,Return_mode,List_of_structures) ->
+	a_structure_t:mass_verify(Model,Return_mode,List_of_structures).
 
 
 %% ----------------------------
 %% @doc List structure verification
--spec verify(Structure,Model,Return_mode) -> boolean() | {true,Structure}
+-spec verify(Model,Return_mode,Structure) -> boolean() | {true,Structure}
 	when
-	Structure :: record(),
 	Model :: tuple(),
-	Return_mode :: return_structure | return_boolean.
+	Return_mode :: return_structure | return_boolean,
+	Structure :: record().
 
-verify(Structure,Model,Return_mode) ->
-	a_structure_t:verify(Structure,Model,Return_mode).
+verify(Model,Return_mode,Structure) ->
+	a_structure_t:verify(Model,Return_mode,Structure).
