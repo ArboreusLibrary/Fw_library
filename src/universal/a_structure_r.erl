@@ -44,10 +44,10 @@ test() ->
 	Record_wrong2 = #test1{one = 2,two = second_atom,three = 0.2,four = "1234"},
 	Model1 = model(verificator,Record1),
 	{name,integer,atom,float,list} = model(description,Record1),
-	true = verify(Model1,return_boolean,Record1),
-	true = verify(Model1,return_boolean,Record2),
-	false = verify(Model1,return_boolean,Record_wrong1),
-	false = verify(Model1,return_boolean,Record_wrong2),
+	true = verify(return_boolean,Model1,Record1),
+	true = verify(return_boolean,Model1,Record2),
+	false = verify(return_boolean,Model1,Record_wrong1),
+	false = verify(return_boolean,Model1,Record_wrong2),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	io:format("DONE! Fun model/2 test passed~n"),
 	List_of_structures = [Record1,Record2,Record1],
@@ -58,7 +58,7 @@ test() ->
 	true = mass_verify([],[]),
 	false = mass_verify([],List_of_structures),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(Model1,return_list,List_of_structures),
+	{true,List_of_structures} = mass_verify(return_list,Model1,List_of_structures),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
@@ -117,24 +117,24 @@ mass_verify(Model,List_of_structures) ->
 
 %% ----------------------------
 %% @doc The structures massive verification, adjusted return
--spec mass_verify(Model,Return_mode,List_of_structures) ->
+-spec mass_verify(Return_mode,Model,List_of_structures) ->
 	{true,List_of_structures} | boolean()
 	when
-	Model :: tuple(),
 	Return_mode :: return_list | return_boolean,
+	Model :: tuple(),
 	List_of_structures :: list_of_records().
 
-mass_verify(Model,Return_mode,List_of_structures) ->
-	a_structure_t:mass_verify(Model,Return_mode,List_of_structures).
+mass_verify(Return_mode,Model,List_of_structures) ->
+	a_structure_t:mass_verify(Return_mode,Model,List_of_structures).
 
 
 %% ----------------------------
 %% @doc List structure verification
--spec verify(Model,Return_mode,Structure) -> boolean() | {true,Structure}
+-spec verify(Return_mode,Model,Structure) -> boolean() | {true,Structure}
 	when
-	Model :: tuple(),
 	Return_mode :: return_structure | return_boolean,
+	Model :: tuple(),
 	Structure :: record().
 
-verify(Model,Return_mode,Structure) ->
-	a_structure_t:verify(Model,Return_mode,Structure).
+verify(Return_mode,Model,Structure) ->
+	a_structure_t:verify(Return_mode,Model,Structure).

@@ -45,19 +45,19 @@ test() ->
 		{three,(fun is_float/1)},
 		{four,(fun is_list/1)}
 	],
-	true = verify(Model1,return_boolean,Proplist1),
-	true = verify(Model1,return_boolean,Proplist2),
-	{true,Proplist1} = verify(Model1,return_structure,Proplist1),
-	false = verify(Model1,return_boolean,Proplist_wrong),
-	false = verify(Model1,return_boolean,[]),
+	true = verify(return_boolean,Model1,Proplist1),
+	true = verify(return_boolean,Model1,Proplist2),
+	{true,Proplist1} = verify(return_structure,Model1,Proplist1),
+	false = verify(return_boolean,Model1,Proplist_wrong),
+	false = verify(return_boolean,Model1,[]),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	Model_description = [{one,integer},{two,atom},{three,float},{four,list}],
 	Model_description = model(description,Proplist1),
 	Model_description = model(description,Proplist2),
 	Model2 = model(verificator,Proplist1),
-	true = verify(Model2,return_boolean,Proplist1),
-	true = verify(Model2,return_boolean,Proplist2),
-	false = verify(Model2,return_boolean,Proplist_wrong),
+	true = verify(return_boolean,Model2,Proplist1),
+	true = verify(return_boolean,Model2,Proplist2),
+	false = verify(return_boolean,Model2,Proplist_wrong),
 	io:format("DONE! Fun model/2 test passed~n"),
 	List_of_structures = [Proplist1,Proplist2,Proplist1],
 	List_of_structures_wrong = [Proplist1,Proplist2,Proplist_wrong],
@@ -67,7 +67,7 @@ test() ->
 	true = mass_verify([],[]),
 	false = mass_verify([],List_of_structures),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(Model2,return_list,List_of_structures),
+	{true,List_of_structures} = mass_verify(return_list,Model2,List_of_structures),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
@@ -106,22 +106,22 @@ mass_verify(Model,List_of_structures) ->
 
 %% ----------------------------
 %% @doc The structures massive verification, adjusted return
--spec mass_verify(Model,Return_mode,List_of_structures) ->
+-spec mass_verify(Return_mode,Model,List_of_structures) ->
 	{true,List_of_structures} | boolean()
 	when
-	Model :: proplists:proplist(),
 	Return_mode :: return_list | return_boolean,
+	Model :: proplists:proplist(),
 	List_of_structures :: list_of_lists().
 
-mass_verify([],_,[]) -> true;
-mass_verify([],_,_) -> false;
+mass_verify(_,[],[]) -> true;
+mass_verify(_,[],_) -> false;
 mass_verify(_,_,[]) -> false;
-mass_verify(Model,return_list,List_of_structures) ->
+mass_verify(return_list,Model,List_of_structures) ->
 	case mass_verify_handler(Model,List_of_structures) of
 		true -> {true,List_of_structures};
 		Verification_result -> Verification_result
 	end;
-mass_verify(Model,_,List_of_structures) ->
+mass_verify(_,Model,List_of_structures) ->
 	mass_verify_handler(Model,List_of_structures).
 
 
@@ -134,7 +134,7 @@ mass_verify(Model,_,List_of_structures) ->
 
 mass_verify_handler(_,[]) -> true;
 mass_verify_handler(Model,[Structure|List_of_structures]) ->
-	case verify(Model,return_boolean,Structure) of
+	case verify(return_boolean,Model,Structure) of
 		true -> mass_verify_handler(Model,List_of_structures);
 		Verification_result -> Verification_result
 	end.
@@ -142,16 +142,16 @@ mass_verify_handler(Model,[Structure|List_of_structures]) ->
 
 %% ----------------------------
 %% @doc List structure verification
--spec verify(Model,Return_mode,Structure) -> boolean() | {true,Structure}
+-spec verify(Return_mode,Model,Structure) -> boolean() | {true,Structure}
 	when
-	Model :: proplists:proplist(),
 	Return_mode :: return_structure | return_boolean,
+	Model :: proplists:proplist(),
 	Structure :: list_of_values().
 
-verify([],_,[]) -> true;
-verify([],_,_) -> false;
+verify(_,[],[]) -> true;
+verify(_,[],_) -> false;
 verify(_,_,[]) -> false;
-verify(Model,Return_mode,Structure) ->
+verify(Return_mode,Model,Structure) ->
 	if
 		length(Structure) == length(Model) ->
 			case Return_mode of
