@@ -44,8 +44,6 @@ inspector(Variable) when is_port(Variable) -> {port,(fun is_port/1)};
 inspector(Variable) when is_reference(Variable) -> {reference,(fun is_reference/1)};
 inspector(Variable) when is_bitstring(Variable) -> {bitstring,(fun is_bitstring/1)};
 inspector(Variable) when is_binary(Variable) -> {binary,(fun is_binary/1)};
-inspector(Variable) when is_integer(Variable) -> {integer,(fun is_integer/1)};
-inspector(Variable) when is_float(Variable) -> {float,(fun is_float/1)};
 inspector(Variable) when is_number(Variable) -> {number,(fun is_number/1)};
 inspector(Variable) when is_tuple(Variable) -> {tuple,(fun is_tuple/1)};
 inspector(Variable) when is_boolean(Variable) -> {boolean,(fun is_boolean/1)};
