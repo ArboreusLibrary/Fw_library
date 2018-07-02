@@ -99,8 +99,8 @@ reference(Structures) -> reference(Structures,all).
 	Positions :: list() | all,
 	Reference :: proplists:proplist().
 	
-reference(Structures,Positions) ->
-	reference(Structures,Positions,[]).
+reference(Structures,Positions) -> reference(Structures,Positions,[]).
+
 
 %% ----------------------------
 %% @doc Generate reference
@@ -113,55 +113,13 @@ reference(Structures,Positions) ->
 
 reference(Structures,all,Reference) ->
 	[Etalon|_] = Structures,
-	reference_handler(
-		Structures,model(verificator,Etalon),
-		lists:seq(1,length(Etalon)),Reference
+	a_structure_lib:reference(
+		?MODULE,Structures,{all,length(Etalon)},Reference
 	);
 reference(Structures,Positions,Reference) ->
-	[Etalon|_] = Structures,
-	reference_handler(
-		Structures,model(verificator,Etalon),
-		Positions,Reference
+	a_structure_lib:reference(
+		?MODULE,Structures,Positions,Reference
 	).
-
-
-%% ----------------------------
-%% @doc Generating reference procedure handler
--spec reference_handler(Structures,Model,Positions,Reference) ->
-	false | {true,Reference}
-	when
-	Structures :: list(),
-	Model :: list(),
-	Positions :: list_of_integers(),
-	Reference :: proplists:proplist().
-
-reference_handler([],_,_,Reference) -> {true,Reference};
-reference_handler([Structure|Structures],Model,Positions,Reference) ->
-	case verify(return_boolean,Model,Structure) of
-		true ->
-			Compose_reference = fun
-				Function([],Reference_income) -> Reference_income;
-				Function([{Key,Value}|List],Reference_income) ->
-					case proplists:get_value(Key,Reference_income) of
-						undefined ->
-							Function(List,lists:append(Reference_income,[{Key,[Value]}]));
-						Reference_value ->
-							Function(List,lists:keyreplace(
-								Key,1,Reference_income,{Key,begin
-									case lists:member(Value,Reference_value) of
-										false -> lists:append(Reference_value,[Value]);
-										_ -> Reference_value
-									end
-								end
-							}))
-					end
-			end,
-			reference_handler(
-				Structures,Model,Positions,
-				Compose_reference(elements(Positions,Structure),Reference)
-			);
-		Verification_result -> Verification_result
-	end.
 
 
 %% ----------------------------
@@ -171,8 +129,7 @@ reference_handler([Structure|Structures],Model,Positions,Reference) ->
 	Positions :: list_of_integers(),
 	Structure :: list().
 
-elements(Positions,Structure) ->
-	elements(Positions,Structure,[]).
+elements(Positions,Structure) -> elements(Positions,Structure,[]).
 
 
 %% ----------------------------
