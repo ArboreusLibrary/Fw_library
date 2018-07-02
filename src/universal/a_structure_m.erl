@@ -21,7 +21,9 @@
 	test/0,
 	verify/3,
 	mass_verify/2,mass_verify/3,
-	model/2
+	model/2,
+	reference/1,reference/2,reference/3,
+	elements/2
 ]).
 
 
@@ -36,13 +38,14 @@ test() ->
 		"Module (a_structure_m) testing started at:~n~p (~p)~n",
 		[a_time:from_timestamp(rfc850, Time_start), Time_start]
 	),
-	Map1 = #{a => 1,b => atom,c => 0.1,d => "123"},
-	Map2 = #{a => 2,b => second_atom,c => 0.1,d => "123"},
+	Map1 = #{a => 1,b => one,c => 0.1,d => "11"},
+	Map2 = #{a => 2,b => two,c => 0.1,d => "11"},
+	Map3 = #{a => 3,b => three,c => 0.1,d => "22"},
 	Map_wrong = #{a => a,b => atom,c => 0.1,d => "123"},
 	Model1 = #{
-		a => (fun is_integer/1),
+		a => (fun is_number/1),
 		b => (fun is_atom/1),
-		c => (fun is_float/1),
+		c => (fun is_number/1),
 		d => (fun is_list/1)
 	},
 	true = verify(return_boolean,Model1,Map1),
@@ -50,19 +53,36 @@ test() ->
 	false = verify(return_boolean,Model1,Map_wrong),
 	io:format("DONE! Fun verify/3 test passed~n"),
 	Model2 = model(verificator,Map1),
-	Model_description = #{a => integer,b => atom,c => float,d => list},
+	Model_description = #{a => number,b => atom,c => number,d => list},
 	Model_description = model(description,Map1),
 	true = verify(return_boolean,Model2,Map2),
 	false = verify(return_boolean,Model2,Map_wrong),
 	io:format("DONE! Fun model/2 test passed~n"),
-	List_of_structures = [Map1,Map2,Map1],
-	List_of_structures_wrong = [Map1,Map2,Map_wrong],
-	true = mass_verify(Model1,List_of_structures),
-	false = mass_verify(Model1,List_of_structures_wrong),
+	Structures = [Map1,Map2,Map3],
+	Structures_wrong = [Map1,Map2,Map_wrong],
+	true = mass_verify(Model1,Structures),
+	false = mass_verify(Model1,Structures_wrong),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(return_list,Model1,List_of_structures),
-	{true,List_of_structures} = mass_verify(return_list,Model2,List_of_structures),
+	{true,Structures} = mass_verify(return_list,Model1,Structures),
+	{true,Structures} = mass_verify(return_list,Model2,Structures),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
+	{true,Reference1} = reference(Structures),
+	{true,Reference1} = reference(Structures,all),
+	{true,Reference1} = reference(Structures,all,[]),
+	{true,Reference2} = reference(Structures,[a,b,c,d],[]),
+	Value_one = [1,2,3],
+	Value_one = proplists:get_value(a,Reference2),
+	Value_one = proplists:get_value(a,Reference1),
+	Value_two = [one,two,three],
+	Value_two = proplists:get_value(b,Reference2),
+	Value_two = proplists:get_value(b,Reference1),
+	Value_three = [0.1],
+	Value_three = proplists:get_value(c,Reference2),
+	Value_three = proplists:get_value(c,Reference1),
+	Value_four = ["11","22"],
+	Value_four = proplists:get_value(d,Reference2),
+	Value_four = proplists:get_value(d,Reference1),
+	io:format("DONE! Fun reference/3 test passed: ~p~n",[Reference1]),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -71,6 +91,75 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Wrapper for reference/2
+-spec reference(Structures) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Reference :: proplists:proplist().
+
+reference(Structures) -> reference(Structures,all).
+
+
+%% ----------------------------
+%% @doc Wrapper for reference/3
+-spec reference(Structures,Positions) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference(Structures,Positions) -> reference(Structures,Positions,[]).
+
+
+%% ----------------------------
+%% @doc Generate reference
+-spec reference(Structures,Positions,Reference) ->
+	false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference(Structures,all,Reference) ->
+	[Etalon|_] = Structures,
+	a_structure_lib:reference(
+		?MODULE,Structures,maps:keys(Etalon),Reference
+	);
+reference(Structures,Positions,Reference) ->
+	a_structure_lib:reference(
+		?MODULE,Structures,Positions,Reference
+	).
+
+
+%% ----------------------------
+%% @doc Wrapper for elements/3
+-spec elements(Positions,Structure) -> proplists:proplist()
+	when
+	Positions :: list_of_integers(),
+	Structure :: list().
+
+elements(Positions,Structure) -> elements(Positions,Structure,[]).
+
+
+%% ----------------------------
+%% @doc Return proplist within position-value pair of the structure
+-spec elements(Positions,Structure,Elements) -> proplists:proplist()
+	when
+	Positions :: list_of_integers(),
+	Structure :: list(),
+	Elements :: proplists:proplist().
+
+elements([],_,Elements) -> Elements;
+elements([Position|Positions],Structure,Elements) ->
+	elements(
+		Positions,Structure,
+		lists:append(Elements,[
+			{Position,maps:get(Position,Structure)}
+		])
+	).
 
 
 %% ----------------------------

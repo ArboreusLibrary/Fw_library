@@ -21,7 +21,9 @@
 	test/0,
 	verify/3,
 	mass_verify/2,mass_verify/3,
-	model/2
+	model/2,
+	reference/1,reference/2,reference/3,
+	elements/2
 ]).
 
 
@@ -40,26 +42,31 @@ test() ->
 	Gb_tree1_1 = gb_trees:insert(a,1,Gb_tree1_empty),
 	Gb_tree1_2 = gb_trees:insert(b,one,Gb_tree1_1),
 	Gb_tree1_3 = gb_trees:insert(c,0.1,Gb_tree1_2),
-	Gb_tree1 = gb_trees:insert(d,"123",Gb_tree1_3),
+	Gb_tree1 = gb_trees:insert(d,"11",Gb_tree1_3),
 	Gb_tree2_empty = gb_trees:empty(),
 	Gb_tree2_1 = gb_trees:insert(a,2,Gb_tree2_empty),
-	Gb_tree2_2 = gb_trees:insert(b,second_one,Gb_tree2_1),
-	Gb_tree2_3 = gb_trees:insert(c,0.2,Gb_tree2_2),
-	Gb_tree2 = gb_trees:insert(d,"1234",Gb_tree2_3),
+	Gb_tree2_2 = gb_trees:insert(b,two,Gb_tree2_1),
+	Gb_tree2_3 = gb_trees:insert(c,0.1,Gb_tree2_2),
+	Gb_tree2 = gb_trees:insert(d,"11",Gb_tree2_3),
+	Gb_tree3_empty = gb_trees:empty(),
+	Gb_tree3_1 = gb_trees:insert(a,3,Gb_tree3_empty),
+	Gb_tree3_2 = gb_trees:insert(b,three,Gb_tree3_1),
+	Gb_tree3_3 = gb_trees:insert(c,0.1,Gb_tree3_2),
+	Gb_tree3 = gb_trees:insert(d,"22",Gb_tree3_3),
 	Gb_tree_wrong_empty = gb_trees:empty(),
 	Gb_tree_wrong_1 = gb_trees:insert(a,2,Gb_tree_wrong_empty),
 	Gb_tree_wrong_2 = gb_trees:insert(b,0,Gb_tree_wrong_1),
 	Gb_tree_wrong_3 = gb_trees:insert(c,0.2,Gb_tree_wrong_2),
 	Gb_tree_wrong = gb_trees:insert(d,"1234",Gb_tree_wrong_3),
 	Model_desc_empty = gb_trees:empty(),
-	Model_desc_1 = gb_trees:insert(a,integer,Model_desc_empty),
+	Model_desc_1 = gb_trees:insert(a,number,Model_desc_empty),
 	Model_desc_2 = gb_trees:insert(b,atom,Model_desc_1),
-	Model_desc_3 = gb_trees:insert(c,float,Model_desc_2),
+	Model_desc_3 = gb_trees:insert(c,number,Model_desc_2),
 	Model_desc = gb_trees:insert(d,list,Model_desc_3),
 	Model_ver_empty = gb_trees:empty(),
-	Model_ver_1 = gb_trees:insert(a,(fun is_integer/1),Model_ver_empty),
+	Model_ver_1 = gb_trees:insert(a,(fun is_number/1),Model_ver_empty),
 	Model_ver_2 = gb_trees:insert(b,(fun is_atom/1),Model_ver_1),
-	Model_ver_3 = gb_trees:insert(c,(fun is_float/1),Model_ver_2),
+	Model_ver_3 = gb_trees:insert(c,(fun is_number/1),Model_ver_2),
 	Model_ver = gb_trees:insert(d,(fun is_list/1),Model_ver_3),
 	true = verify(return_boolean,Model_ver,Gb_tree1),
 	true = verify(return_boolean,Model_ver,Gb_tree2),
@@ -70,17 +77,35 @@ test() ->
 	Model_test1 = model(verificator,Gb_tree1),
 	true = verify(return_boolean,Model_test1,Gb_tree1),
 	true = verify(return_boolean,Model_test1,Gb_tree2),
+	true = verify(return_boolean,Model_test1,Gb_tree3),
 	false = verify(return_boolean,Model_test1,Gb_tree_wrong),
 	io:format("DONE! Fun model/2 test passed~n"),
-	List_of_structures = [Gb_tree1,Gb_tree2,Gb_tree1],
-	List_of_structures_wrong = [Gb_tree1,Gb_tree2,Gb_tree_wrong],
-	true = mass_verify(Model_ver,List_of_structures),
-	false = mass_verify(Model_ver,List_of_structures_wrong),
+	Structures = [Gb_tree1,Gb_tree2,Gb_tree3],
+	Structures_wrong = [Gb_tree1,Gb_tree2,Gb_tree_wrong],
+	true = mass_verify(Model_ver,Structures),
+	false = mass_verify(Model_ver,Structures_wrong),
 	io:format("DONE! Fun mass_verify/2 test passed~n"),
-	{true,List_of_structures} = mass_verify(return_list,Model_ver,List_of_structures),
-	true = mass_verify(return_boolean,Model_ver,List_of_structures),
-	false = mass_verify(return_list,Model_ver,List_of_structures_wrong),
+	{true,Structures} = mass_verify(return_list,Model_ver,Structures),
+	true = mass_verify(return_boolean,Model_ver,Structures),
+	false = mass_verify(return_list,Model_ver,Structures_wrong),
 	io:format("DONE! Fun mass_verify/3 test passed~n"),
+	{true,Reference1} = reference(Structures),
+	{true,Reference1} = reference(Structures,all),
+	{true,Reference1} = reference(Structures,all,[]),
+	{true,Reference2} = reference(Structures,[a,b,c,d],[]),
+	Value_one = [1,2,3],
+	Value_one = proplists:get_value(a,Reference2),
+	Value_one = proplists:get_value(a,Reference1),
+	Value_two = [one,two,three],
+	Value_two = proplists:get_value(b,Reference2),
+	Value_two = proplists:get_value(b,Reference1),
+	Value_three = [0.1],
+	Value_three = proplists:get_value(c,Reference2),
+	Value_three = proplists:get_value(c,Reference1),
+	Value_four = ["11","22"],
+	Value_four = proplists:get_value(d,Reference2),
+	Value_four = proplists:get_value(d,Reference1),
+	io:format("DONE! Fun reference/3 test passed: ~p~n",[Reference1]),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -89,6 +114,75 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Wrapper for reference/2
+-spec reference(Structures) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Reference :: proplists:proplist().
+
+reference(Structures) -> reference(Structures,all).
+
+
+%% ----------------------------
+%% @doc Wrapper for reference/3
+-spec reference(Structures,Positions) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference(Structures,Positions) -> reference(Structures,Positions,[]).
+
+
+%% ----------------------------
+%% @doc Generate reference
+-spec reference(Structures,Positions,Reference) ->
+	false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference(Structures,all,Reference) ->
+	[Etalon|_] = Structures,
+	a_structure_lib:reference(
+		?MODULE,Structures,gb_trees:keys(Etalon),Reference
+	);
+reference(Structures,Positions,Reference) ->
+	a_structure_lib:reference(
+		?MODULE,Structures,Positions,Reference
+	).
+
+
+%% ----------------------------
+%% @doc Wrapper for elements/3
+-spec elements(Positions,Structure) -> proplists:proplist()
+	when
+	Positions :: list_of_integers(),
+	Structure :: list().
+
+elements(Positions,Structure) -> elements(Positions,Structure,[]).
+
+
+%% ----------------------------
+%% @doc Return proplist within position-value pair of the structure
+-spec elements(Positions,Structure,Elements) -> proplists:proplist()
+	when
+	Positions :: list_of_integers(),
+	Structure :: list(),
+	Elements :: proplists:proplist().
+
+elements([],_,Elements) -> Elements;
+elements([Position|Positions],Structure,Elements) ->
+	elements(
+		Positions,Structure,
+		lists:append(Elements,[
+			{Position,gb_trees:get(Position,Structure)}
+		])
+	).
 
 
 %% ----------------------------
