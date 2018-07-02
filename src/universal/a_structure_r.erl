@@ -85,7 +85,12 @@ test() ->
 	Structures :: list(),
 	Reference :: proplists:proplist().
 
-reference(Structures) -> reference(Structures,all).
+reference(Structures) ->
+	case reference_handler(Structures) of
+		{true,Reference} ->
+			{true,[{Position - 1,Values} || {Position,Values} <- Reference]};
+		Result -> Result
+	end.
 
 
 %% ----------------------------
@@ -96,7 +101,12 @@ reference(Structures) -> reference(Structures,all).
 	Positions :: list() | all,
 	Reference :: proplists:proplist().
 
-reference(Structures,Positions) -> reference(Structures,Positions,[]).
+reference(Structures,Positions) ->
+	case reference_handler(Structures,Positions,[]) of
+		{true,Reference} ->
+			{true,[{Position - 1,Values} || {Position,Values} <- Reference]};
+		Result -> Result
+	end.
 
 
 %% ----------------------------
@@ -108,12 +118,51 @@ reference(Structures,Positions) -> reference(Structures,Positions,[]).
 	Positions :: list() | all,
 	Reference :: proplists:proplist().
 
-reference(Structures,all,Reference) ->
+reference(Structures,Positions,Reference) ->
+	case reference_handler(Structures,Positions,Reference) of
+		{true,Reference_out} ->
+			{true,[{Position - 1,Values} || {Position,Values} <- Reference_out]};
+		Result -> Result
+	end.
+
+
+%% ----------------------------
+%% @doc Wrapper for reference_handler/2
+-spec reference_handler(Structures) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Reference :: proplists:proplist().
+
+reference_handler(Structures) -> reference_handler(Structures,all).
+
+
+%% ----------------------------
+%% @doc Wrapper for reference_handler/3
+-spec reference_handler(Structures,Positions) -> false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference_handler(Structures,Positions) ->
+	reference_handler(Structures,Positions,[]).
+
+
+%% ----------------------------
+%% @doc Generate reference
+-spec reference_handler(Structures,Positions,Reference) ->
+	false | {true,Reference}
+	when
+	Structures :: list(),
+	Positions :: list() | all,
+	Reference :: proplists:proplist().
+
+reference_handler(Structures,all,Reference) ->
 	[Etalon|_] = Structures,
 	a_structure_lib:reference(
 		?MODULE,Structures,lists:seq(2,tuple_size(Etalon)),Reference
 	);
-reference(Structures,Positions,Reference) ->
+reference_handler(Structures,Positions,Reference) ->
 	a_structure_lib:reference(
 		?MODULE,Structures,
 		[Position + 1 || Position <- Positions],Reference
