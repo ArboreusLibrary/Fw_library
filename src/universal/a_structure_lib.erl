@@ -19,7 +19,8 @@
 %% API
 -export([
 	test/0,
-	reference/2,reference/3,reference/4
+	reference/2,reference/3,reference/4,
+	sort_handler/6
 ]).
 
 
@@ -42,6 +43,34 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Sorting structures procedure handler
+-spec sort_handler(Module,Positions,Check,Structures,Smaller,Larger) -> list()
+	when
+	Module :: module(),
+	Positions :: list_of_integers(),
+	Check :: list_of_values(),
+	Structures :: list() | proplists:proplist() | record() | tuple() | map() | gb_trees:tree(),
+	Smaller :: list(),
+	Larger :: list().
+
+sort_handler(Module,Positions,Check,[Structure|Structures],Smaller,Larger) ->
+	Structure_check = Module:sorting_elements_handler(Positions,Structure,[]),
+	case Structure_check =< Check of
+		true ->
+			sort_handler(
+				Module,Positions,Check,Structures,
+				[Structure|Smaller],Larger
+			);
+		false ->
+			sort_handler(
+				Module,Positions,Check,Structures,
+				Smaller,[Structure|Larger]
+			)
+	end;
+sort_handler(_,_,_,[],Smaller,Larger) -> {Smaller,Larger}.
 
 
 %% ----------------------------

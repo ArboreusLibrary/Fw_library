@@ -23,7 +23,8 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2
+	elements/2,
+	sort/2,sorting_elements_handler/3
 ]).
 
 
@@ -71,6 +72,17 @@ test() ->
 	{true,Reference1} = reference(Structures,all,[]),
 	{true,Reference1} = reference(Structures,[1,2,3,4],[]),
 	io:format("DONE! Fun reference/3 test passed: ~p~n",[Reference1]),
+	List_for_sorting = [
+		[one,1,2,3,7,4],[two,2,8,1,1,6],
+		[three,5,1,5,7,4],[four,3,2,3,7,4],
+		[five,4,2,3,7,4]
+	],
+	List_sorted = [
+		[one,1,2,3,7,4],[two,2,8,1,1,6],
+		[four,3,2,3,7,4],[five,4,2,3,7,4],
+		[three,5,1,5,7,4]],
+	List_sorted = sort({start,List_for_sorting},[2]),
+	io:format("DONE! Fun sort/2 test passed: ~p~n",[List_sorted]),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -79,6 +91,44 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Sorting structures by defined list of elements
+-spec sort(Structures,Positions) -> Structures | false
+	when
+	Structures :: list_of_lists(),
+	Positions :: list_of_integers().
+
+sort({start,Structures},Positions) ->
+	[Etalon|_] = Structures,
+	case mass_verify(model(verificator,Etalon),Structures) of
+		true -> sort(Structures,Positions);
+		Verification_result -> Verification_result
+	end;
+sort([Structure|Structures],Positions) ->
+	{Smaller,Larger} = a_structure_lib:sort_handler(
+		?MODULE,Positions,
+		sorting_elements_handler(Positions,Structure,[]),
+		Structures,[],[]
+	),
+	lists:append([sort(Smaller,Positions),[Structure],sort(Larger,Positions)]);
+sort([],_) -> [].
+
+
+%% ----------------------------
+%% @doc Making list of elements for sorting
+-spec sorting_elements_handler(Positions,Structure,Output) -> Output
+	when
+	Positions :: list_of_integers(),
+	Structure :: list(),
+	Output :: list().
+
+sorting_elements_handler([],_,Output) -> Output;
+sorting_elements_handler([Position|Positions],Structure,Output) ->
+	sorting_elements_handler(
+		Positions,Structure,lists:append(Output,[lists:nth(Position,Structure)])
+	).
 
 
 %% ----------------------------

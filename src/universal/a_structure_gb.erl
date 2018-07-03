@@ -23,7 +23,8 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2
+	elements/2,
+	sort/2,sorting_elements_handler/3
 ]).
 
 
@@ -42,17 +43,27 @@ test() ->
 	Gb_tree1_1 = gb_trees:insert(a,1,Gb_tree1_empty),
 	Gb_tree1_2 = gb_trees:insert(b,one,Gb_tree1_1),
 	Gb_tree1_3 = gb_trees:insert(c,0.1,Gb_tree1_2),
-	Gb_tree1 = gb_trees:insert(d,"11",Gb_tree1_3),
+	Gb_tree1 = gb_trees:insert(d,"22",Gb_tree1_3),
 	Gb_tree2_empty = gb_trees:empty(),
 	Gb_tree2_1 = gb_trees:insert(a,2,Gb_tree2_empty),
 	Gb_tree2_2 = gb_trees:insert(b,two,Gb_tree2_1),
 	Gb_tree2_3 = gb_trees:insert(c,0.1,Gb_tree2_2),
-	Gb_tree2 = gb_trees:insert(d,"11",Gb_tree2_3),
+	Gb_tree2 = gb_trees:insert(d,"22",Gb_tree2_3),
 	Gb_tree3_empty = gb_trees:empty(),
-	Gb_tree3_1 = gb_trees:insert(a,3,Gb_tree3_empty),
+	Gb_tree3_1 = gb_trees:insert(a,5,Gb_tree3_empty),
 	Gb_tree3_2 = gb_trees:insert(b,three,Gb_tree3_1),
 	Gb_tree3_3 = gb_trees:insert(c,0.1,Gb_tree3_2),
 	Gb_tree3 = gb_trees:insert(d,"22",Gb_tree3_3),
+	Gb_tree4_empty = gb_trees:empty(),
+	Gb_tree4_1 = gb_trees:insert(a,3,Gb_tree4_empty),
+	Gb_tree4_2 = gb_trees:insert(b,four,Gb_tree4_1),
+	Gb_tree4_3 = gb_trees:insert(c,0.1,Gb_tree4_2),
+	Gb_tree4 = gb_trees:insert(d,"22",Gb_tree4_3),
+	Gb_tree5_empty = gb_trees:empty(),
+	Gb_tree5_1 = gb_trees:insert(a,4,Gb_tree5_empty),
+	Gb_tree5_2 = gb_trees:insert(b,five,Gb_tree5_1),
+	Gb_tree5_3 = gb_trees:insert(c,0.1,Gb_tree5_2),
+	Gb_tree5 = gb_trees:insert(d,"22",Gb_tree5_3),
 	Gb_tree_wrong_empty = gb_trees:empty(),
 	Gb_tree_wrong_1 = gb_trees:insert(a,2,Gb_tree_wrong_empty),
 	Gb_tree_wrong_2 = gb_trees:insert(b,0,Gb_tree_wrong_1),
@@ -93,7 +104,7 @@ test() ->
 	{true,Reference1} = reference(Structures,all),
 	{true,Reference1} = reference(Structures,all,[]),
 	{true,Reference2} = reference(Structures,[a,b,c,d],[]),
-	Value_one = [1,2,3],
+	Value_one = [1,2,5],
 	Value_one = proplists:get_value(a,Reference2),
 	Value_one = proplists:get_value(a,Reference1),
 	Value_two = [one,two,three],
@@ -102,10 +113,15 @@ test() ->
 	Value_three = [0.1],
 	Value_three = proplists:get_value(c,Reference2),
 	Value_three = proplists:get_value(c,Reference1),
-	Value_four = ["11","22"],
+	Value_four = ["22"],
 	Value_four = proplists:get_value(d,Reference2),
 	Value_four = proplists:get_value(d,Reference1),
 	io:format("DONE! Fun reference/3 test passed: ~p~n",[Reference1]),
+	List_for_sorting = [Gb_tree1,Gb_tree2,Gb_tree3,Gb_tree4,Gb_tree5],
+	List_sorted = [Gb_tree1,Gb_tree2,Gb_tree4,Gb_tree5,Gb_tree3],
+	false = sort({start,List_for_sorting},[zero]),
+	List_sorted = sort({start,List_for_sorting},[a]),
+	io:format("DONE! Fun sort/2 test passed: ~p~n",[List_sorted]),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -114,6 +130,59 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Sorting structures by defined list of elements
+-spec sort(Structures,Positions) -> Structures | false
+	when
+	Structures :: list_of_lists(),
+	Positions :: list_of_integers().
+
+sort({start,Structures},Positions) ->
+	[Etalon|_] = Structures,
+	Model = model(verificator,Etalon),
+	case mass_verify(Model,Structures) of
+		true ->
+			Check_positions = fun
+				F([]) -> true;
+				F([F_position|F_positions]) ->
+					Check_position = try gb_trees:get(F_position,Model) catch _:_ -> false end,
+					case Check_position of
+						false -> false;
+						_ -> F(F_positions)
+					end
+			end,
+			case Check_positions(Positions) of
+				true -> sort(Structures,Positions);
+				_ -> false
+			end;
+		Verification_result -> Verification_result
+	end;
+sort([Structure|Structures],Positions) ->
+	{Smaller,Larger} = a_structure_lib:sort_handler(
+		?MODULE,Positions,
+		sorting_elements_handler(Positions,Structure,[]),
+		Structures,[],[]
+	),
+	lists:append([sort(Smaller,Positions),[Structure],sort(Larger,Positions)]);
+sort([],_) -> [].
+
+
+%% ----------------------------
+%% @doc Making list of elements for sorting
+-spec sorting_elements_handler(Positions,Structure,Output) -> Output
+	when
+	Positions :: list_of_integers(),
+	Structure :: list(),
+	Output :: list().
+
+sorting_elements_handler([],_,Output) -> Output;
+sorting_elements_handler([Position|Positions],Structure,Output) ->
+	sorting_elements_handler(
+		Positions,Structure,lists:append(Output,[
+			gb_trees:get(Position,Structure)
+		])).
 
 
 %% ----------------------------

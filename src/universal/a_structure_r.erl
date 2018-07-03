@@ -25,7 +25,8 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2
+	elements/2,
+	sort/2,sorting_elements_handler/3
 ]).
 
 
@@ -68,6 +69,22 @@ test() ->
 	{true,Reference1} = reference(Structures,all,[]),
 	{true,Reference1} = reference(Structures,[1,2,3,4],[]),
 	io:format("DONE! Fun reference/3 test passed: ~p~n",[Reference1]),
+	List_for_sorting = [
+		#test{one = 1,two = one},
+		#test{one = 2,two = two},
+		#test{one = 5,two = three},
+		#test{one = 3,two = four},
+		#test{one = 4,two = five}
+	],
+	List_sorted = [
+		{test,1,one,undefined,undefined},
+		{test,2,two,undefined,undefined},
+		{test,3,four,undefined,undefined},
+		{test,4,five,undefined,undefined},
+		{test,5,three,undefined,undefined}
+	],
+	List_sorted = sort({start,List_for_sorting},[1]),
+	io:format("DONE! Fun sort/2 test passed: ~p~n",[List_sorted]),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -76,6 +93,44 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Sorting structures by defined list of elements
+-spec sort(Structures,Positions) -> Structures | false
+	when
+	Structures :: list_of_records(),
+	Positions :: list_of_integers().
+
+sort({start,Structures},Positions) ->
+	[Etalon|_] = Structures,
+	case mass_verify(model(verificator,Etalon),Structures) of
+		true -> sort(Structures,Positions);
+		Verification_result -> Verification_result
+	end;
+sort([Structure|Structures],Positions) ->
+	{Smaller,Larger} = a_structure_lib:sort_handler(
+		?MODULE,Positions,
+		sorting_elements_handler(Positions,Structure,[]),
+		Structures,[],[]
+	),
+	lists:append([sort(Smaller,Positions),[Structure],sort(Larger,Positions)]);
+sort([],_) -> [].
+
+
+%% ----------------------------
+%% @doc Making list of elements for sorting
+-spec sorting_elements_handler(Positions,Structure,Output) -> Output
+	when
+	Positions :: list_of_integers(),
+	Structure :: record(),
+	Output :: list().
+
+sorting_elements_handler([],_,Output) -> Output;
+sorting_elements_handler([Position|Positions],Structure,Output) ->
+	sorting_elements_handler(
+		Positions,Structure,lists:append(Output,[element(Position + 1,Structure)])
+	).
 
 
 %% ----------------------------
