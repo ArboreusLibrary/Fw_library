@@ -24,7 +24,8 @@
 	model/2,
 	reference/1,reference/2,reference/3,
 	elements/2,
-	sort/2,sorting_elements_handler/3
+	sort/2,sorting_elements_handler/3,
+	values/3
 ]).
 
 
@@ -121,7 +122,23 @@ test() ->
 	List_sorted = [Gb_tree1,Gb_tree2,Gb_tree4,Gb_tree5,Gb_tree3],
 	false = sort({start,List_for_sorting},[zero]),
 	List_sorted = sort({start,List_for_sorting},[a]),
+	List_sorted = sort({start,List_for_sorting},all),
 	io:format("DONE! Fun sort/2 test passed: ~p~n",[List_sorted]),
+	[{a,[1,2,5,3,4]},
+		{b,[one,two,three,four,five]},
+		{c,[0.1,0.1,0.1,0.1,0.1]}] = values(List_for_sorting,[a,b,c],plain),
+	[{a,[1,2,5,3,4]},
+		{b,[one,two,three,four,five]},
+		{c,[0.1,0.1,0.1,0.1,0.1]},
+		{d,["22","22","22","22","22"]}] = values(List_for_sorting,all,plain),
+	[{a,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{b,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{c,[{1,0.1},{2,0.1},{3,0.1},{4,0.1},{5,0.1}]}] = values(List_for_sorting,[a,b,c],numbered),
+	[{a,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{b,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{c,[{1,0.1},{2,0.1},{3,0.1},{4,0.1},{5,0.1}]},
+		{d,[{1,"22"},{2,"22"},{3,"22"},{4,"22"},{5,"22"}]}] = values(List_for_sorting,all,numbered),
+	io:format("DONE! Fun values/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -133,12 +150,34 @@ test() ->
 
 
 %% ----------------------------
+%% @doc Return proplist within values of structures selected and grouped by positions
+-spec values(Structures,Positions,Kind) -> proplists:proplist()
+	when
+	Structures :: list_of_gb_trees(),
+	Positions :: list_of_values() | all,
+	Kind :: plain | numbered.
+
+values(Structures,all,Kind) ->
+	[Etalon|_] = Structures,
+	values(Structures,gb_trees:keys(Etalon),Kind);
+values(Structures,Positions,Kind) ->
+	a_structure_lib:values(?MODULE,Structures,Positions,Kind).
+
+
+%% ----------------------------
 %% @doc Sorting structures by defined list of elements
 -spec sort(Structures,Positions) -> Structures | false
 	when
-	Structures :: list_of_lists(),
-	Positions :: list_of_integers().
+	Structures :: list_of_gb_trees(),
+	Positions :: list_of_values() | all.
 
+sort({start,Structures},all) ->
+	[Etalon|_] = Structures,
+	Model = model(verificator,Etalon),
+	case mass_verify(Model,Structures) of
+		true -> sort(Structures,gb_trees:keys(Model));
+		Verification_result -> Verification_result
+	end;
 sort({start,Structures},Positions) ->
 	[Etalon|_] = Structures,
 	Model = model(verificator,Etalon),

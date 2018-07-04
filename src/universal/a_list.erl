@@ -24,7 +24,8 @@
 	clear_duplicates/1,
 	find_members/2,
 	compare_members/2,
-	exclude/2
+	exclude/2,
+	numerate/1
 ]).
 
 
@@ -33,6 +34,32 @@
 -spec test() -> ok.
 
 test() -> ok.
+
+
+%% ----------------------------
+%% @doc Numerate the list
+-spec numerate(List) -> list()
+	when
+	List :: list().
+
+numerate(List) ->
+	numerate_handler(List,1,[]).
+
+
+%% ----------------------------
+%% @doc Numerate procedure handler
+-spec numerate_handler(List,Count,Output) -> Output
+	when
+	List :: list(),
+	Count :: pos_integer(),
+	Output :: list().
+
+numerate_handler([],_,Output) -> Output;
+numerate_handler([Value|List],Count,Output) ->
+	numerate_handler(
+		List,Count + 1,
+		lists:append(Output,[{Count,Value}])
+	).
 
 
 %% ----------------------------

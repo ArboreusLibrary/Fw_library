@@ -20,7 +20,8 @@
 -export([
 	test/0,
 	reference/2,reference/3,reference/4,
-	sort_handler/6
+	sort_handler/6,
+	values/4
 ]).
 
 
@@ -28,21 +29,70 @@
 %% @doc Module test function
 -spec test() -> ok.
 
-test() ->
-	Time_start = a_time:current(timestamp),
-	io:format("*** -------------------~n"),
-	io:format(
-		"Module (a_structure_lib) testing started at:~n~p (~p)~n",
-		[a_time:from_timestamp(rfc850, Time_start), Time_start]
-	),
-	Time_stop = a_time:current(timestamp),
-	io:format("*** -------------------~n"),
-	io:format(
-		"Module (a_structure_lib) testing finished at:~n~p (~p)~n",
-		[a_time:from_timestamp(rfc850, Time_stop), Time_stop]
-	),
-	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
-	ok.
+test() -> ok.
+
+
+%% ----------------------------
+%% @doc Return proplist within values of structures selected and grouped by positions
+-spec values(Module,Structures,Positions,Kind) -> proplists:proplist()
+	when
+	Module :: module(),
+	Structures :: list(),
+	Positions :: list_of_values(),
+	Kind :: plain | numbered.
+
+values(Module,Structures,Positions,Kind) ->
+	[Etalon|_] = Structures,
+	case Module:mass_verify(Module:model(verificator,Etalon),Structures) of
+		true ->
+			Elements = fun
+				F2([],_,F2_output) -> F2_output;
+				F2([{F2_count,F2_structure}|F2_structures],F2_positions,F2_output) ->
+					F2(
+						F2_structures,F2_positions,
+						lists:append(F2_output,[{F2_count,Module:elements(Positions,F2_structure)}])
+					)
+			end,
+			values_handler(Kind,Elements(a_list:numerate(Structures),Positions,[]),[]);
+		Verification_result -> Verification_result
+	end.
+
+
+%% ----------------------------
+%% @doc The values procedure handler
+-spec values_handler(Kind,Structures,Output) -> Output
+	when
+	Kind :: plain | numbered,
+	Structures :: list(),
+	Output :: proplists:proplist().
+
+values_handler(_,[],Output) -> Output;
+values_handler(Kind,[{Structure_id,Elements}|Structures],[]) ->
+	values_handler(
+		Kind,Structures,
+		case Kind of
+			plain -> [{Position,[Value]} || {Position,Value} <- Elements];
+			_ -> [{Position,[{Structure_id,Value}]} || {Position,Value} <- Elements]
+		end
+	);
+values_handler(Kind,[{Structure_id,Elements}|Structures],Output) ->
+	Generate_output = fun
+		F([],F_output) -> F_output;
+		F([{F_position,F_value}|F_elements],F_output) ->
+			F(
+				F_elements,
+				lists:keyreplace(
+					F_position,1,F_output,
+					{F_position,lists:append(
+						proplists:get_value(F_position,F_output),
+						case Kind of
+							plain -> [F_value];
+							_ -> [{Structure_id,F_value}]
+						end
+				)})
+			)
+	end,
+	values_handler(Kind,Structures,Generate_output(Elements,Output)).
 
 
 %% ----------------------------

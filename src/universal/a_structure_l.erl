@@ -24,7 +24,8 @@
 	model/2,
 	reference/1,reference/2,reference/3,
 	elements/2,
-	sort/2,sorting_elements_handler/3
+	sort/2,sorting_elements_handler/3,
+	values/3
 ]).
 
 
@@ -81,8 +82,39 @@ test() ->
 		[one,1,2,3,7,4],[two,2,8,1,1,6],
 		[four,3,2,3,7,4],[five,4,2,3,7,4],
 		[three,5,1,5,7,4]],
+	List_sorted_all = [
+		[five,4,2,3,7,4],[four,3,2,3,7,4],
+		[one,1,2,3,7,4],[three,5,1,5,7,4],
+		[two,2,8,1,1,6]
+	],
 	List_sorted = sort({start,List_for_sorting},[2]),
+	List_sorted_all = sort({start,List_for_sorting},all),
 	io:format("DONE! Fun sort/2 test passed: ~p~n",[List_sorted]),
+	List_values_plain = [
+		{1,[one,two,three,four,five]},
+		{2,[1,2,5,3,4]},
+		{3,[2,8,1,2,2]}
+	],
+	List_values_numbered = [
+		{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{2,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]}
+	],
+	List_values_plain = values(List_for_sorting,[1,2,3],plain),
+	[{1,[one,two,three,four,five]},
+		{2,[1,2,5,3,4]},
+		{3,[2,8,1,2,2]},
+		{4,[3,1,5,3,3]},
+		{5,[7,1,7,7,7]},
+		{6,[4,6,4,4,4]}] = values(List_for_sorting,all,plain),
+	List_values_numbered = values(List_for_sorting,[1,2,3],numbered),
+	[{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{2,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]},
+		{4,[{1,3},{2,1},{3,5},{4,3},{5,3}]},
+		{5,[{1,7},{2,1},{3,7},{4,7},{5,7}]},
+		{6,[{1,4},{2,6},{3,4},{4,4},{5,4}]}] = values(List_for_sorting,all,numbered),
+	io:format("DONE! Fun values/3 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -94,12 +126,33 @@ test() ->
 
 
 %% ----------------------------
+%% @doc Return proplist within values of structures selected and grouped by positions
+-spec values(Structures,Positions,Kind) -> proplists:proplist()
+	when
+	Structures :: list_of_lists(),
+	Positions :: list_of_integers() | all,
+	Kind :: plain | numbered.
+
+values(Structures,all,Kind) ->
+	[Etalon|_] = Structures,
+	values(Structures,lists:seq(1,length(Etalon)),Kind);
+values(Structures,Positions,Kind) ->
+	a_structure_lib:values(?MODULE,Structures,Positions,Kind).
+
+
+%% ----------------------------
 %% @doc Sorting structures by defined list of elements
 -spec sort(Structures,Positions) -> Structures | false
 	when
 	Structures :: list_of_lists(),
-	Positions :: list_of_integers().
+	Positions :: list_of_integers() | all.
 
+sort({start,Structures},all) ->
+	[Etalon|_] = Structures,
+	case mass_verify(model(verificator,Etalon),Structures) of
+		true -> sort(Structures,lists:seq(1,length(Etalon)));
+		Verification_result -> Verification_result
+	end;
 sort({start,Structures},Positions) ->
 	[Etalon|_] = Structures,
 	case mass_verify(model(verificator,Etalon),Structures) of
