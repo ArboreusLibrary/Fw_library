@@ -23,9 +23,10 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2,
+	elements/1,elements/2,
 	sort/2,sorting_elements_handler/3,
-	values/3
+	values/3,
+	rotate/2
 ]).
 
 
@@ -101,20 +102,27 @@ test() ->
 		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]}
 	],
 	List_values_plain = values(List_for_sorting,[1,2,3],plain),
-	[{1,[one,two,three,four,five]},
+	Result_all_plain = [{1,[one,two,three,four,five]},
 		{2,[1,2,5,3,4]},
 		{3,[2,8,1,2,2]},
 		{4,[3,1,5,3,3]},
 		{5,[7,1,7,7,7]},
-		{6,[4,6,4,4,4]}] = values(List_for_sorting,all,plain),
+		{6,[4,6,4,4,4]}],
+	Result_all_plain = values(List_for_sorting,all,plain),
 	List_values_numbered = values(List_for_sorting,[1,2,3],numbered),
-	[{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+	Result_all_numbered = [{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
 		{2,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
 		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]},
 		{4,[{1,3},{2,1},{3,5},{4,3},{5,3}]},
 		{5,[{1,7},{2,1},{3,7},{4,7},{5,7}]},
-		{6,[{1,4},{2,6},{3,4},{4,4},{5,4}]}] = values(List_for_sorting,all,numbered),
+		{6,[{1,4},{2,6},{3,4},{4,4},{5,4}]}],
+	Result_all_numbered = values(List_for_sorting,all,numbered),
 	io:format("DONE! Fun values/3 test passed~n"),
+	Result_all_plain = rotate({numbered,a_list:numerate(List_for_sorting)},plain),
+	Result_all_numbered = rotate({numbered,a_list:numerate(List_for_sorting)},numbered),
+	Result_all_plain = rotate(List_for_sorting,plain),
+	Result_all_numbered = rotate(List_for_sorting,numbered),
+	io:format("DONE! Fun rotate/2 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -126,10 +134,68 @@ test() ->
 
 
 %% ----------------------------
+%% @doc Rotate structures
+-spec rotate(Structures,Kind) -> proplists:proplist() | false
+	when
+	Structures :: {numbered,[{pos_integer(),any()}]} | list(),
+	Kind :: plain | numbered.
+
+rotate({numbered,Structures},Kind) ->
+	rotate_handler(Structures,Kind,[]);
+rotate(Structures,Kind) ->
+	[Etalon|_] = Structures,
+	case mass_verify(return_boolean,model(verificator,Etalon),Structures) of
+		true -> rotate({numbered,a_list:numerate(Structures)},Kind);
+		Verification_result -> Verification_result
+	end.
+
+
+%% ----------------------------
+%% @doc Rotate structures functionality handler
+-spec rotate_handler(Structures,Kind,Output) -> Output
+	when
+	Structures :: [{Id,Structure}],
+	Id :: pos_integer(),
+	Structure :: list(),
+	Kind :: plain | numbered,
+	Output :: proplists:proplist().
+
+rotate_handler([],_,Output) -> Output;
+rotate_handler([{Id,Structure}|Structures],Kind,[]) ->
+	Generate_output_p1 = fun
+		F([],_,_,_,F_output) -> F_output;
+		F([F_element|F_elements],F_kind,F_id,F_counter,F_output) ->
+			F(F_elements,F_kind,F_id,F_counter + 1,lists:append(
+				F_output,[{F_counter,[case F_kind of
+					plain -> F_element;
+					_ -> {F_id,F_element}
+				end]}]
+			))
+	end,
+	rotate_handler(Structures,Kind,Generate_output_p1(Structure,Kind,Id,1,[]));
+rotate_handler([{Id,Structure}|Structures],Kind,Output) ->
+	Generate_output_p2 = fun
+		F([],_,_,_,F_output) -> F_output;
+		F([F_element|F_elements],F_kind,F_id,F_counter,F_output) ->
+			F(F_elements,F_kind,F_id,F_counter + 1,lists:keyreplace(
+				F_counter,1,F_output,{F_counter,lists:append(
+					proplists:get_value(F_counter,F_output),case F_kind of
+						plain -> [F_element];
+						_ -> [{F_id,F_element}]
+					end)}
+			))
+	end,
+	rotate_handler(
+		Structures,Kind,
+		Generate_output_p2(Structure,Kind,Id,1,Output)
+	).
+
+
+%% ----------------------------
 %% @doc Return proplist within values of structures selected and grouped by positions
 -spec values(Structures,Positions,Kind) -> proplists:proplist()
 	when
-	Structures :: list_of_lists(),
+	Structures :: {numerated,list_numerated()} | list(),
 	Positions :: list_of_integers() | all,
 	Kind :: plain | numbered.
 
@@ -223,6 +289,16 @@ reference(Structures,Positions,Reference) ->
 	a_structure_lib:reference(
 		?MODULE,Structures,Positions,Reference
 	).
+
+
+%% ----------------------------
+%% @doc Wrapper for elements/2
+-spec elements(Structure) -> proplists:proplist()
+	when
+	Structure :: list().
+
+elements(Structure) ->
+	elements(lists:seq(1,length(Structure)),Structure,[]).
 
 
 %% ----------------------------

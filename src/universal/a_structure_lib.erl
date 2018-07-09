@@ -37,10 +37,20 @@ test() -> ok.
 -spec values(Module,Structures,Positions,Kind) -> proplists:proplist()
 	when
 	Module :: module(),
-	Structures :: list(),
+	Structures :: {numbered,list_numerated()} | list(),
 	Positions :: list_of_values(),
 	Kind :: plain | numbered.
 
+values(Module,{numbered,Structures},Positions,Kind) ->
+	Elements = fun
+		F2([],_,F2_output) -> F2_output;
+		F2([{F2_count,F2_structure}|F2_structures],F2_positions,F2_output) ->
+			F2(
+				F2_structures,F2_positions,
+				lists:append(F2_output,[{F2_count,Module:elements(Positions,F2_structure)}])
+			)
+	end,
+	values_handler(Kind,Elements(Structures,Positions,[]),[]);
 values(Module,Structures,Positions,Kind) ->
 	[Etalon|_] = Structures,
 	case Module:mass_verify(Module:model(verificator,Etalon),Structures) of

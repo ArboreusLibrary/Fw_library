@@ -23,12 +23,7 @@
 	test/0,
 	model/2,
 	verify/3,mass_verify/3,
-	sum_lists/1,
-	sum_tuples/1,
-	sum_records/1,
-	sum_proplists/1,
-	sum_maps/1,
-	sum_gb_trees/1
+	sum/2
 ]).
 
 
@@ -64,9 +59,9 @@ test() ->
 	{true,Matrix_list2} = verify(list,Model_list,Matrix_list2),
 	{true,Matrix_list3} = verify(list,Model_list,Matrix_list3),
 	false = verify(list,Model_list,Matrix_list_wrong),
-	{true,Matrices_list} = mass_verify(list,Model_list,Matrices_list),
-	false = mass_verify(list,Model_list,Matrices_list_wrong),
-	{true,Matrix_sum_list} = sum_lists(Matrices_list),
+	{true,Matrices_list} = mass_verify(lists,Model_list,Matrices_list),
+	false = mass_verify(lists,Model_list,Matrices_list_wrong),
+	{true,Matrix_sum_list} = sum(lists,Matrices_list),
 	io:format("DONE! Testing list based matrixes finished~n"),
 	
 	Matrix_tuple1 = {1,1,1,1},
@@ -80,9 +75,9 @@ test() ->
 	{true,Matrix_tuple2} = verify(tuple,Model_tuple,Matrix_tuple2),
 	{true,Matrix_tuple3} = verify(tuple,Model_tuple,Matrix_tuple3),
 	false = verify(tuple,Model_tuple,Matrix_tuple_wrong),
-	{true,Matrices_tuple} = mass_verify(tuple,Model_tuple,Matrices_tuple),
-	false = mass_verify(tuple,Model_list,Matrices_tuple_wrong),
-	{true,Matrix_sum_tuple} = sum_tuples(Matrices_tuple),
+	{true,Matrices_tuple} = mass_verify(tuples,Model_tuple,Matrices_tuple),
+	false = mass_verify(tuples,Model_list,Matrices_tuple_wrong),
+	{true,Matrix_sum_tuple} = sum(tuples,Matrices_tuple),
 	io:format("DONE! Testing tuple based matrixes finished~n"),
 	
 	Matrix_record1 = #test_matrix{a = 1,b = 1,c = 1,d = 1},
@@ -96,9 +91,9 @@ test() ->
 	{true,Matrix_record2} = verify(record,Model_record,Matrix_record2),
 	{true,Matrix_record3} = verify(record,Model_record,Matrix_record3),
 	false = verify(record,Model_record,Matrix_record_wrong),
-	{true,Matrices_record} = mass_verify(record,Model_record,Matrices_record),
-	false = mass_verify(record,Model_list,Matrices_record_wrong),
-	{true,Matrix_sum_record} = sum_records(Matrices_record),
+	{true,Matrices_record} = mass_verify(records,Model_record,Matrices_record),
+	false = mass_verify(records,Model_list,Matrices_record_wrong),
+	{true,Matrix_sum_record} = sum(records,Matrices_record),
 	io:format("DONE! Testing record based matrixes finished~n"),
 	
 	Matrix_proplist1 = [{a,1},{b,1},{c,1},{d,1}],
@@ -112,9 +107,9 @@ test() ->
 	{true,Matrix_proplist2} = verify(proplist,Model_proplist,Matrix_proplist2),
 	{true,Matrix_proplist3} = verify(proplist,Model_proplist,Matrix_proplist3),
 	false = verify(proplist,Model_proplist,Matrix_proplist_wrong),
-	{true,Matrices_proplist} = mass_verify(proplist,Model_proplist,Matrices_proplist),
-	false = mass_verify(proplist,Model_list,Matrices_proplist_wrong),
-	{true,Matrix_sum_proplist} = sum_proplists(Matrices_proplist),
+	{true,Matrices_proplist} = mass_verify(proplists,Model_proplist,Matrices_proplist),
+	false = mass_verify(proplists,Model_list,Matrices_proplist_wrong),
+	{true,Matrix_sum_proplist} = sum(proplists,Matrices_proplist),
 	io:format("DONE! Testing proplist based matrixes finished~n"),
 	
 	Matrix_map1 = maps:from_list(Matrix_proplist1),
@@ -128,9 +123,9 @@ test() ->
 	{true,Matrix_map2} = verify(map,Model_map,Matrix_map2),
 	{true,Matrix_map3} = verify(map,Model_map,Matrix_map3),
 	false = verify(map,Model_map,Matrix_map_wrong),
-	{true,Matrices_map} = mass_verify(map,Model_map,Matrices_map),
-	false = mass_verify(map,Model_list,Matrices_map_wrong),
-	{true,Matrix_sum_map} = sum_maps(Matrices_map),
+	{true,Matrices_map} = mass_verify(maps,Model_map,Matrices_map),
+	false = mass_verify(maps,Model_list,Matrices_map_wrong),
+	{true,Matrix_sum_map} = sum(maps,Matrices_map),
 	io:format("DONE! Testing map based matrixes finished~n"),
 	
 	Matrix_gb1 = gb_trees:from_orddict(Matrix_proplist1),
@@ -144,9 +139,9 @@ test() ->
 	{true,Matrix_gb2} = verify(gb_tree,Model_gb,Matrix_gb2),
 	{true,Matrix_gb3} = verify(gb_tree,Model_gb,Matrix_gb3),
 	false = verify(gb_tree,Model_gb,Matrix_gb_wrong),
-	{true,Matrices_gb} = mass_verify(gb_tree,Model_gb,Matrices_gb),
-	false = mass_verify(gb_tree,Model_list,Matrices_gb_wrong),
-	{true,Matrix_sum_gb} = sum_gb_trees(Matrices_gb),
+	{true,Matrices_gb} = mass_verify(gb_trees,Model_gb,Matrices_gb),
+	false = mass_verify(gb_trees,Model_list,Matrices_gb_wrong),
+	{true,Matrix_sum_gb} = sum(gb_trees,Matrices_gb),
 	io:format("DONE! Testing binary trees based matrixes finished~n"),
 	
 	Time_stop = a_time:current(timestamp),
@@ -157,6 +152,39 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+%% ----------------------------
+%% @doc
+
+percentage_lists({simple,Matrices}) ->
+	Numerated_matrices = a_list:numerate(Matrices),
+	Values = a_structure_l:values(Numerated_matrices,all,numbered),
+	percentage_lists_handler(
+		a_structure_l:values(Numerated_matrices,all,numbered),[]
+	);
+percentage_lists(Matrices) ->
+	[Etalon|_] = Matrices,
+	case mass_verify(
+		list,a_structure_l:model(
+			verificator,
+			lists:duplicate(length(Etalon),1)
+		),Matrices
+	) of
+		{true,Matrices} -> percentage_lists({simple,Matrices});
+		Verification_result -> Verification_result
+	end.
+	
+
+
+%% ----------------------------
+%% @doc
+
+sum(gb_trees,Matrices) -> sum_gb_trees(Matrices);
+sum(maps,Matrices) -> sum_maps(Matrices);
+sum(proplists,Matrices) -> sum_proplists(Matrices);
+sum(records,Matrices) -> sum_records(Matrices);
+sum(tuples,Matrices) -> sum_tuples(Matrices);
+sum(lists,Matrices) -> sum_lists(Matrices).
 
 
 %% ----------------------------
@@ -409,7 +437,7 @@ sum_2_lists(List1,List2) ->
 %% @doc Matrices massive verification
 -spec mass_verify(Kind,Model,Matrices) -> {true,Matrices} | false
 	when
-	Kind :: list | tuple | record | proplists | map | gb_tree,
+	Kind :: lists | tuples | records | proplists | maps | gb_trees,
 	Model :: list() | tuple() | record() | proplists:proplist() | map() | gb_trees:tree(),
 	Matrices :: list().
 
@@ -421,14 +449,24 @@ mass_verify(Kind,Model,Matrices) ->
 %% @doc Matrices massive verification procedure handler
 -spec mass_verify_handler(Kind,Model,Matrices,Output) -> {true,Matrices} | false
 	when
-	Kind :: list | tuple | record | proplists | map | gb_tree,
+	Kind :: lists | tuples | records | proplists | maps | gb_trees,
 	Model :: list() | tuple() | record() | proplists:proplist() | map() | gb_trees:tree(),
 	Matrices :: list(),
 	Output :: list().
 
 mass_verify_handler(_,_,[],Output) -> {true,Output};
 mass_verify_handler(Kind,Model,[Matrix|Matrices],Output) ->
-	case verify(Kind,Model,Matrix) of
+	case verify(
+		case Kind of
+			lists -> list;
+			tuples -> tuple;
+			records -> record;
+			proplists -> proplist;
+			maps -> map;
+			gb_trees -> gb_tree
+		end,
+		Model,Matrix
+	) of
 		{true,Matrix} ->
 			mass_verify_handler(
 				Kind,Model,Matrices,
@@ -442,7 +480,7 @@ mass_verify_handler(Kind,Model,[Matrix|Matrices],Output) ->
 %% @doc Verify matrix
 -spec verify(Kind,Model,Matrix) -> {true,Matrix} | false
 	when
-	Kind :: list | tuple | record | proplists | map | gb_tree,
+	Kind :: list | tuple | record | proplist | map | gb_tree,
 	Model :: list() | tuple() | record() | proplists:proplist() | map() | gb_trees:tree(),
 	Matrix :: list() | tuple() | record() | proplists:proplist() | map() | gb_trees:tree().
 

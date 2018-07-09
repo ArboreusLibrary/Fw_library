@@ -23,9 +23,10 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2,
+	elements/1,elements/2,
 	sort/2,sorting_elements_handler/3,
-	values/3
+	values/3,
+	rotate/2
 ]).
 
 
@@ -91,22 +92,31 @@ test() ->
 	[{1,[one,two,three,four,five]},
 		{2,[1,2,5,3,4]},
 		{3,[2,8,1,2,2]}] = values(List_for_sorting,[1,2,3],plain),
-	[{1,[one,two,three,four,five]},
+	Result_all_plain = [{1,[one,two,three,four,five]},
 		{2,[1,2,5,3,4]},
 		{3,[2,8,1,2,2]},
 		{4,[3,1,5,3,3]},
 		{5,[7,1,7,7,7]},
-		{6,[4,6,4,4,4]}] = values(List_for_sorting,all,plain),
+		{6,[4,6,4,4,4]}],
+	Result_all_plain = values(List_for_sorting,all,plain),
 	[{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
 		{2,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
 		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]}] = values(List_for_sorting,[1,2,3],numbered),
-	[{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+	Result_all_numbered = [{1,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
 		{2,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
 		{3,[{1,2},{2,8},{3,1},{4,2},{5,2}]},
 		{4,[{1,3},{2,1},{3,5},{4,3},{5,3}]},
 		{5,[{1,7},{2,1},{3,7},{4,7},{5,7}]},
-		{6,[{1,4},{2,6},{3,4},{4,4},{5,4}]}] = values(List_for_sorting,all,numbered),
+		{6,[{1,4},{2,6},{3,4},{4,4},{5,4}]}],
+	Result_all_numbered = values(List_for_sorting,all,numbered),
 	io:format("DONE! Fun values/3 test passed~n"),
+	Model3 = model(verificator,{one,1,2,3,7,4}),
+	true = mass_verify(Model3,List_for_sorting),
+	Result_all_plain = rotate({numbered,a_list:numerate(List_for_sorting)},plain),
+	Result_all_numbered = rotate({numbered,a_list:numerate(List_for_sorting)},numbered),
+	Result_all_plain = rotate(List_for_sorting,plain),
+	Result_all_numbered = rotate(List_for_sorting,numbered),
+	io:format("DONE! Fun rotate/2 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -115,6 +125,61 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Rotate structures
+-spec rotate(Structures,Kind) -> proplists:proplist() | false
+	when
+	Structures :: {numbered,[{pos_integer(),tuple()}]} | list(),
+	Kind :: plain | numbered.
+
+rotate({numbered,Structures},Kind) ->
+	rotate_handler(Structures,Kind,[]);
+rotate(Structures,Kind) ->
+	[Etalon|_] = Structures,
+	case mass_verify(model(verificator,Etalon),Structures) of
+		true -> rotate({numbered,a_list:numerate(Structures)},Kind);
+		Verification_result -> Verification_result
+	end.
+
+
+%% ----------------------------
+%% @doc Rotate structures functionality handler
+-spec rotate_handler(Structures,Kind,Output) -> Output
+	when
+	Structures :: [{Id,tuple()}],
+	Id :: pos_integer(),
+	Kind :: plain | numbered,
+	Output :: proplists:proplist().
+
+rotate_handler([],_,Output) -> Output;
+rotate_handler([{Id,Structure}|Structures],Kind,[]) ->
+	rotate_handler(
+		Structures,Kind,
+		a_list:numerate(case Kind of
+			plain -> [[Element] || Element <- tuple_to_list(Structure)];
+			_ -> [[{Id,Element}] || Element <- tuple_to_list(Structure)]
+		end)
+	);
+rotate_handler([{Id,Structure}|Structures],Kind,Output) ->
+	Generate_output_p2 = fun
+		F(_,F_counter,F_length,F_output) when F_counter == F_length + 1 -> F_output;
+		F(F_structure,F_counter,F_length,F_output) ->
+			F(F_structure,F_counter + 1,F_length,lists:keyreplace(
+				F_counter,1,F_output,{F_counter,lists:append(
+					proplists:get_value(F_counter,F_output),
+					case Kind of
+						plain -> [element(F_counter,F_structure)];
+						_ -> [{Id,element(F_counter,F_structure)}]
+					end
+				)}
+			))
+	end,
+	rotate_handler(
+		Structures,Kind,
+		Generate_output_p2(Structure,1,tuple_size(Structure),Output)
+	).
 
 
 %% ----------------------------
@@ -218,6 +283,16 @@ reference(Structures,Positions,Reference) ->
 
 
 %% ----------------------------
+%% @doc Wrapper for elements/2
+-spec elements(Structure) -> proplists:proplist()
+	when
+	Structure :: list().
+
+elements(Structure) ->
+	elements(lists:seq(1,tuple_size(Structure)),Structure,[]).
+
+
+%% ----------------------------
 %% @doc Wrapper for elements/3
 -spec elements(Positions,Structure) -> proplists:proplist()
 	when
@@ -260,10 +335,10 @@ model(Kind,Structure) ->
 
 %% ----------------------------
 %% @doc The structures massive verification
--spec mass_verify(List_of_structures,Model) -> boolean()
+-spec mass_verify(Model,List_of_structures) -> boolean()
 	when
-	List_of_structures :: list_of_tuples(),
-	Model :: tuple().
+	Model :: tuple(),
+	List_of_structures :: list_of_tuples().
 
 mass_verify([],[]) -> true;
 mass_verify(_,[]) -> false;

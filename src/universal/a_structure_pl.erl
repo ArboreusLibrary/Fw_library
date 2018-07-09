@@ -23,9 +23,10 @@
 	mass_verify/2,mass_verify/3,
 	model/2,
 	reference/1,reference/2,reference/3,
-	elements/2,
+	elements/1,elements/2,
 	sort/2,sorting_elements_handler/3,
-	values/3
+	values/3,
+	rotate/2
 ]).
 
 
@@ -128,6 +129,23 @@ test() ->
 		{three,[{1,0.1},{2,0.1},{3,0.1},{4,0.1},{5,0.1}]},
 		{two,[{1,1},{2,2},{3,5},{4,3},{5,4}]}] = values(List_for_sorting,all,numbered),
 	io:format("DONE! values/3 test passed~n"),
+	[{one,[one,two,three,four,five]},
+		{two,[1,2,5,3,4]},
+		{three,[0.1,0.1,0.1,0.1,0.1]},
+		{four,["11","11","11","11","11"]}] = rotate({numbered,a_list:numerate(List_for_sorting)},plain),
+	[{one,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{two,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{three,[{1,0.1},{2,0.1},{3,0.1},{4,0.1},{5,0.1}]},
+		{four,[{1,"11"},{2,"11"},{3,"11"},{4,"11"},{5,"11"}]}] = rotate({numbered,a_list:numerate(List_for_sorting)},numbered),
+	[{one,[one,two,three,four,five]},
+		{two,[1,2,5,3,4]},
+		{three,[0.1,0.1,0.1,0.1,0.1]},
+		{four,["11","11","11","11","11"]}] = rotate(List_for_sorting,plain),
+	[{one,[{1,one},{2,two},{3,three},{4,four},{5,five}]},
+		{two,[{1,1},{2,2},{3,5},{4,3},{5,4}]},
+		{three,[{1,0.1},{2,0.1},{3,0.1},{4,0.1},{5,0.1}]},
+		{four,[{1,"11"},{2,"11"},{3,"11"},{4,"11"},{5,"11"}]}] = rotate(List_for_sorting,numbered),
+	io:format("DONE! Fun rotate/2 test passed~n"),
 	Time_stop = a_time:current(timestamp),
 	io:format("*** -------------------~n"),
 	io:format(
@@ -136,6 +154,60 @@ test() ->
 	),
 	io:format("Test time is: ~p~n", [Time_stop - Time_start]),
 	ok.
+
+
+%% ----------------------------
+%% @doc Rotate structures
+-spec rotate(Structures,Kind) -> proplists:proplist() | false
+	when
+	Structures :: {numbered,[{pos_integer(),proplists:proplist()}]} | list(),
+	Kind :: plain | numbered.
+
+rotate({numbered,Structures},Kind) ->
+	rotate_handler(Structures,Kind,[]);
+rotate(Structures,Kind) ->
+	[Etalon|_] = Structures,
+	case mass_verify(model(verificator,Etalon),Structures) of
+		true -> rotate({numbered,a_list:numerate(Structures)},Kind);
+		Verification_result -> Verification_result
+	end.
+
+
+%% ----------------------------
+%% @doc Rotate structures functionality handler
+-spec rotate_handler(Structures,Kind,Output) -> Output
+	when
+	Structures :: [{Id,proplists:proplist()}],
+	Id :: pos_integer(),
+	Kind :: plain | numbered,
+	Output :: proplists:proplist().
+
+rotate_handler([],_,Output) -> Output;
+rotate_handler([{Id,Structure}|Structures],Kind,[]) ->
+	rotate_handler(
+		Structures,Kind,
+		[{Position,case Kind of
+			plain -> [Value];
+			_ -> [{Id,Value}]
+		end} || {Position,Value} <- Structure]
+	);
+rotate_handler([{Id,Structure}|Structures],Kind,Output) ->
+	Generate_output_p2 = fun
+		F([],F_output) -> F_output;
+		F([{F_position,F_value}|F_elements],F_output) ->
+			F(F_elements,lists:keyreplace(
+				F_position,1,F_output,{F_position,lists:append(
+					proplists:get_value(F_position,F_output),
+					case Kind of
+						plain -> [F_value];
+						_ -> [{Id,F_value}]
+					end
+				)}
+			))
+	end,
+	rotate_handler(
+		Structures,Kind,Generate_output_p2(Structure,Output)
+	).
 
 
 %% ----------------------------
@@ -255,9 +327,18 @@ reference(Structures,Positions,Reference) ->
 
 %% ----------------------------
 %% @doc Wrapper for elements/3
+-spec elements(Structure) -> proplists:proplist()
+	when
+	Structure :: list().
+
+elements(Structure) -> elements(proplists:get_keys(Structure),Structure,[]).
+
+
+%% ----------------------------
+%% @doc Wrapper for elements/3
 -spec elements(Positions,Structure) -> proplists:proplist()
 	when
-	Positions :: list_of_integers(),
+	Positions :: list_of_atoms(),
 	Structure :: list().
 
 elements(Positions,Structure) -> elements(Positions,Structure,[]).
@@ -267,7 +348,7 @@ elements(Positions,Structure) -> elements(Positions,Structure,[]).
 %% @doc Return proplist within position-value pair of the structure
 -spec elements(Positions,Structure,Elements) -> proplists:proplist()
 	when
-	Positions :: list_of_integers(),
+	Positions :: list_of_atoms(),
 	Structure :: list(),
 	Elements :: proplists:proplist().
 
