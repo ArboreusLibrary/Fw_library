@@ -21,7 +21,9 @@ MODULES += universal
 MODULES += yaws_addons
 MODULES += handlers
 MODULES += a_loger
+MODULES += a_numbers
 MODULES += a_structure_tree
+MODULES += a_structure
 MODULES += a_event_storage
 MODULES += a_users
 

@@ -53,6 +53,7 @@
 -type list_of_maps() :: [map()].
 -type list_of_gb_trees() :: [gb_trees:tree()].
 -type list_of_proplists() :: [proplists:proplist()].
+-type list_of_numbers() :: [number()].
 
 -type a_byte_8() :: 0..255.
 -type a_byte_16() :: 0..16#ffffff.
