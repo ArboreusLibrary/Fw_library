@@ -200,7 +200,7 @@ values(Structures,all,Kind) ->
 	[Etalon|_] = Structures,
 	values(Structures,lists:seq(1,tuple_size(Etalon) - 1),Kind);
 values(Structures,Positions,Kind) ->
-	[{Position - 1, Values} || {Position,Values} <- a_structure_lib:values(
+	[{Position - 1, Values} || {Position,Values} <- a_structure:values(
 		?MODULE,Structures,
 		[Position + 1 || Position <- Positions],Kind
 	)].
@@ -226,7 +226,7 @@ sort({start,Structures},Positions) ->
 		Verification_result -> Verification_result
 	end;
 sort([Structure|Structures],Positions) ->
-	{Smaller,Larger} = a_structure_lib:sort_handler(
+	{Smaller,Larger} = a_structure:sort_handler(
 		?MODULE,Positions,
 		sorting_elements_handler(Positions,Structure,[]),
 		Structures,[],[]
@@ -331,11 +331,11 @@ reference_handler(Structures,Positions) ->
 
 reference_handler(Structures,all,Reference) ->
 	[Etalon|_] = Structures,
-	a_structure_lib:reference(
+	a_structure:reference(
 		?MODULE,Structures,lists:seq(2,tuple_size(Etalon)),Reference
 	);
 reference_handler(Structures,Positions,Reference) ->
-	a_structure_lib:reference(
+	a_structure:reference(
 		?MODULE,Structures,
 		[Position + 1 || Position <- Positions],Reference
 	).

@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 07/02/2018 at 14:47
 %%%-------------------------------------------------------------------
--module(a_structure_lib).
+-module(a_structure).
 -author("Alexandr KIRILOV, http://alexandr.kirilov.me").
 
 %% Constants
